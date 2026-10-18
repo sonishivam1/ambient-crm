@@ -1,0 +1,21 @@
+# Local development database only. Atlas Local gives a single-node replica set
+# (so transactions work) plus Atlas Search and Vector Search, matching the
+# features the CRM needs in production.
+services:
+  mongo:
+    image: mongodb/mongodb-atlas-local:8.0
+    container_name: ambient-crm-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ambient-crm-mongo-data:/data/db
+      - ambient-crm-mongo-config:/data/configdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  ambient-crm-mongo-data:
+  ambient-crm-mongo-config:

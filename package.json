@@ -1,0 +1,19 @@
+{
+  "name": "ambient-crm",
+  "private": true,
+  "packageManager": "pnpm@10.25.0",
+  "engines": {
+    "node": ">=24.11"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:up": "docker compose up -d mongo",
+    "db:down": "docker compose down",
+    "db:seed": "pnpm --filter @ambient/db seed",
+    "db:indexes": "pnpm --filter @ambient/db indexes"
+  }
+}
