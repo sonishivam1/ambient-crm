@@ -1,0 +1,46 @@
+# Operations
+
+How Ambient is watched and what to do when something goes wrong. Most of this
+is **planned** and lands with deployment and the background workers.
+
+## What we watch
+
+| Signal | Source | Alert when |
+| --- | --- | --- |
+| Web errors and latency | Host logs and metrics | error rate or p95 latency above threshold |
+| Capture liveness | Mailbox and calendar cursors (`lastSuccessAt`) | a mailbox has not advanced for 30 minutes |
+| Sync health | `syncRuns` (one row per dataset per run) | any dataset `failed` or `aborted` |
+| AI cost and errors | `aiInvocations` | tenant over daily budget; error rate spike |
+| Database | Atlas metrics | storage, connections or slow queries over threshold |
+
+## Backups
+
+Atlas cloud backups with point-in-time restore on staging and production
+clusters. A restore is rehearsed before launch and then quarterly.
+
+## Runbooks
+
+### A credential was exposed
+1. Rotate it at the source (Atlas → Database Access, provider console, Entra app).
+2. Update the value in every environment's settings and local `.env` files.
+3. Check access logs for use of the old value.
+4. If it was committed, rotate first, then remove it from history.
+
+### Reset demo data
+```bash
+pnpm --filter @ambient/db seed --allow-remote --reset
+```
+Drops every collection in `MONGODB_DB` and reseeds. Never run against a
+database holding customer data.
+
+### Sync aborted
+1. Open sync health; find the dataset and the guard that tripped.
+2. Compare source row counts with the last good run.
+3. If the source export is broken, leave the abort in place and contact the
+   customer's data team; the mirror keeps the last good data.
+4. If the change is genuine, re-run with the guard override for that dataset.
+
+### Capture stopped for a mailbox
+1. Check the mailbox cursor's last error.
+2. Common causes: consent revoked, mailbox moved out of the access policy,
+   Graph throttling. Fix the cause; the cursor resumes from where it stopped.

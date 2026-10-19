@@ -5,6 +5,9 @@ automatically, files them on each account's timeline, and puts an AI assistant
 (Cara) on top, so account managers spend their time with customers rather than
 logging activity.
 
+**Documentation:** start at [docs/](docs/README.md) — product, architecture
+(with decision records), design system, engineering, technical and marketing.
+
 ## Stack
 
 | Layer | Choice |
