@@ -11,7 +11,8 @@ Planned (nothing yet).
 | App shell, navigation, Ctrl K search | all | Built |
 | Light and dark mode | all | Built |
 | Dashboard | `/` | Built |
-| Accounts and customer groups | `/accounts`, `/accounts/group/[key]` | Placeholder |
+| Accounts list (groups, bill-to, sold-to) | `/accounts` | Built |
+| Customer group page | `/accounts/group/[key]` | Placeholder |
 | Customer profile | `/accounts/[id]` | Placeholder |
 | Contracts | `/contracts` | Placeholder |
 | Contacts | `/contacts` | Placeholder |
@@ -39,12 +40,17 @@ completion; portfolio health ring; next visit; sales vs target with top
 accounts; at-risk accounts. Every number respects the user's visibility and the
 division lens, and rollups show their "as of" date.
 
-### Accounts and customer groups
+### Accounts and customer groups — list Built
 Accounts roll up into customer groups at three levels (conglomerate,
 corporation, standalone), each with bill-to and sold-to accounts.
-- List groups with owner, health, division and FY revenue; sort and filter.
-- Drill from a group into its bill-to and sold-to accounts.
-- Respect visibility and the division lens.
+- **Built:** three views (group, bill-to, sold-to); stats strip (count, FY
+  revenue, health mix); filters for division and health; search by name or code;
+  sort by name, FY revenue or open tasks; 25 per page; group rows expand to
+  bill-tos and bill-tos to sold-tos in place; owner and hierarchy columns for
+  managers. All state is in the URL, so views are shareable. Respects tenant,
+  visibility and the division lens.
+- **Planned:** the customer group page (roll-up of revenue and health, full
+  bill-to list).
 
 ### Customer profile
 One page per account with tabs: overview, sales, health, open orders, stock,

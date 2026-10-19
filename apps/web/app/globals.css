@@ -1178,6 +1178,218 @@ html[data-dark="1"] {
     width: 54px;
   }
 
+  /* ---------- filters ---------- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 0 14px;
+    height: 34px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+  .chip:hover {
+    border-color: var(--muted);
+  }
+  .chip.on {
+    background: var(--darkbtn);
+    color: var(--darkbtn-text);
+    border-color: var(--darkbtn);
+  }
+  .seg.flat {
+    box-shadow: none;
+    background: var(--surface2);
+  }
+  .seg a {
+    border-radius: 999px;
+    padding: 7px 15px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+  }
+  .seg a.on {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .fbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--line2);
+    border-radius: 20px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .fbar .vs {
+    width: 1px;
+    height: 22px;
+    background: var(--line);
+    margin: 0 6px;
+  }
+  .fbar .end {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inp {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 0 14px;
+    height: 44px;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+    color: var(--text);
+  }
+  .inp:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+  .inp.sm {
+    height: 36px;
+    font-size: 13px;
+  }
+  .search-inp {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+    max-width: 360px;
+  }
+  .search-inp svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+  }
+  .search-inp .inp {
+    padding-left: 40px;
+    border-radius: 999px;
+  }
+  .stats-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--line2);
+    border-radius: 20px;
+    padding: 16px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .stats-strip b {
+    font-size: 18px;
+  }
+
+  /* ---------- tables ---------- */
+  .tbl-wrap {
+    overflow-x: auto;
+  }
+  table.tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .tbl th {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 800;
+    padding: 14px 16px;
+    background: var(--surface2);
+    white-space: nowrap;
+  }
+  .tbl th a:hover {
+    color: var(--text);
+  }
+  .tbl th.act,
+  .tbl th.act a {
+    color: var(--accent);
+  }
+  .tbl th:first-child,
+  .tbl td:first-child {
+    padding-left: 22px;
+  }
+  .tbl th:last-child,
+  .tbl td:last-child {
+    padding-right: 22px;
+  }
+  .tbl td {
+    padding: 14px 16px;
+    border-top: 1px solid var(--line2);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .tbl td:first-child {
+    white-space: normal;
+    min-width: 260px;
+  }
+  .tbl tbody tr:hover td {
+    background: color-mix(in srgb, var(--accent) 3.5%, var(--surface));
+  }
+  .tbl tr.child td {
+    background: var(--surface2);
+  }
+  .tbl .sb {
+    display: block;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+  .tbl .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .exp {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    display: inline-grid;
+    place-items: center;
+    margin-right: 10px;
+    color: var(--text2);
+    font-size: 15px;
+    line-height: 1;
+    flex: none;
+  }
+  .exp:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .exp.ghost {
+    visibility: hidden;
+  }
+  .lvl {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 4px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
   /* ---------- grids ---------- */
   .g-hero {
     display: grid;

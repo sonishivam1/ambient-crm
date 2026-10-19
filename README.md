@@ -68,6 +68,8 @@ packages/db
 
 ## Core rules
 
+- **Tenancy.** Every document carries `tenantId` and every query gets it from
+  `getScope()` (ADR 0004).
 - **Visibility.** Every query goes through `getScope()`. User: own book. Manager:
   plus direct reports. Senior manager: whole reporting subtree (`$graphLookup` on
   `managerRepId`). Lead and super admin: everything. Admin is a separate ladder
@@ -86,7 +88,9 @@ packages/db
 | --- | --- |
 | Design system, light and dark mode, app shell, Ctrl K palette | Done |
 | Dashboard | Done (live data, task completion) |
-| Accounts, profile, contracts, contacts, tasks, call cycle, notifications | Placeholder pages |
+| Multi-tenancy (`tenantId` everywhere, two seeded tenants) | Done |
+| Accounts list: views, filters, search, sort, drill-down | Done |
+| Account and group profiles, contracts, contacts, tasks, call cycle, notifications | Placeholder pages |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |
