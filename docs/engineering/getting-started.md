@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Node.js | 24 (`.node-version`) | With fnm: `fnm install 24` then `fnm use` in the repo. On Windows you can also run one-off commands with `fnm exec --using=24 -- pnpm.cmd …` |
 | pnpm | 10 | `npm install -g pnpm` |
-| Database | MongoDB Atlas cluster, **or** Docker Desktop for a local Atlas image | |
+| Database | A MongoDB Atlas cluster | Docker is optional: `pnpm db:up` runs a local MongoDB if you ever need one offline |
 
 ## First run
 
@@ -49,7 +49,7 @@ per role).
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Web app with hot reload |
-| `pnpm test` | Unit and integration tests (integration needs local MongoDB: `pnpm db:up`) |
+| `pnpm test` | Unit and integration tests (integration uses the Atlas cluster, in throwaway `ambient_test_*` databases) |
 | `pnpm test:unit` | Unit tests only, no database |
 | `pnpm --filter web typecheck` | Generate route types, then type-check the web app |
 | `pnpm --filter web exec eslint .` | Lint the web app |

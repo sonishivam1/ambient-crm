@@ -20,17 +20,20 @@ logging activity.
 
 ## Getting started
 
-Prerequisites: Node.js 24, pnpm 10 and Docker Desktop.
+Prerequisites: Node.js 24, pnpm 10 and a MongoDB Atlas cluster.
 
 ```bash
 pnpm install
 cp .env.example apps/web/.env.local
 cp .env.example packages/db/.env
-pnpm db:up        # local MongoDB (Atlas Local: replica set + vector search)
-pnpm db:seed      # fictional demo data
+# put your Atlas mongodb+srv:// URI in both files (see below)
+pnpm --filter @ambient/db seed --allow-remote   # fictional demo data
 pnpm dev          # http://localhost:3000
-pnpm test         # unit + integration tests (local MongoDB)
+pnpm test         # unit + integration tests (throwaway databases on the Atlas cluster)
 ```
+
+Docker is optional: `pnpm db:up` starts a local MongoDB if you need to work
+offline.
 
 ### Using MongoDB Atlas
 
@@ -90,7 +93,7 @@ packages/db
 | Design system, light and dark mode, app shell, Ctrl K palette | Done |
 | Dashboard | Done (live data, task completion) |
 | Multi-tenancy (`tenantId` everywhere, two seeded tenants) | Done |
-| Automated tests: unit + integration on a throwaway local database | Done |
+| Automated tests: unit + integration in throwaway databases on Atlas | Done |
 | Accounts list: views, filters, search, sort, drill-down | Done |
 | Customer profile: timeline, log interaction, tasks, related accounts | Done |
 | Tasks: today and all views, filters, create, edit, assign, cancel | Done |

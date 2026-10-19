@@ -22,7 +22,7 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          include: ["lib/**/*.test.ts"],
+          include: ["lib/**/*.test.ts", "tests/support/**/*.test.ts"],
         },
       },
       {
@@ -31,10 +31,13 @@ export default defineConfig({
           name: "integration",
           environment: "node",
           include: ["tests/integration/**/*.test.ts"],
+          globalSetup: ["tests/support/global-setup.ts"],
           setupFiles: ["tests/support/integration-setup.ts"],
-          // Each file seeds and drops its own database.
-          testTimeout: 30_000,
-          hookTimeout: 120_000,
+          // Each file seeds and drops its own database on the remote test
+          // cluster: allow for network latency and keep the load modest.
+          testTimeout: 60_000,
+          hookTimeout: 180_000,
+          maxWorkers: 3,
         },
       },
     ],

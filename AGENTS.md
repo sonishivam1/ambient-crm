@@ -8,4 +8,4 @@
 - Seed and demo data must stay fictional: no real companies, people or brands.
 - Write files with LF line endings and no BOM.
 - Write tests with every feature (see `docs/engineering/testing.md`): integration tests for read models and actions, including out-of-scope and other-tenant cases, and audit rows for writes.
-- Checks: `pnpm test` (needs local MongoDB), `pnpm --filter web typecheck`, `pnpm --filter web exec eslint .`, `pnpm --filter @ambient/db exec tsc --noEmit`.
+- Checks: `pnpm test` (integration runs in throwaway `ambient_test_*` databases on Atlas; never point tests at `ambient_crm`), `pnpm --filter web typecheck`, `pnpm --filter web exec eslint .`, `pnpm --filter @ambient/db exec tsc --noEmit`.
