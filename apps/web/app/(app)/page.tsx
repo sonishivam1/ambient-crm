@@ -1,10 +1,8 @@
 import {
-  Bell,
   CalendarDays,
   Clock,
   FileChartColumn,
   Heart,
-  NotebookText,
   SquareCheck,
   Sparkles,
   Sun,
@@ -17,11 +15,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import type { Notification } from "@ambient/db";
-
 import { QuickAddTile } from "@/components/dashboard/quick-add";
 import { TaskCheck } from "@/components/dashboard/task-check";
 import { WeekCalendar } from "@/components/dashboard/week-calendar";
+import { NOTIFICATION_META } from "@/components/notifications/meta";
 import { Avatar, Badge, Card, Dot, Empty, HealthPill, ProgressBar, Ring } from "@/components/ui/primitives";
 import { getDashboard, type DashboardData } from "@/lib/data/dashboard";
 
@@ -31,15 +28,6 @@ import { fmtDay, fmtLongDay, fmtWeekday, greeting, money, num, signedMoney, time
 export const metadata: Metadata = { title: "Dashboard" };
 
 const PRIORITY_LABEL = { high: "High", normal: "Medium", low: "Low" } as const;
-const NOTIFICATION_ICON: Record<Notification["type"], [LucideIcon, string]> = {
-  at_risk_change: [TriangleAlert, "risk"],
-  contract_renewal: [NotebookText, "warn"],
-  ai_suggestion: [Sparkles, "acc"],
-  task_assigned: [SquareCheck, "info"],
-  email_flagged: [Bell, "warn"],
-  visit_reminder: [CalendarDays, "info"],
-  visit_assigned: [CalendarDays, "info"],
-};
 
 export default function DashboardPage() {
   return (
@@ -156,7 +144,7 @@ async function Dashboard() {
         <Card title="Notifications" link={{ href: "/notifications", label: "All →" }}>
           {d.notifications.length ? (
             d.notifications.map((n) => {
-              const [Icon, tone] = NOTIFICATION_ICON[n.type];
+              const { icon: Icon, tone } = NOTIFICATION_META[n.type];
               return (
                 <div key={n.id} className="li">
                   <span className={`ic ${tone}`}>

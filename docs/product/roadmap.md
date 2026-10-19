@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 19 Oct 2026 (call cycle)._
+_Last updated: 19 Oct 2026 (notifications)._
 
 ## Where we are
 
@@ -31,7 +31,7 @@ sign-in.
 | ✅ Done | Tenant settings: each tenant's own divisions and lenses, and its time zone for "today", "overdue" and due dates | 1 |
 | ✅ Done | Contacts: directory, add, edit, deactivate, profile card, Ctrl K search | 2 |
 | ✅ Done | Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | 2 |
-| ⏭ Next | Notifications page: history, mark read | 2 |
+| ✅ Done | Notifications page: history by day, filters, mark read / all read | 2 |
 | ⏭ Next | Contracts list with renewal bands | 2 |
 | Later | Sign-in (Entra ID), hosting, CI/CD ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
 | Later | Warehouse / ERP sync into the mirror collections | 1 |
@@ -53,8 +53,9 @@ gantt
   Tenant settings (divisions, time zone)   :done,   b3, 2026-10-19, 1d
   Contacts                                 :done,   b4, 2026-10-19, 1d
   Call cycle                               :done,   b5, 2026-10-19, 1d
+  Notifications                            :done,   b6, 2026-10-19, 1d
   section Core CRM
-  Notifications, contracts                 :active, c2, 2026-10-20, 4d
+  Contracts                                :active, c2, 2026-10-20, 3d
   section Foundations
   Sign-in, hosting, CI/CD                  :        f1, after c2, 7d
   section Data spine
@@ -77,7 +78,7 @@ gantt
 | --- | --- | --- |
 | 0 Foundations | Shell and design system (**done**), multi-tenancy (**done**), sign-in, CI/CD, hosting | A user signs in to their tenant in a deployed environment |
 | 1 Data spine | Data model (**done** for current features), visibility rules (**done**), tenant settings (**done**), ERP/warehouse sync with guardrails | Each role sees exactly the right accounts on real-shaped data |
-| 2 Core CRM | Dashboard, accounts, profile, group page, tasks, contacts, call cycle (**done**); notifications, contracts | Product demo sign-off on every core page |
+| 2 Core CRM | Dashboard, accounts, profile, group page, tasks, contacts, call cycle, notifications (**done**); contracts | Product demo sign-off on every core page |
 | 3 Passive capture | Email and meeting workers, matcher, review queue, backfill, Outlook add-in | Test mailboxes captured end to end with no manual step |
 | 4 AI layer | Redaction, analysis, embeddings, semantic search, Wren, morning brief, smart tasks | AI outputs reviewed on real test mail; cost per user within budget |
 | 5 Manager and admin | Team overview, reports, CRM usage, sync health, audit, view-as | Manager and admin acceptance testing |

@@ -19,7 +19,7 @@ Planned (nothing yet).
 | Contacts | `/contacts` | Built (sync to the warehouse and email backfill wait for those features) |
 | Tasks | `/tasks` | Built (Wren suggestions wait for the AI layer) |
 | Call cycle and visits | `/call-cycle` | Built (calendar sync waits for Microsoft 365) |
-| Notifications | `/notifications` | Placeholder |
+| Notifications | `/notifications` | Built (preferences and digests later) |
 | Email and meeting capture | background workers | Planned |
 | Review queue | `/review-queue` | Placeholder |
 | Outlook add-in | Outlook task pane | Planned |
@@ -147,6 +147,19 @@ one went.
   follow-up text.
 - **Next:** Outlook calendar sync; turn follow-ups into tasks; scorecard
   rollups for managers (team overview).
+
+### Notifications — Built
+Everything that needs the user's attention, in one history.
+- **Built:** the signed-in user's own notifications, newest first, grouped by
+  day on the tenant's calendar (Today, Yesterday, then the date); filter by
+  unread and by type (only types the user has); 50 per page.
+- **Built:** mark one read, or mark all read; the sidebar and bell counts
+  update. Unread items are highlighted.
+- **Built:** a notification links its account only while that account is in
+  the user's scope, so links never lead to "not found".
+- **Sources today:** task assignments, visit bookings, and seeded at-risk,
+  renewal, Wren and reminder notices. AI and sync jobs will add more.
+- **Next:** notification preferences and email digests.
 
 ### Email and meeting capture
 Background workers read in-scope mailboxes and calendars through Microsoft

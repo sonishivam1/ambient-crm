@@ -207,6 +207,6 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `visits` | `repId + scheduledAt`, `scheduledAt`, `accountId` | call cycle, calendar, profile |
 | `interactions` | `accountId + occurredAt` | profile timeline |
 | `contacts` | `accountId + active`, `ownerRepId + lastName + firstName`, `lastName + firstName`, `email` | directory, profile card, duplicate-email check |
-| `notifications` | `userId + createdAt` | feed |
+| `notifications` | `userId + createdAt` | dashboard feed, history page, unread counts |
 | `salesSnapshots` | `scope + asOf` | latest snapshot |
 | `auditLog` | `at`, `entity + entityId + at`, `actorUserId + at` | audit browser |

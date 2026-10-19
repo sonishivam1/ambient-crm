@@ -104,7 +104,8 @@ packages/db
 | Tenant settings: own divisions and lenses, own time zone for dates | Done |
 | Contacts: directory, add, edit, deactivate, profile card, Ctrl K | Done |
 | Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | Done |
-| Contracts, notifications | Placeholder pages |
+| Notifications: history by day, filters, mark read / all read | Done |
+| Contracts | Placeholder page |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |

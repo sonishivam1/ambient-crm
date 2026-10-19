@@ -20,6 +20,7 @@ callers outside the web app.
 | `getGroupProfile(id)` | `lib/data/group-profile.ts` | the group page (group, bill-tos with sold-to counts, health mix, task counts, recent activity), or `null` when outside scope |
 | `getAccountProfile(id)` | `lib/data/account-profile.ts` | the profile (account, group, related accounts, tasks, next visit, timeline, active contacts), or `null` when outside scope |
 | `getCallCycle(query)` | `lib/data/visits.ts` | six weeks of visits from this Monday (tenant calendar), four weeks of history, older planned visits needing closing, rep options and who the user may book |
+| `getNotifications(query)` | `lib/data/notifications.ts` | the user's own notifications grouped by tenant day, with unread count, types present and page count; account links only when in scope |
 | `getContactsPage(query)` | `lib/data/contacts.ts` | one page of contacts from validated URL filters (search, role, account, status), sorted by last name, with total and page count |
 | `getContactOptions()` | `lib/data/contacts.ts` | accounts that have contacts in scope, the tenant's contact roles, the time zone |
 | `getAccountContacts(scope, account)` | `lib/data/contacts.ts` | active contacts for a profile: a bill-to's, or a sold-to's site plus its bill-to's account-wide ones |
@@ -39,6 +40,8 @@ callers outside the web app.
 | `updateVisit(input)` | `app/actions/visits.ts` | visit id, date, time, type, purpose, rep (managers) | reschedules or edits a planned visit in scope; a moved visit can't go into the past | `visit.reschedule` / `visit.update` (changed fields) |
 | `cancelVisit(input)` | `app/actions/visits.ts` | visit id, optional reason (300 chars) | cancels a planned visit in scope | `visit.cancel` |
 | `completeVisit(input)` | `app/actions/visits.ts` | visit id, sentiment, three 1–5 ratings, key points, follow-ups | completes a visit on or after its day with its report, or adds the report to a completed one | `visit.complete` / `visit.report` (scores only; text flagged, never copied) |
+| `markNotificationRead(id)` | `app/actions/notifications.ts` | notification id | marks one of your own notifications read (keeps the first read time); `false` if it isn't yours | — (read state, not business data) |
+| `markAllNotificationsRead()` | `app/actions/notifications.ts` | — | marks all your unread notifications read; returns how many | — |
 | `searchBillToAccounts(q)` | `app/actions/accounts.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task and contact dialogs | — (read) |
 | `listSoldTos(billToId)` | `app/actions/accounts.ts` | bill-to id | its sold-to sites, empty when the bill-to isn't in scope | — (read) |
 | `paletteSearch(q)` | `app/actions/search.ts` | 2–100 chars | up to 8 accounts in scope matching name or code, and up to 5 active contacts matching name or email | — (read) |
