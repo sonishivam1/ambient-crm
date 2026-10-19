@@ -94,6 +94,7 @@ erDiagram
     date dueAt
     string status
     string source
+    string cancelReason
   }
   VISIT {
     string _id

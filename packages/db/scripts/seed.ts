@@ -333,8 +333,10 @@ function build(spec: TenantSpec): Built {
   const tasks: Task[] = spec.tasks.map(([acct, title, owner, dueIn, priority, status, source, createdBy], i) => ({
     _id: id(`t${i + 1}`), tenantId, accountId: id(acct), division: divisionOf(acct), title,
     description: "Context captured from the account timeline and recent correspondence.",
+    notes: "",
     ownerRepId: repId(owner), dueAt: addDays(dueIn, 17), priority, status, source, createdByUserId: actor(createdBy),
     completedAt: status === "completed" ? addDays(dueIn, 15) : null,
+    cancelReason: null,
     createdAt: addDays(-3 - i * 2), updatedAt: addDays(-3 - i * 2), deletedAt: null, deletedBy: null,
   }));
 

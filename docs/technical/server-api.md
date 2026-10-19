@@ -14,13 +14,20 @@ callers outside the web app.
 | `getDashboard()` | `lib/data/dashboard.ts` | everything the dashboard renders, already scoped |
 | `getAccountsPage(query)` | `lib/data/accounts.ts` | one page of groups or accounts with summary and page count, from validated URL params |
 | `getChildAccounts(parent)` | `lib/data/accounts.ts` | bill-tos of a group or sold-tos of a bill-to, scoped |
+| `getTodayTasks()` | `lib/data/tasks.ts` | open tasks overdue and due today, in scope |
+| `getTasksPage(query)` | `lib/data/tasks.ts` | one page of tasks from validated URL filters, with total and page count |
+| `getTaskOptions()` | `lib/data/tasks.ts` | filter options and who the user may assign to |
 | `getAccountProfile(id)` | `lib/data/account-profile.ts` | the profile (account, group, related accounts, tasks, next visit, timeline), or `null` when outside scope |
 
 ## Server actions (built)
 
 | Action | File | Input | Effect | Audit |
 | --- | --- | --- | --- | --- |
+| `createTask(input)` | `app/actions/tasks.ts` | bill-to account, title, due date (today or later), priority, description, notes, assignees | one task per assignee (managers) or for yourself; notifies other assignees | `task.create` |
+| `updateTask(input)` | `app/actions/tasks.ts` | task id, fields, status, owner (managers) | edits a task in scope; a changed due date can't be in the past | `task.update` (changed fields; text fields only flagged as changed) |
+| `cancelTask(input)` | `app/actions/tasks.ts` | task id, optional reason (300 chars) | cancels a task in scope | `task.cancel` |
 | `completeTask(id)` | `app/actions/tasks.ts` | task id | marks a task in scope complete, in a transaction | `task.complete` |
+| `searchTaskAccounts(q)` | `app/actions/tasks.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task dialog | — (read) |
 | `paletteSearch(q)` | `app/actions/search.ts` | 2–100 chars | up to 8 accounts in scope matching name or code | — (read) |
 | `logInteraction(input)` | `app/actions/interactions.ts` | account id, type, summary (1–4,000 chars) | logs a note, call or meeting on an account in scope, in a transaction | `interaction.log` (type and account only, never the text) |
 | `loadChildAccounts(parent)` | `app/actions/accounts.ts` | `{ kind, id }`, kind `group` or `billTo` | child rows for an expanded accounts row, in scope | — (read) |

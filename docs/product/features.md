@@ -16,7 +16,7 @@ Planned (nothing yet).
 | Customer profile | `/accounts/[id]` | Built (overview, tasks; sales, orders, stock wait for sync) |
 | Contracts | `/contracts` | Placeholder |
 | Contacts | `/contacts` | Placeholder |
-| Tasks, smart tasks, next actions | `/tasks` | Placeholder (completion from dashboard is built) |
+| Tasks | `/tasks` | Built (Wren suggestions wait for the AI layer) |
 | Call cycle and visits | `/call-cycle` | Placeholder |
 | Notifications | `/notifications` | Placeholder |
 | Email and meeting capture | background workers | Planned |
@@ -75,11 +75,20 @@ Ambient is the system of record for contacts. Search and filter by role,
 account and status; create and edit; sync back to the warehouse. Adding a
 contact (or changing their email) offers to backfill past email with them.
 
-### Tasks
-One list for manual tasks, AI smart tasks and next actions.
-- Today, upcoming and all views; filters by status, priority, source, assignee.
-- Create, edit, complete; managers assign tasks to their reports.
-- Accept or dismiss AI suggestions with one click.
+### Tasks — Built
+One list for manual tasks, manager-assigned tasks and Wren's suggestions.
+- **Built:** Today view (overdue and due today) and All view; filters for
+  status (including overdue), priority, source, division, account, assignee and
+  due-date range; sort by due date, priority or created date; 20 per page. A
+  create/edit dialog with an account search (or a locked account from a
+  profile), title, due date, priority, description and notes. Managers can
+  assign a task to several people at once (one task each), and each assignee
+  gets a notification. A task can't be created already overdue. Edit, complete
+  and cancel (with an optional reason) from the row menu. The dashboard's quick
+  add opens the dialog. Every write is scoped and audited; description and notes
+  text never reach the audit log.
+- **Planned:** accepting or dismissing Wren's suggested tasks (needs capture and
+  the AI layer); contact person on a task (needs Contacts).
 
 ### Call cycle and visits
 Plan the week as a list or week grid; add, reschedule and cancel site visits,

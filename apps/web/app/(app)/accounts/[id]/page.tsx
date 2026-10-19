@@ -8,9 +8,11 @@ import type { Division, HealthBand, Task } from "@ambient/db";
 
 import { LogInteractionButton } from "@/components/accounts/log-interaction";
 import { TaskCheck } from "@/components/dashboard/task-check";
+import { AddTaskButton } from "@/components/tasks/task-controls";
 import { Badge, Card, Empty, HealthPill, Skeleton, type Tone } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 import { getAccountProfile, type AccountProfile, type TimelineItem } from "@/lib/data/account-profile";
+import { getTaskOptions, type TaskOptions } from "@/lib/data/tasks";
 import { fmtDate, fmtDay, initials, money, relativeDay } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Customer profile" };
@@ -69,7 +71,7 @@ function ProfileSkeleton() {
 
 async function ProfileContent({ params, searchParams }: PageProps<"/accounts/[id]">) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const profile = await getAccountProfile(decodeURIComponent(id));
+  const [profile, taskOptions] = await Promise.all([getAccountProfile(decodeURIComponent(id)), getTaskOptions()]);
   if (!profile) notFound();
 
   const tab = pick<Tab>(query.tab, TABS, "overview");
@@ -130,7 +132,7 @@ async function ProfileContent({ params, searchParams }: PageProps<"/accounts/[id
       </nav>
 
       {tab === "overview" && <Overview profile={profile} filter={filter} base={base} />}
-      {tab === "tasks" && <Tasks profile={profile} />}
+      {tab === "tasks" && <Tasks profile={profile} options={taskOptions} />}
       {tab === "sales" && <Sales profile={profile} />}
       {tab === "health" && <Health profile={profile} />}
       {tab === "orders" && <ComingWithSync what="Open orders" detail="open styles with and without inbound stock, units and value, broken down by product line" />}
@@ -310,7 +312,9 @@ function RelatedRow({ id, name, sub, health }: { id: string; name: string; sub: 
   );
 }
 
-function Tasks({ profile }: { profile: AccountProfile }) {
+function Tasks({ profile, options }: { profile: AccountProfile; options: TaskOptions }) {
+  // Tasks belong to bill-to accounts: a sold-to's tasks go on its parent.
+  const target = profile.account.type === "bill_to" ? profile.account : profile.parent;
   return (
     <>
       <div className="card pad mb-4 flex items-center justify-between gap-4">
@@ -318,8 +322,19 @@ function Tasks({ profile }: { profile: AccountProfile }) {
           <div className="lb" style={{ color: "var(--text2)" }}>
             Account tasks · {profile.tasks.length}
           </div>
-          <div className="mt-0.5 text-[12.5px] text-muted">Open and completed tasks for this account. Creating tasks arrives with the Tasks page.</div>
+          <div className="mt-0.5 text-[12.5px] text-muted">
+            Open and completed tasks for this account.
+            {profile.account.type === "sold_to" && target && <> New tasks go on the bill-to, {target.name}.</>}
+          </div>
         </div>
+        {target && (
+          <AddTaskButton
+            lockedAccount={{ id: target.id, name: target.name, code: target.code }}
+            canAssign={options.canAssign}
+            assignable={options.assignable}
+            ownRepId={options.ownRepId}
+          />
+        )}
       </div>
       <div className="card">
         {profile.tasks.length ? (

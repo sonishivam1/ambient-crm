@@ -137,6 +137,8 @@ export const taskSchema = z.object({
   division: z.enum(DIVISIONS),
   title: z.string().min(1).max(200),
   description: z.string().max(4000).default(""),
+  /** Execution notes and checklists; never copied into the audit log. */
+  notes: z.string().max(4000).default(""),
   ownerRepId: z.string(),
   dueAt: z.date(),
   priority: z.enum(TASK_PRIORITIES),
@@ -144,6 +146,7 @@ export const taskSchema = z.object({
   source: z.enum(TASK_SOURCES),
   createdByUserId: z.string(),
   completedAt: z.date().nullable().default(null),
+  cancelReason: z.string().max(300).nullable().default(null),
   ...timestamps,
   ...softDelete,
 });
