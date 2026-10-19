@@ -49,6 +49,8 @@ per role).
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Web app with hot reload |
+| `pnpm test` | Unit and integration tests (integration needs local MongoDB: `pnpm db:up`) |
+| `pnpm test:unit` | Unit tests only, no database |
 | `pnpm --filter web typecheck` | Generate route types, then type-check the web app |
 | `pnpm --filter web exec eslint .` | Lint the web app |
 | `pnpm --filter @ambient/db exec tsc --noEmit` | Type-check the db package |

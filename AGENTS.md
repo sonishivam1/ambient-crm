@@ -7,4 +7,5 @@
 - Next.js 16 with Cache Components: anything per user must sit behind `getCurrentUser()` (which calls `connection()`) and inside a Suspense boundary or `loading.tsx`.
 - Seed and demo data must stay fictional: no real companies, people or brands.
 - Write files with LF line endings and no BOM.
-- Checks: `pnpm --filter web typecheck`, `pnpm --filter web exec eslint .`, `pnpm --filter @ambient/db exec tsc --noEmit`.
+- Write tests with every feature (see `docs/engineering/testing.md`): integration tests for read models and actions, including out-of-scope and other-tenant cases, and audit rows for writes.
+- Checks: `pnpm test` (needs local MongoDB), `pnpm --filter web typecheck`, `pnpm --filter web exec eslint .`, `pnpm --filter @ambient/db exec tsc --noEmit`.

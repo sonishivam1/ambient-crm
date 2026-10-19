@@ -32,7 +32,7 @@ export function mondayOf(d: Date): Date {
 }
 
 export function timeAgo(from: Date, now = new Date()): string {
-  const m = Math.round((now.getTime() - from.getTime()) / 60_000);
+  const m = Math.floor((now.getTime() - from.getTime()) / 60_000);
   if (m < 1) return "just now";
   if (m < 60) return `${m}m`;
   if (m < 1440) return `${Math.floor(m / 60)}h`;

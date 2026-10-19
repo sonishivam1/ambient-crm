@@ -1,38 +1,77 @@
 # Testing
 
-**Status:** the test tooling (Vitest) is installed, but there are no automated
-tests yet. Checks today are type-check, lint and manual browser verification.
-This document is the plan to close that gap, starting with the riskiest code.
+**Status: built.** Vitest runs two projects: **unit** (pure logic, no
+database) and **integration** (real read models and server actions against a
+real MongoDB). Every feature ships with its tests in the same change.
+
+```bash
+pnpm test                                   # everything (needs local MongoDB: pnpm db:up)
+pnpm test:unit                              # unit only, no database
+pnpm --filter web test:integration          # integration only
+pnpm --filter web exec vitest run <file>    # one file
+```
 
 ## Layers
 
 ```mermaid
 flowchart TB
-  e2e["End to end — Playwright<br/>sign in as each role, key journeys"]
-  int["Integration — Vitest + local Atlas image<br/>scope, server actions, sync, matcher"]
-  unit["Unit — Vitest<br/>formatting, lens, role capabilities, parsers"]
+  e2e["End to end — Playwright (planned)<br/>sign in as each role, key journeys"]
+  int["Integration — Vitest + local MongoDB<br/>scope, tenancy, read models, server actions, audit rows"]
+  unit["Unit — Vitest<br/>formatting, lens, URL builders, role matrix"]
   e2e --- int --- unit
 ```
 
-| Layer | What it covers | Runs |
+| Layer | Where | What it covers |
 | --- | --- | --- |
-| Unit | Pure functions: `format.ts`, `lens.ts`, role matrix, Zod schemas, prompt parsers | every push |
-| Integration | Against a real MongoDB (`mongodb-atlas-local` in CI): `getRepScope` for every role, every server action's scope check and audit row, sync guardrails, matcher | every push |
-| End to end | Playwright against a seeded app: dashboard per role, complete a task, palette search scope, dark mode | every PR |
+| Unit | `apps/web/lib/**/*.test.ts` | Pure functions: `format.ts`, `lens.ts`, `accounts-url.ts`, the role matrix |
+| Integration | `apps/web/tests/integration/*.test.ts` | Visibility per role, tenant isolation, accounts list and drill-down, customer and group pages, palette search, task create/edit/cancel/complete, interactions, audit-log privacy |
+| End to end | — | Planned: Playwright against a seeded app |
 
-## First tests to write
+## How integration tests work
 
-1. **Visibility matrix.** For each seeded user, `getRepScope` returns exactly the
-   expected reps (own, reports, subtree, all, none).
-2. **Scope leak guard.** A task outside the user's scope cannot be completed; no
-   audit row is written.
-3. **Write + audit atomicity.** If the audit insert fails, the task update rolls
-   back.
-4. **Palette scope.** A user's search never returns accounts outside scope.
-5. **Seed guard.** Seeding a non-local URI without `--allow-remote` exits non-zero.
+`tests/support/integration-setup.ts` runs before every integration test file:
+
+1. **A fresh database per file.** It points `MONGODB_URI` at a local MongoDB
+   (`TEST_MONGODB_URI`, default the Docker container from `pnpm db:up`) and
+   picks a random `ambient_test_<id>` database name.
+2. **Seeded with the demo data.** `seedDemoData()` from
+   `@ambient/db/fixtures` loads both fictional tenants, the same data
+   `pnpm db:seed` uses. It is dropped when the file finishes.
+3. **Refuses anything but localhost**, so tests can never touch Atlas or any
+   shared database.
+4. **Next.js request APIs are stubbed** (`cookies`, `connection`, `refresh`),
+   so tests call the real `getScope()`, read models and server actions.
+
+Sign in as any seeded user with `signInAs()` from `tests/support/session.ts`:
+
+```ts
+signInAs(USERS.northwind.manager);            // Liam: own book + 4 reports
+signInAs(USERS.northwind.senior, "uniforms"); // with a division lens
+signInAs(USERS.harbor.super);                 // the second tenant
+```
 
 ## Rules
 
-- Tests that touch data use a throwaway database name per run and drop it after.
-- Never point tests at a shared Atlas cluster.
-- A bug fix comes with the test that would have caught it.
+- **Tests go in with the feature**, in the same pull request. A bug fix comes
+  with the test that would have caught it.
+- **Every data path gets an isolation test:** what a user outside the scope
+  sees (nothing), and what another tenant sees (nothing).
+- **Every write gets an audit test,** including that note, description and
+  summary text never appears in the audit row.
+- Assert on behaviour the user would notice (counts, names, error messages),
+  not on implementation details.
+- Never point tests at a shared or remote database.
+
+## Checking the tests themselves
+
+When a suite passes first time, break the thing it guards and make sure it
+fails. Removing `tenantId` from `getScope().filter()` fails four integration
+tests (cross-tenant profile, task create, task complete, scope filter); that
+check was run when the suite was added.
+
+## Still to add
+
+- End-to-end tests (Playwright) for sign-in per role, completing a task and
+  logging an interaction through the real UI.
+- A CI job that starts `mongodb-atlas-local` as a service and runs `pnpm test`
+  on every pull request.

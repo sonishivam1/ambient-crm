@@ -10,11 +10,12 @@
     "build": "pnpm --filter web build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm --filter web test",
     "db:up": "docker compose up -d mongo",
     "db:down": "docker compose down",
     "db:seed": "pnpm --filter @ambient/db seed",
     "db:indexes": "pnpm --filter @ambient/db indexes",
-    "db:inspect": "pnpm --filter @ambient/db inspect"
+    "db:inspect": "pnpm --filter @ambient/db inspect",
+    "test:unit": "pnpm --filter web test:unit"
   }
 }

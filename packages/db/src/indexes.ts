@@ -1,4 +1,4 @@
-import type { IndexDescription } from "mongodb";
+import type { Db, IndexDescription } from "mongodb";
 
 import { getDb, type CollectionName } from "./client";
 
@@ -46,8 +46,9 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
   ],
 };
 
-export async function ensureIndexes(): Promise<void> {
-  const db = await getDb();
+/** Create every index; defaults to the configured database. */
+export async function ensureIndexes(target?: Db): Promise<void> {
+  const db = target ?? (await getDb());
   for (const [name, indexes] of Object.entries(INDEXES)) {
     if (indexes.length) await db.collection(name).createIndexes(indexes);
   }

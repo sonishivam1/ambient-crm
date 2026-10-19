@@ -54,7 +54,15 @@ export async function doThing(raw: unknown) {
 - Files use LF line endings and no BOM.
 - Formatting: ESLint (Next config) must pass.
 
+## Tests
+
+Every feature ships with its tests in the same change: an integration test for
+each read model and server action (including what users outside the scope and
+in another tenant see), and an audit-row test for each write. See
+[testing](testing.md).
+
 ## Demo data
 
 Seed and fixture data stay fictional: no real companies, people, brands or
-customer figures.
+customer figures. The data set lives in `packages/db/src/fixtures.ts` and is
+shared by `pnpm db:seed` and the integration tests.

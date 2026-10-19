@@ -29,6 +29,7 @@ cp .env.example packages/db/.env
 pnpm db:up        # local MongoDB (Atlas Local: replica set + vector search)
 pnpm db:seed      # fictional demo data
 pnpm dev          # http://localhost:3000
+pnpm test         # unit + integration tests (local MongoDB)
 ```
 
 ### Using MongoDB Atlas
@@ -89,6 +90,7 @@ packages/db
 | Design system, light and dark mode, app shell, Ctrl K palette | Done |
 | Dashboard | Done (live data, task completion) |
 | Multi-tenancy (`tenantId` everywhere, two seeded tenants) | Done |
+| Automated tests: unit + integration on a throwaway local database | Done |
 | Accounts list: views, filters, search, sort, drill-down | Done |
 | Customer profile: timeline, log interaction, tasks, related accounts | Done |
 | Tasks: today and all views, filters, create, edit, assign, cancel | Done |
