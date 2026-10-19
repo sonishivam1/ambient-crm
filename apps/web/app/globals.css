@@ -319,19 +319,28 @@ html[data-dark="1"] {
     gap: 2px;
     box-shadow: var(--shadow);
   }
-  .seg button {
+  .seg button,
+  .seg a {
     border: 0;
     background: transparent;
     border-radius: 999px;
     padding: 7px 15px;
     font-size: 13px;
     font-weight: 700;
+    line-height: 1.2;
     color: var(--text2);
     display: flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
+    text-decoration: none;
   }
-  .seg button.on {
+  .seg button:not(.on):hover,
+  .seg a:not(.on):hover {
+    color: var(--text);
+  }
+  .seg button.on,
+  .seg a.on {
     background: var(--accent);
     color: var(--on-accent);
   }
@@ -1204,17 +1213,6 @@ html[data-dark="1"] {
   .seg.flat {
     box-shadow: none;
     background: var(--surface2);
-  }
-  .seg a {
-    border-radius: 999px;
-    padding: 7px 15px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text2);
-  }
-  .seg a.on {
-    background: var(--accent);
-    color: var(--on-accent);
   }
   .fbar {
     display: flex;
