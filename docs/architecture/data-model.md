@@ -14,7 +14,7 @@ write it.
 | **Tenant** | `tenants` | One per customer organisation. Everything else belongs to exactly one tenant. |
 | **Mirror** | `reps`, `customerGroups`, `accounts`, `contracts` | Copied from the customer's systems nightly. Read-only in the app; deactivated, never deleted. |
 | **Rollup** | `salesSnapshots` (later: open orders, stock, health) | Dated snapshots, append-only. The dashboard reads the latest per scope. |
-| **App-native** | `users`, `tasks`, `visits`, `interactions`, `notifications`, later `contacts`, `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
+| **App-native** | `users`, `tasks`, `visits`, `interactions`, `contacts`, `notifications`, later `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
 | **Observability** | `auditLog`, later `aiInvocations`, `syncRuns` | Append-only; production credentials get insert but not update or delete. |
 
 ## Entities
@@ -40,7 +40,8 @@ erDiagram
   USER ||--o{ NOTIFICATION : receives
   USER ||--o{ AUDIT_ENTRY : "acts in"
   REP ||--o{ SALES_SNAPSHOT : "scope"
-  ACCOUNT ||--o{ CONTACT : "planned"
+  ACCOUNT ||--o{ CONTACT : "bill-to has (accountId)"
+  ACCOUNT ||--o{ CONTACT : "sold-to site (soldToAccountId)"
   ACCOUNT ||--o{ CONTRACT : "planned"
   ACCOUNT ||--o{ MESSAGE : "planned: captured email"
   ACCOUNT ||--o{ MEETING : "planned: captured meeting"
@@ -53,6 +54,7 @@ erDiagram
     string timeZone
     array divisions
     array lenses
+    array contactRoles
     string entraTenantId
   }
   REP {
@@ -114,6 +116,19 @@ erDiagram
     string authorUserId
     date occurredAt
   }
+  CONTACT {
+    string _id
+    string tenantId
+    string accountId
+    string soldToAccountId
+    string ownerRepId
+    string division
+    string firstName
+    string lastName
+    string email
+    array roles
+    bool active
+  }
   NOTIFICATION {
     string _id
     string userId
@@ -152,8 +167,14 @@ erDiagram
 - **Enums are strings validated by Zod**, never database-level enums, so adding
   a value is a code change only.
 - **Denormalise for the hot filter.** Tasks and visits copy their account's
-  `division` at write time so the division lens needs no join. Anything copied
-  must be refreshed by the sync job when the source changes.
+  `division` at write time so the division lens needs no join; contacts also
+  copy the bill-to's `ownerRepId`, so visibility needs no join either. Anything
+  copied must be refreshed by the sync job when the source changes.
+- **Contacts** belong to a bill-to and optionally one of its sold-to sites.
+  Emails are lowercased and unique per tenant among contacts that aren't
+  deleted (checked in the write path, so deleted contacts can share one).
+  Deactivating keeps a contact on past activity but drops it from pickers.
+  Role tags come from the tenant's `contactRoles`.
 - **Soft delete app-native data** (`deletedAt`, `deletedBy`); every query adds
   `deletedAt: null`.
 - **Bodies live in blob storage.** Captured email bodies and transcripts are
@@ -177,6 +198,7 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `tasks` | `ownerRepId + status + dueAt`, `accountId + status` | dashboard, open-task counts |
 | `visits` | `repId + scheduledAt`, `accountId` | calendar |
 | `interactions` | `accountId + occurredAt` | profile timeline |
+| `contacts` | `accountId + active`, `ownerRepId + lastName + firstName`, `lastName + firstName`, `email` | directory, profile card, duplicate-email check |
 | `notifications` | `userId + createdAt` | feed |
 | `salesSnapshots` | `scope + asOf` | latest snapshot |
 | `auditLog` | `at`, `entity + entityId + at`, `actorUserId + at` | audit browser |

@@ -12,6 +12,7 @@ import { ensureIndexes } from "./indexes";
 import { calendarDaysBetween, isoDayIn, startOfDay, zonedParts, zonedTime } from "./time";
 import type {
   Account,
+  Contact,
   CustomerGroup,
   Interaction,
   Notification,
@@ -70,6 +71,8 @@ type GroupRow = [key: string, name: string, code: string, level: CustomerGroup["
 type TaskRow = [acct: string, title: string, owner: string, dueIn: number, priority: Task["priority"], status: Task["status"], source: Task["source"], createdBy: string];
 type VisitRow = [dayOffset: number, acct: string, type: Visit["type"], purpose: string, status: Visit["status"], rep: string];
 type InteractionRow = [daysAgo: number, acct: string, type: Interaction["type"], summary: string, author: string];
+/** A contact at a bill-to; `site` picks its n-th sold-to (0 = the bill-to as a whole). */
+type ContactRow = [acct: string, first: string, last: string, title: string, roles: string[], site: number, active: boolean];
 type NotifRow = [type: Notification["type"], acct: string, title: string, body: string, minutes: number, unread: boolean];
 
 export type TenantSpec = {
@@ -79,6 +82,7 @@ export type TenantSpec = {
   timeZone: string;
   divisions: Tenant["divisions"];
   lenses: Tenant["lenses"];
+  contactRoles: Tenant["contactRoles"];
   sites: string[];
   reps: RepRow[];
   users: UserRow[];
@@ -86,6 +90,7 @@ export type TenantSpec = {
   tasks: TaskRow[];
   visits: VisitRow[];
   interactions: InteractionRow[];
+  contacts: ContactRow[];
   notifications: NotifRow[];
   orgSales: [mtd: [number, number], ytd: [number, number], gm: number];
   repSales: Record<string, [mtd: number, target: number, gm: number]>;
@@ -106,6 +111,13 @@ export const NORTHWIND: TenantSpec = {
   lenses: [
     { key: "wholesale", label: "Wholesale", divisions: ["wholesale"] },
     { key: "uniforms", label: "Uniforms", divisions: ["uniforms", "icw"] },
+  ],
+  contactRoles: [
+    { key: "buyer", label: "Buyer" },
+    { key: "finance", label: "Finance" },
+    { key: "safety", label: "Safety" },
+    { key: "warehouse", label: "Warehouse" },
+    { key: "operations", label: "Operations" },
   ],
   sites: ["Sydney HQ", "Melbourne DC", "Brisbane", "Perth", "Geelong", "Adelaide", "Newcastle", "Wollongong", "Toowoomba", "Auckland"],
   // Manager hierarchy: Grace → Liam → field reps.
@@ -200,6 +212,27 @@ export const NORTHWIND: TenantSpec = {
     [6, "CO-NORTHERN-BT1", "note", "Renewal pack drafted; pricing review booked 45 days before end date.", "u-senior"],
     [8, "SA-SOUTHPORT-BT1", "call", "Stock-out on the WB-220 boot; offered an in-stock alternative.", "u-lead"],
   ],
+  contacts: [
+    ["CO-ACME-BT1", "Hannah", "Brooks", "Procurement Manager", ["buyer"], 1, true],
+    ["CO-ACME-BT1", "Marcus", "Lee", "Finance Controller", ["finance"], 0, true],
+    ["CO-ACME-BT1", "Tessa", "Doyle", "WHS Officer", ["safety", "operations"], 2, true],
+    ["CO-ACME-BT1", "Raj", "Malhotra", "Site Manager", ["operations"], 1, false],
+    ["CG-HARROW-BT1", "Olivia", "Grant", "Category Manager", ["buyer"], 0, true],
+    ["CG-HARROW-BT1", "Ben", "Fletcher", "Accounts Payable", ["finance"], 0, true],
+    ["SA-DELTA-BT1", "Kate", "Sullivan", "Warehouse Lead", ["warehouse"], 1, true],
+    ["CG-BRIGHTWELL-BT1", "Daniel", "Wu", "Buyer", ["buyer"], 0, true],
+    ["CO-WESTLINE-BT1", "Sophie", "Turner", "Operations Manager", ["operations", "safety"], 1, true],
+    ["CG-CASTLEFORD-BT1", "Aaron", "Holt", "Site Manager", ["operations"], 0, true],
+    ["CO-NORTHERN-BT1", "Leah", "Morris", "Procurement Manager", ["buyer"], 0, true],
+    ["CG-TRADEPOINT-BT1", "Jack", "Hamilton", "Store Manager", ["buyer", "operations"], 1, true],
+    ["CG-MARLOWE-BT1", "Ruby", "Clarke", "Buyer", ["buyer"], 0, false],
+    ["CG-SENTINEL-BT1", "Chris", "Nolan", "Finance Controller", ["finance"], 0, true],
+    ["CG-KIWISAFE-BT1", "Aroha", "Ngata", "Warehouse Lead", ["warehouse"], 1, true],
+    ["CO-SKYBRIDGE-BT1", "Megan", "Ford", "Uniform Coordinator", ["buyer"], 0, true],
+    ["SA-HARBOUR-BT1", "Paul", "Evans", "Facilities Manager", ["operations"], 0, true],
+    ["SA-SOUTHPORT-BT1", "Nina", "Alvarez", "Accounts Payable", ["finance"], 0, true],
+    ["CO-METRO-BT1", "Will", "Barker", "Procurement Manager", ["buyer"], 1, true],
+  ],
   notifications: [
     ["at_risk_change", "CO-ACME-BT1", "ACME SAFETY moved to At risk", "Sentiment dropped after two delivery complaints in 48 hours.", 12, true],
     ["contract_renewal", "CO-NORTHERN-BT1", "Contract renews in 9 days", "Supply Agreement · $184K · no renewal task exists.", 55, true],
@@ -234,6 +267,12 @@ export const HARBOR: TenantSpec = {
     { key: "trade", label: "Trade", divisions: ["trade"] },
     { key: "institutional", label: "Institutional", divisions: ["institutional"] },
   ],
+  contactRoles: [
+    { key: "buyer", label: "Buyer" },
+    { key: "finance", label: "Finance" },
+    { key: "operations", label: "Operations" },
+    { key: "facilities", label: "Facilities" },
+  ],
   sites: ["Auckland", "Wellington", "Christchurch", "Hamilton"],
   reps: [
     ["r1", "OP01", "Owen Price", "North Island", "Enterprise", null],
@@ -266,6 +305,13 @@ export const HARBOR: TenantSpec = {
     [1, "CO-PINECREST-BT1", "call", "Procurement reported scrubs running small; samples in two sizes up sent.", "u-manager"],
     [5, "CO-ACME-BT1", "note", "New trade price list requested before the showroom visit.", "u-rep"],
   ],
+  // Hannah Brooks shares a name and email with a Northwind contact: emails are unique per tenant only.
+  contacts: [
+    ["CO-ACME-BT1", "Hannah", "Brooks", "Purchasing Officer", ["buyer"], 0, true],
+    ["CG-BLUEWATER-BT1", "Liam", "Hart", "Operations Manager", ["operations"], 1, true],
+    ["CO-PINECREST-BT1", "Grace", "Huang", "Procurement Lead", ["buyer", "finance"], 0, true],
+    ["SA-LUMEN-BT1", "Mere", "Tane", "Facilities Manager", ["facilities"], 0, true],
+  ],
   notifications: [
     ["at_risk_change", "CO-PINECREST-BT1", "PINECREST HEALTH moved to At risk", "Two complaints about scrubs sizing this week.", 40, true],
     ["task_assigned", "CG-BLUEWATER-BT1", "Owen Price assigned you a task", "Plan summer range launch · due in 4 days.", 180, false],
@@ -285,6 +331,7 @@ export type Built = {
   tasks: Task[];
   visits: Visit[];
   interactions: Interaction[];
+  contacts: Contact[];
   notifications: Notification[];
   salesSnapshots: SalesSnapshot[];
 };
@@ -365,6 +412,21 @@ export function build(spec: TenantSpec): Built {
     createdAt: addDays(-daysAgo, 12), updatedAt: addDays(-daysAgo, 12), deletedAt: null, deletedBy: null,
   }));
 
+  const contactCreator = id(spec.users[0]![0]);
+  const contacts: Contact[] = spec.contacts.map(([acct, first, last, jobTitle, roles, site, active], i) => {
+    const account = accounts.find((a) => a._id === id(acct))!;
+    const domain = account.name.split(" ")[0]!.toLowerCase().replace(/[^a-z]/g, "");
+    const at = addDays(-((i * 7) % 50) - 1, 10);
+    return {
+      _id: id(`c${i + 1}`), tenantId, accountId: account._id, soldToAccountId: site ? id(`${acct}-ST${site}`) : null,
+      ownerRepId: account.ownerRepId, division: account.division, firstName: first, lastName: last, jobTitle,
+      email: `${first}.${last}@${domain}.example`.toLowerCase(),
+      phone: spec.id === "harbor" ? `021 555 ${String(100 + i).padStart(4, "0")}` : `0491 570 ${110 + i}`,
+      roles, active, createdByUserId: contactCreator, updatedByUserId: contactCreator,
+      createdAt: at, updatedAt: at, deletedAt: null, deletedBy: null,
+    };
+  });
+
   const notifications: Notification[] = users.flatMap((u) =>
     spec.notifications.map(([type, acct, title, body, minutes, unread], i) => ({
       _id: `${u._id}-n${i + 1}`, tenantId, userId: u._id, type, accountId: id(acct), title, body,
@@ -388,11 +450,12 @@ export function build(spec: TenantSpec): Built {
     timeZone: spec.timeZone,
     divisions: spec.divisions,
     lenses: spec.lenses,
+    contactRoles: spec.contactRoles,
     entraTenantId: null,
     active: true,
     createdAt: now,
   };
-  return { tenant, reps, users, groups, accounts, tasks, visits, interactions, notifications, salesSnapshots };
+  return { tenant, reps, users, groups, accounts, tasks, visits, interactions, contacts, notifications, salesSnapshots };
 }
 
 export type SeedSummary = { tenantId: string; counts: Record<string, number> };
@@ -416,6 +479,7 @@ export async function seedDemoData(db: Db): Promise<SeedSummary[]> {
       ["tasks", b.tasks],
       ["visits", b.visits],
       ["interactions", b.interactions],
+      ["contacts", b.contacts],
       ["notifications", b.notifications],
       ["salesSnapshots", b.salesSnapshots],
     ];

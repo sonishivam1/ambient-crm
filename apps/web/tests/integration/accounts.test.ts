@@ -88,7 +88,9 @@ describe("palette search", () => {
   it("never returns accounts outside the user's scope", async () => {
     signInAs(USERS.northwind.rep);
     expect(await paletteSearch("brightwell")).toEqual([]);
-    expect((await paletteSearch("acme")).every((r) => r.title.startsWith("ACME SAFETY"))).toBe(true);
+    const accounts = (await paletteSearch("acme")).filter((r) => r.kind === "account");
+    expect(accounts.length).toBeGreaterThan(0);
+    expect(accounts.every((r) => r.title.startsWith("ACME SAFETY"))).toBe(true);
   });
 
   it("ignores queries shorter than two characters", async () => {

@@ -2,6 +2,7 @@ import "server-only";
 
 import { OPEN_TASK_STATUSES, collection, type HealthBand, type Interaction, type Task, type Visit } from "@ambient/db";
 
+import { getAccountContacts } from "./contacts";
 import { getScope } from "./scope";
 
 export type TimelineItem =
@@ -40,7 +41,7 @@ export async function getAccountProfile(id: string) {
   const startOfToday = scope.today;
   const byAccount = { ...scope.tenant(), accountId: account._id };
 
-  const [group, parent, related, reps, users, tasks, visits, interactions] = await Promise.all([
+  const [group, parent, related, reps, users, tasks, visits, interactions, contacts] = await Promise.all([
     (await collection("customerGroups")).findOne({ ...scope.tenant(), _id: account.groupId }),
     account.parentId ? accounts.findOne({ ...scope.filter(), _id: account.parentId, active: true }) : null,
     account.type === "bill_to"
@@ -55,6 +56,7 @@ export async function getAccountProfile(id: string) {
     (await collection("tasks")).find({ ...byAccount, deletedAt: null }).sort({ dueAt: 1 }).toArray(),
     (await collection("visits")).find({ ...byAccount, deletedAt: null, status: { $ne: "cancelled" } }).sort({ scheduledAt: 1 }).toArray(),
     (await collection("interactions")).find({ ...byAccount, deletedAt: null }).sort({ occurredAt: -1 }).limit(100).toArray(),
+    getAccountContacts(scope, account),
   ]);
 
   const repName = new Map(reps.map((r) => [r._id, r.name]));
@@ -155,6 +157,8 @@ export async function getAccountProfile(id: string) {
         }),
       ),
     timeline,
+    contacts,
+    contactRoles: scope.user.tenant.contactRoles,
   };
 }
 

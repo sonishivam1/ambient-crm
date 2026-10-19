@@ -3,6 +3,7 @@ import { MongoClient, type Collection, type Db } from "mongodb";
 import type {
   Account,
   AuditEntry,
+  Contact,
   CustomerGroup,
   Interaction,
   Notification,
@@ -23,6 +24,7 @@ type CollectionMap = {
   tasks: Task;
   visits: Visit;
   interactions: Interaction;
+  contacts: Contact;
   notifications: Notification;
   salesSnapshots: SalesSnapshot;
   auditLog: AuditEntry;

@@ -102,7 +102,8 @@ packages/db
 | Tasks: today and all views, filters, create, edit, assign, cancel | Done |
 | Customer group page: health mix, bill-to drill-down, recent activity | Done |
 | Tenant settings: own divisions and lenses, own time zone for dates | Done |
-| Contracts, contacts, call cycle, notifications | Placeholder pages |
+| Contacts: directory, add, edit, deactivate, profile card, Ctrl K | Done |
+| Contracts, call cycle, notifications | Placeholder pages |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |

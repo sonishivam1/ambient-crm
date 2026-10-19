@@ -7,9 +7,10 @@ import { Suspense } from "react";
 import type { HealthBand, Task } from "@ambient/db";
 
 import { LogInteractionButton } from "@/components/accounts/log-interaction";
+import { AddContactButton } from "@/components/contacts/contact-controls";
 import { TaskCheck } from "@/components/dashboard/task-check";
 import { AddTaskButton } from "@/components/tasks/task-controls";
-import { Badge, Card, Empty, HealthPill, Skeleton, type Tone } from "@/components/ui/primitives";
+import { Avatar, Badge, Card, Empty, HealthPill, Skeleton, type Tone } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 import { getAccountProfile, type AccountProfile, type TimelineItem } from "@/lib/data/account-profile";
 import { getTaskOptions, type TaskOptions } from "@/lib/data/tasks";
@@ -267,14 +268,54 @@ function Overview({ profile, filter, base }: { profile: AccountProfile; filter: 
 
         <Related profile={profile} />
 
-        <Card title="Contacts">
-          <div className="text-[13.5px] text-muted">Contacts arrive with the Contacts feature.</div>
-        </Card>
+        <Contacts profile={profile} />
         <Card title="Contracts">
           <div className="text-[13.5px] text-muted">Contracts arrive with the warehouse sync.</div>
         </Card>
       </div>
     </div>
+  );
+}
+
+function Contacts({ profile }: { profile: AccountProfile }) {
+  // Contacts belong to bill-to accounts: a sold-to adds them to its parent.
+  const target = profile.account.type === "bill_to" ? profile.account : profile.parent;
+  return (
+    <Card
+      title="Contacts"
+      link={
+        target ? (
+          <Link className="lnk text-[12.5px]" href={`/contacts?account=${encodeURIComponent(target.id)}`}>
+            All →
+          </Link>
+        ) : undefined
+      }
+    >
+      {profile.contacts.length ? (
+        profile.contacts.map((c) => (
+          <div key={c.id} className="li">
+            <Avatar name={c.name} size="sm" />
+            <div className="min-w-0 flex-1">
+              <b>{c.name}</b>
+              <p>{[c.jobTitle, c.soldTo && profile.account.type === "bill_to" ? c.soldTo.name : null].filter(Boolean).join(" · ") || "—"}</p>
+              {c.email && (
+                <a className="lnk block truncate text-[12px]" href={`mailto:${c.email}`}>
+                  {c.email}
+                </a>
+              )}
+              {c.roleLabels.length > 0 && <div className="mt-0.5 text-[11.5px] text-muted">{c.roleLabels.join(" · ")}</div>}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="mb-3 text-[13.5px] text-muted">No contacts yet.</div>
+      )}
+      {target && (
+        <div className="mt-3">
+          <AddContactButton small roles={profile.contactRoles} lockedAccount={{ id: target.id, name: target.name, code: target.code }} />
+        </div>
+      )}
+    </Card>
   );
 }
 

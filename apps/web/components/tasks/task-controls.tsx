@@ -6,7 +6,8 @@ import { Dialog, DropdownMenu } from "radix-ui";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { cancelTask, completeTask, type AccountOption } from "@/app/actions/tasks";
+import type { AccountOption } from "@/app/actions/accounts";
+import { cancelTask, completeTask } from "@/app/actions/tasks";
 
 import { TaskDialog, type DialogRep, type EditableTask } from "./task-dialog";
 

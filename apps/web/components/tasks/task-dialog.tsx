@@ -2,10 +2,12 @@
 
 import { X } from "lucide-react";
 import { Dialog } from "radix-ui";
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { createTask, searchTaskAccounts, updateTask, type AccountOption } from "@/app/actions/tasks";
+import type { AccountOption } from "@/app/actions/accounts";
+import { createTask, updateTask } from "@/app/actions/tasks";
+import { AccountPicker, ChosenAccount, Field } from "@/components/forms/fields";
 import { isoDay } from "@/lib/format";
 
 export type DialogRep = { id: string; name: string; team: string };
@@ -97,17 +99,7 @@ export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign,
             <div className="m-body">
               <Field label="Bill-to account" required>
                 {account ? (
-                  <div className="flex items-center justify-between rounded-[14px] border border-line bg-surface2 px-3.5 py-2.5">
-                    <span>
-                      <b>{account.name}</b>
-                      {account.code && <span className="ml-1.5 text-[12px] text-muted">[{account.code}]</span>}
-                    </span>
-                    {!editing && !lockedAccount && (
-                      <button type="button" className="lnk text-[12.5px]" onClick={() => setAccount(null)}>
-                        Change
-                      </button>
-                    )}
-                  </div>
+                  <ChosenAccount account={account} onChange={!editing && !lockedAccount ? () => setAccount(null) : undefined} />
                 ) : (
                   <AccountPicker onPick={setAccount} />
                 )}
@@ -220,65 +212,5 @@ export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign,
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  );
-}
-
-function Field({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
-  return (
-    <div className="fld">
-      <span className="lbl">
-        {label}
-        {required && <i className="text-accent not-italic"> *</i>}
-      </span>
-      {children}
-    </div>
-  );
-}
-
-function AccountPicker({ onPick }: { onPick: (a: AccountOption) => void }) {
-  const [q, setQ] = useState("");
-  const [results, setResults] = useState<AccountOption[]>([]);
-  const [focused, setFocused] = useState(false);
-
-  useEffect(() => {
-    if (!focused) return;
-    let stale = false;
-    const t = setTimeout(async () => {
-      const rows = await searchTaskAccounts(q);
-      if (!stale) setResults(rows);
-    }, 180);
-    return () => {
-      stale = true;
-      clearTimeout(t);
-    };
-  }, [q, focused]);
-
-  return (
-    <div className="relative">
-      <input
-        className="inp"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setTimeout(() => setFocused(false), 150)}
-        placeholder="Search bill-to accounts by name or code…"
-        aria-label="Search bill-to accounts"
-        autoComplete="off"
-      />
-      {focused && (
-        <div className="ta-list" role="listbox">
-          {results.length ? (
-            results.map((a) => (
-              <button key={a.id} type="button" role="option" aria-selected={false} onMouseDown={(e) => e.preventDefault()} onClick={() => onPick(a)}>
-                <span>{a.name}</span>
-                <span className="text-[12px] text-muted">[{a.code}]</span>
-              </button>
-            ))
-          ) : (
-            <div className="px-3 py-2 text-[13px] text-muted">No accounts found</div>
-          )}
-        </div>
-      )}
-    </div>
   );
 }

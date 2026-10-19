@@ -37,6 +37,13 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
     { key: { tenantId: 1, accountId: 1 } },
   ],
   interactions: [{ key: { tenantId: 1, accountId: 1, occurredAt: -1 } }],
+  contacts: [
+    { key: { tenantId: 1, accountId: 1, active: 1 } },
+    { key: { tenantId: 1, ownerRepId: 1, lastName: 1, firstName: 1 } },
+    { key: { tenantId: 1, lastName: 1, firstName: 1 } },
+    // Uniqueness is checked in the write path (deleted contacts may share an email).
+    { key: { tenantId: 1, email: 1 } },
+  ],
   notifications: [{ key: { tenantId: 1, userId: 1, createdAt: -1 } }],
   salesSnapshots: [{ key: { tenantId: 1, scope: 1, asOf: -1 } }],
   auditLog: [

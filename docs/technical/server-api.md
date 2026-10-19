@@ -18,7 +18,10 @@ callers outside the web app.
 | `getTasksPage(query)` | `lib/data/tasks.ts` | one page of tasks from validated URL filters, with total and page count |
 | `getTaskOptions()` | `lib/data/tasks.ts` | filter options and who the user may assign to |
 | `getGroupProfile(id)` | `lib/data/group-profile.ts` | the group page (group, bill-tos with sold-to counts, health mix, task counts, recent activity), or `null` when outside scope |
-| `getAccountProfile(id)` | `lib/data/account-profile.ts` | the profile (account, group, related accounts, tasks, next visit, timeline), or `null` when outside scope |
+| `getAccountProfile(id)` | `lib/data/account-profile.ts` | the profile (account, group, related accounts, tasks, next visit, timeline, active contacts), or `null` when outside scope |
+| `getContactsPage(query)` | `lib/data/contacts.ts` | one page of contacts from validated URL filters (search, role, account, status), sorted by last name, with total and page count |
+| `getContactOptions()` | `lib/data/contacts.ts` | accounts that have contacts in scope, the tenant's contact roles, the time zone |
+| `getAccountContacts(scope, account)` | `lib/data/contacts.ts` | active contacts for a profile: a bill-to's, or a sold-to's site plus its bill-to's account-wide ones |
 
 ## Server actions (built)
 
@@ -28,8 +31,12 @@ callers outside the web app.
 | `updateTask(input)` | `app/actions/tasks.ts` | task id, fields, status, owner (managers) | edits a task in scope; a changed due date can't be in the past | `task.update` (changed fields; text fields only flagged as changed) |
 | `cancelTask(input)` | `app/actions/tasks.ts` | task id, optional reason (300 chars) | cancels a task in scope | `task.cancel` |
 | `completeTask(id)` | `app/actions/tasks.ts` | task id | marks a task in scope complete, in a transaction | `task.complete` |
-| `searchTaskAccounts(q)` | `app/actions/tasks.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task dialog | — (read) |
-| `paletteSearch(q)` | `app/actions/search.ts` | 2–100 chars | up to 8 accounts in scope matching name or code | — (read) |
+| `createContact(input)` | `app/actions/contacts.ts` | bill-to, optional sold-to under it, first and last name, job title, email, phone, roles | adds a contact on a bill-to in scope; copies its owner and division; refuses a duplicate email in the tenant and roles the tenant doesn't have | `contact.create` (account, site, roles, whether email/phone are set; never name, email or phone) |
+| `updateContact(input)` | `app/actions/contacts.ts` | contact id and the same fields | edits a contact in scope, including moving it to another bill-to in scope | `contact.update` (account, site and role changes; personal fields only named as changed) |
+| `setContactActive(input)` | `app/actions/contacts.ts` | contact id, `active` | deactivates or reactivates a contact in scope | `contact.deactivate` / `contact.reactivate` |
+| `searchBillToAccounts(q)` | `app/actions/accounts.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task and contact dialogs | — (read) |
+| `listSoldTos(billToId)` | `app/actions/accounts.ts` | bill-to id | its sold-to sites, empty when the bill-to isn't in scope | — (read) |
+| `paletteSearch(q)` | `app/actions/search.ts` | 2–100 chars | up to 8 accounts in scope matching name or code, and up to 5 active contacts matching name or email | — (read) |
 | `logInteraction(input)` | `app/actions/interactions.ts` | account id, type, summary (1–4,000 chars) | logs a note, call or meeting on an account in scope, in a transaction | `interaction.log` (type and account only, never the text) |
 | `loadChildAccounts(parent)` | `app/actions/accounts.ts` | `{ kind, id }`, kind `group` or `billTo` | child rows for an expanded accounts row, in scope | — (read) |
 | `setLens(lens)` | `app/actions/session.ts` | `all` or one of the tenant's lens keys | sets the lens cookie (senior roles only); another tenant's lens is refused | — |

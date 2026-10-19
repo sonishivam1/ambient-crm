@@ -8,7 +8,7 @@ import { z } from "zod";
  * Ownership classes:
  * - Mirror: copied from the customer's ERP or warehouse, read-only in the app (reps, groups, accounts).
  * - Rollup: dated warehouse snapshots, append-only (salesSnapshots).
- * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, interactions, notifications).
+ * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, interactions, contacts, notifications).
  *
  * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
  * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
@@ -24,7 +24,9 @@ export type RoleKey = (typeof ROLE_KEYS)[number];
  * "wholesale" that accounts and the records copied from them carry.
  */
 export type Division = string;
-const divisionKey = z.string().regex(/^[a-z0-9_-]{1,40}$/, "Division keys are lowercase letters, digits, - or _.");
+/** A tenant-defined key (a division, a contact role): lowercase letters, digits, - or _. */
+const settingKey = z.string().regex(/^[a-z0-9_-]{1,40}$/, "Keys are lowercase letters, digits, - or _.");
+const divisionKey = settingKey;
 
 export const HEALTH_BANDS = ["g", "a", "r"] as const;
 export type HealthBand = (typeof HEALTH_BANDS)[number];
@@ -56,6 +58,8 @@ export const tenantSchema = z.object({
    * of divisions. Empty means the tenant has no lens.
    */
   lenses: z.array(z.object({ key: divisionKey, label: z.string().min(1).max(60), divisions: z.array(divisionKey).min(1) })).default([]),
+  /** The role tags a contact can carry (Buyer, Finance…), in display order. */
+  contactRoles: z.array(z.object({ key: settingKey, label: z.string().min(1).max(60) })).default([]),
   /** The Entra tenant whose users sign in to this Ambient tenant. */
   entraTenantId: z.string().nullable(),
   active: z.boolean(),
@@ -203,6 +207,39 @@ export const interactionSchema = z.object({
   ...softDelete,
 });
 export type Interaction = z.infer<typeof interactionSchema>;
+
+/**
+ * A person at a customer. Ambient is the system of record for contacts (they
+ * are synced back to the warehouse, planned). A contact belongs to a bill-to
+ * account and optionally one of its sold-to sites, and is visible to anyone who
+ * can see that bill-to.
+ */
+export const contactSchema = z.object({
+  _id: z.string(),
+  ...tenantScoped,
+  /** The bill-to account. */
+  accountId: z.string(),
+  /** A sold-to under that bill-to, when the contact works at one site. */
+  soldToAccountId: z.string().nullable().default(null),
+  /** Copied from the bill-to at write time so visibility and the lens need no join; the sync refreshes them. */
+  ownerRepId: z.string(),
+  division: divisionKey,
+  firstName: z.string().trim().min(1).max(80),
+  lastName: z.string().trim().max(80).default(""),
+  jobTitle: z.string().trim().max(120).default(""),
+  /** Lowercased; unique per tenant among contacts that aren't deleted. */
+  email: z.string().trim().toLowerCase().max(254).nullable().default(null),
+  phone: z.string().trim().max(40).default(""),
+  /** Keys from the tenant's `contactRoles`. */
+  roles: z.array(settingKey).max(10).default([]),
+  /** Inactive contacts stay on historical records but drop out of pickers. */
+  active: z.boolean(),
+  createdByUserId: z.string(),
+  updatedByUserId: z.string(),
+  ...timestamps,
+  ...softDelete,
+});
+export type Contact = z.infer<typeof contactSchema>;
 
 export const NOTIFICATION_TYPES = [
   "at_risk_change",

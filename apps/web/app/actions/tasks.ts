@@ -283,18 +283,3 @@ export async function completeTask(rawId: string) {
   );
   refresh();
 }
-
-export type AccountOption = { id: string; name: string; code: string };
-
-/** Bill-to accounts in scope for the task dialog's account picker. */
-export async function searchTaskAccounts(raw: string): Promise<AccountOption[]> {
-  const q = z.string().trim().max(100).parse(raw);
-  const scope = await getScope();
-  const filter: Record<string, unknown> = { ...scope.filter(), type: "bill_to", active: true };
-  if (q) {
-    const pattern = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    filter.$or = [{ name: pattern }, { code: pattern }];
-  }
-  const rows = await (await collection("accounts")).find(filter, { projection: { name: 1, code: 1 } }).sort({ name: 1 }).limit(8).toArray();
-  return rows.map((a) => ({ id: a._id, name: a.name, code: a.code }));
-}
