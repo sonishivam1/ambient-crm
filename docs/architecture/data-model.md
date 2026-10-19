@@ -106,7 +106,10 @@ erDiagram
     string division
     string repId
     string type
+    string status
     date scheduledAt
+    object report
+    date completedAt
   }
   INTERACTION {
     string _id
@@ -170,6 +173,11 @@ erDiagram
   `division` at write time so the division lens needs no join; contacts also
   copy the bill-to's `ownerRepId`, so visibility needs no join either. Anything
   copied must be refreshed by the sync job when the source changes.
+- **Visits** are on a bill-to and owned by the rep making them (`repId`, which
+  visibility follows). `scheduledAt` is a moment on the tenant's clock. A
+  completed visit carries `completedAt` and, once captured, a `report`
+  (sentiment, three 1–5 ratings, key points, follow-ups); seeded and legacy
+  completed visits may have no report yet.
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't
   deleted (checked in the write path, so deleted contacts can share one).
@@ -196,7 +204,7 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `customerGroups` | `ownerRepId + fyRevenue`, `division + health`, `fyRevenue`, `name` | accounts list, health mix |
 | `accounts` | `groupId + type`, `parentId`, `ownerRepId + type + fyRevenue`, `type + fyRevenue`, `code` unique | lists, drill-down, palette |
 | `tasks` | `ownerRepId + status + dueAt`, `accountId + status` | dashboard, open-task counts |
-| `visits` | `repId + scheduledAt`, `accountId` | calendar |
+| `visits` | `repId + scheduledAt`, `scheduledAt`, `accountId` | call cycle, calendar, profile |
 | `interactions` | `accountId + occurredAt` | profile timeline |
 | `contacts` | `accountId + active`, `ownerRepId + lastName + firstName`, `lastName + firstName`, `email` | directory, profile card, duplicate-email check |
 | `notifications` | `userId + createdAt` | feed |

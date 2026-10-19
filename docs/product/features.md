@@ -18,7 +18,7 @@ Planned (nothing yet).
 | Contracts | `/contracts` | Placeholder |
 | Contacts | `/contacts` | Built (sync to the warehouse and email backfill wait for those features) |
 | Tasks | `/tasks` | Built (Wren suggestions wait for the AI layer) |
-| Call cycle and visits | `/call-cycle` | Placeholder |
+| Call cycle and visits | `/call-cycle` | Built (calendar sync waits for Microsoft 365) |
 | Notifications | `/notifications` | Placeholder |
 | Email and meeting capture | background workers | Planned |
 | Review queue | `/review-queue` | Placeholder |
@@ -123,9 +123,30 @@ One list for manual tasks, manager-assigned tasks and Wren's suggestions.
 - **Planned:** accepting or dismissing Wren's suggested tasks (needs capture and
   the AI layer); contact person on a task (needs Contacts).
 
-### Call cycle and visits
-Plan the week as a list or week grid; add, reschedule and cancel site visits,
-calls and meetings; complete a visit with a short post-visit report.
+### Call cycle and visits — Built
+Plan the coming weeks of site visits, calls and meetings, then capture how each
+one went.
+- **Built — the next six weeks** from this Monday, as a list (one card per week)
+  or a week grid with previous/next; today is highlighted. Weeks and days follow
+  the tenant's calendar.
+- **Built — needs closing:** planned visits from earlier weeks, so nothing is
+  left open; this week's past visits show as overdue in place.
+- **Built — history:** the last four weeks, collapsible.
+- **Built — plan, reschedule, cancel:** a visit is on a bill-to, at a date and
+  time (today or later), with a type and purpose. Managers can book a rep in
+  their scope, who gets a notification; reps book themselves. Cancelling takes
+  an optional reason. Also from the customer profile's Next touchpoint card and
+  the dashboard's quick add.
+- **Built — post-visit report:** completing a visit (on or after its day) takes
+  a sentiment, relationship, commercial and service ratings (1–5), key points
+  and follow-ups. Completed visits without a report can have one added. The
+  account timeline shows the sentiment.
+- **Built — rep filter** for managers; respects tenant, visibility and the
+  division lens.
+- **Privacy:** the audit log keeps scores and dates, never key points or
+  follow-up text.
+- **Next:** Outlook calendar sync; turn follow-ups into tasks; scorecard
+  rollups for managers (team overview).
 
 ### Email and meeting capture
 Background workers read in-scope mailboxes and calendars through Microsoft

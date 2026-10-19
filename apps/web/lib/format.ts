@@ -24,6 +24,13 @@ export const fmtDate = (d: Date, timeZone: string) => d.toLocaleDateString(LOCAL
 export const fmtDay = (d: Date, timeZone: string) => d.toLocaleDateString(LOCALE, { day: "numeric", month: "short", timeZone });
 export const fmtWeekday = (d: Date, timeZone: string) => d.toLocaleDateString(LOCALE, { weekday: "short", day: "numeric", timeZone });
 export const fmtLongDay = (d: Date, timeZone: string) => d.toLocaleDateString(LOCALE, { weekday: "long", day: "numeric", month: "long", timeZone });
+export const fmtTime = (d: Date, timeZone: string) => d.toLocaleTimeString(LOCALE, { hour: "numeric", minute: "2-digit", timeZone });
+
+/** "HH:MM" on the tenant's clock, for a time input. */
+export function isoTime(d: Date, timeZone: string): string {
+  const p = zonedParts(d, timeZone);
+  return `${String(p.hour).padStart(2, "0")}:${String(p.minute).padStart(2, "0")}`;
+}
 
 /** yyyy-mm-dd on the tenant's calendar, used as a stable key for calendar days. */
 export const isoDay = (d: Date, timeZone: string) => isoDayIn(d, timeZone);

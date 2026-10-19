@@ -170,17 +170,45 @@ export type Task = z.infer<typeof taskSchema>;
 export const VISIT_TYPES = ["site", "call", "meeting"] as const;
 export const VISIT_STATUSES = ["planned", "completed", "cancelled"] as const;
 
+export const VISIT_SENTIMENTS = ["positive", "neutral", "negative"] as const;
+
+/** 1 (poor) to 5 (excellent). */
+const rating = z.number().int().min(1).max(5);
+
+/**
+ * The post-visit scorecard. Ratings and sentiment roll up to managers; the key
+ * points and follow-ups are free text and never reach the audit log.
+ */
+export const visitReportSchema = z.object({
+  sentiment: z.enum(VISIT_SENTIMENTS),
+  relationship: rating,
+  commercial: rating,
+  service: rating,
+  keyPoints: z.string().max(4000).default(""),
+  followUps: z.string().max(4000).default(""),
+  capturedAt: z.date(),
+  capturedByUserId: z.string(),
+});
+export type VisitReport = z.infer<typeof visitReportSchema>;
+
 export const visitSchema = z.object({
   _id: z.string(),
   ...tenantScoped,
+  /** A bill-to account. */
   accountId: z.string(),
   /** Copied from the account at write time so the division lens needs no join. */
   division: divisionKey,
+  /** The rep making the visit; visibility follows it. */
   repId: z.string(),
   type: z.enum(VISIT_TYPES),
   status: z.enum(VISIT_STATUSES),
-  purpose: z.string(),
+  purpose: z.string().max(500),
   scheduledAt: z.date(),
+  /** Present once completed; a completed visit may still be waiting for its report. */
+  report: visitReportSchema.nullable().default(null),
+  completedAt: z.date().nullable().default(null),
+  cancelReason: z.string().max(300).nullable().default(null),
+  createdByUserId: z.string(),
   ...timestamps,
   ...softDelete,
 });
@@ -248,6 +276,7 @@ export const NOTIFICATION_TYPES = [
   "task_assigned",
   "email_flagged",
   "visit_reminder",
+  "visit_assigned",
 ] as const;
 
 export const notificationSchema = z.object({

@@ -2,6 +2,8 @@ import "server-only";
 
 import { OPEN_TASK_STATUSES, collection, type HealthBand, type Interaction, type Task, type Visit } from "@ambient/db";
 
+import { SENTIMENT_LABEL } from "@/lib/visits";
+
 import { getAccountContacts } from "./contacts";
 import { getScope } from "./scope";
 
@@ -87,7 +89,7 @@ export async function getAccountProfile(id: string) {
         kind: "visit",
         id: v._id,
         type: v.type,
-        title: `${VISIT_TITLE[v.type]} completed`,
+        title: `${VISIT_TITLE[v.type]} completed${v.report ? ` · ${SENTIMENT_LABEL[v.report.sentiment]}` : ""}`,
         body: v.purpose,
         by: repName.get(v.repId) ?? "",
         at: v.scheduledAt,

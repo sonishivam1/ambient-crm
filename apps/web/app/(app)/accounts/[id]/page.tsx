@@ -10,6 +10,7 @@ import { LogInteractionButton } from "@/components/accounts/log-interaction";
 import { AddContactButton } from "@/components/contacts/contact-controls";
 import { TaskCheck } from "@/components/dashboard/task-check";
 import { AddTaskButton } from "@/components/tasks/task-controls";
+import { AddVisitButton } from "@/components/visits/visit-controls";
 import { Avatar, Badge, Card, Empty, HealthPill, Skeleton, type Tone } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 import { getAccountProfile, type AccountProfile, type TimelineItem } from "@/lib/data/account-profile";
@@ -131,7 +132,7 @@ async function ProfileContent({ params, searchParams }: PageProps<"/accounts/[id
         ))}
       </nav>
 
-      {tab === "overview" && <Overview profile={profile} filter={filter} base={base} />}
+      {tab === "overview" && <Overview profile={profile} filter={filter} base={base} options={taskOptions} />}
       {tab === "tasks" && <Tasks profile={profile} options={taskOptions} />}
       {tab === "sales" && <Sales profile={profile} />}
       {tab === "health" && <Health profile={profile} />}
@@ -170,7 +171,9 @@ function matches(item: TimelineItem, filter: TimelineFilter): boolean {
   return item.kind === "interaction" && item.type === filter;
 }
 
-function Overview({ profile, filter, base }: { profile: AccountProfile; filter: TimelineFilter; base: string }) {
+function Overview({ profile, filter, base, options }: { profile: AccountProfile; filter: TimelineFilter; base: string; options: TaskOptions }) {
+  // Visits, like tasks, go on the bill-to.
+  const billTo = profile.account.type === "bill_to" ? profile.account : profile.parent;
   const items = profile.timeline.filter((t) => matches(t, filter));
   const { account: a } = profile;
   return (
@@ -240,6 +243,17 @@ function Overview({ profile, filter, base }: { profile: AccountProfile; filter: 
             </div>
           ) : (
             <div className="text-[13.5px] text-muted">No visit planned.</div>
+          )}
+          {billTo && (
+            <div className="mt-3">
+              <AddVisitButton
+                small
+                lockedAccount={{ id: billTo.id, name: billTo.name, code: billTo.code }}
+                assignable={options.assignable}
+                ownRepId={options.ownRepId}
+                timeZone={profile.timeZone}
+              />
+            </div>
           )}
         </Card>
 

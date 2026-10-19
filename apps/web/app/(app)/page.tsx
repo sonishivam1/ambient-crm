@@ -38,6 +38,7 @@ const NOTIFICATION_ICON: Record<Notification["type"], [LucideIcon, string]> = {
   task_assigned: [SquareCheck, "info"],
   email_flagged: [Bell, "warn"],
   visit_reminder: [CalendarDays, "info"],
+  visit_assigned: [CalendarDays, "info"],
 };
 
 export default function DashboardPage() {

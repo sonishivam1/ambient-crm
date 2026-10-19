@@ -400,11 +400,27 @@ export function build(spec: TenantSpec): Built {
     createdAt: addDays(-3 - i * 2), updatedAt: addDays(-3 - i * 2), deletedAt: null, deletedBy: null,
   }));
 
-  const visits: Visit[] = spec.visits.map(([offset, acct, type, purpose, status, rep], i) => ({
-    _id: id(`v${i + 1}`), tenantId, accountId: id(acct), division: divisionOf(acct), repId: repId(rep), type, status, purpose,
-    scheduledAt: addDays(offset, 9 + (i % 6), i % 2 ? 30 : 0),
-    createdAt: addDays(-30), updatedAt: addDays(-30), deletedAt: null, deletedBy: null,
-  }));
+  const visitCreator = id(spec.users[0]![0]);
+  const visits: Visit[] = spec.visits.map(([offset, acct, type, purpose, status, rep], i) => {
+    const scheduledAt = addDays(offset, 9 + (i % 6), i % 2 ? 30 : 0);
+    const completedAt = status === "completed" ? addDays(offset, 16) : null;
+    // Every other completed visit has its scorecard; the rest are waiting for one.
+    const report =
+      completedAt && i % 2 === 1
+        ? {
+            sentiment: (["positive", "neutral", "negative"] as const)[i % 3]!,
+            relationship: 3 + (i % 3), commercial: 2 + (i % 4), service: 4 - (i % 2),
+            keyPoints: "Walked the site with the buyer; agreed next steps on range and delivery.",
+            followUps: "Send the updated quote and confirm delivery dates.",
+            capturedAt: completedAt, capturedByUserId: visitCreator,
+          }
+        : null;
+    return {
+      _id: id(`v${i + 1}`), tenantId, accountId: id(acct), division: divisionOf(acct), repId: repId(rep), type, status, purpose,
+      scheduledAt, report, completedAt, cancelReason: null, createdByUserId: visitCreator,
+      createdAt: addDays(-30), updatedAt: addDays(-30), deletedAt: null, deletedBy: null,
+    };
+  });
 
   const interactions: Interaction[] = spec.interactions.map(([daysAgo, acct, type, summary, author], i) => ({
     _id: id(`i${i + 1}`), tenantId, accountId: id(acct), division: divisionOf(acct), type, summary,

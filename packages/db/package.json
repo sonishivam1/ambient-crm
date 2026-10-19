@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./fixtures": "./src/fixtures.ts",
+    "./models": "./src/models.ts",
     "./time": "./src/time.ts"
   },
   "scripts": {

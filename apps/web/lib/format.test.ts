@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fmtDate, fmtLongDay, greeting, initials, isoDay, money, relativeDay, signedMoney, timeAgo } from "./format";
+import { fmtDate, fmtLongDay, fmtTime, greeting, initials, isoDay, isoTime, money, relativeDay, signedMoney, timeAgo } from "./format";
 
 const SYD = "Australia/Sydney";
 const AKL = "Pacific/Auckland";
@@ -30,6 +30,13 @@ describe("dates on the tenant's calendar", () => {
     expect(isoDay(instant, AKL)).toBe("2026-10-20");
     expect(fmtDate(instant, SYD)).toBe("19 Oct 2026");
     expect(fmtLongDay(instant, AKL)).toBe("Tuesday 20 October");
+  });
+
+  it("shows times on the tenant's clock", () => {
+    const at = new Date("2026-10-19T22:30:00Z"); // 09:30 Tue Sydney, 11:30 Tue Auckland
+    expect(isoTime(at, SYD)).toBe("09:30");
+    expect(isoTime(at, AKL)).toBe("11:30");
+    expect(fmtTime(at, SYD).replace(/\s/g, " ")).toMatch(/^9:30 am$/i);
   });
 
   it("greets by the tenant's clock, not the server's", () => {

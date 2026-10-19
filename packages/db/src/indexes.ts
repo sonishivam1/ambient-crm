@@ -34,6 +34,7 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
   ],
   visits: [
     { key: { tenantId: 1, repId: 1, scheduledAt: 1 } },
+    { key: { tenantId: 1, scheduledAt: 1 } },
     { key: { tenantId: 1, accountId: 1 } },
   ],
   interactions: [{ key: { tenantId: 1, accountId: 1, occurredAt: -1 } }],

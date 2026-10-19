@@ -60,6 +60,18 @@ describe.each([NORTHWIND, HARBOR])("demo tenant $id", (spec) => {
     }
   });
 
+  it("only completed visits carry completion details, and some still wait for a report", () => {
+    for (const v of b.visits) {
+      if (v.status === "completed") expect(v.completedAt).toBeInstanceOf(Date);
+      else expect({ completedAt: v.completedAt, report: v.report }).toEqual({ completedAt: null, report: null });
+    }
+    const completed = b.visits.filter((v) => v.status === "completed");
+    if (completed.length > 1) {
+      expect(completed.some((v) => v.report)).toBe(true);
+      expect(completed.some((v) => !v.report)).toBe(true);
+    }
+  });
+
   it("has a real time zone and puts every record in this tenant", () => {
     expect(isValidTimeZone(b.tenant.timeZone)).toBe(true);
     for (const doc of [...b.reps, ...b.accounts, ...b.tasks, ...b.notifications]) expect(doc.tenantId).toBe(spec.id);

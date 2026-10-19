@@ -103,7 +103,8 @@ packages/db
 | Customer group page: health mix, bill-to drill-down, recent activity | Done |
 | Tenant settings: own divisions and lenses, own time zone for dates | Done |
 | Contacts: directory, add, edit, deactivate, profile card, Ctrl K | Done |
-| Contracts, call cycle, notifications | Placeholder pages |
+| Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | Done |
+| Contracts, notifications | Placeholder pages |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |
