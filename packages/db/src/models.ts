@@ -5,10 +5,15 @@ import { z } from "zod";
  * TypeScript types are inferred from these schemas, and writes are parsed
  * through them before they reach MongoDB.
  *
- * Ownership classes (from the rebuild blueprint):
- * - Mirror: copied from Snowflake nightly, read-only in the app (reps, groups, accounts, contracts).
+ * Ownership classes:
+ * - Mirror: copied from the customer's ERP or warehouse, read-only in the app (reps, groups, accounts).
  * - Rollup: dated warehouse snapshots, append-only (salesSnapshots).
- * - App-native: owned by the CRM, soft-deleted (users, tasks, visits, contacts, notifications).
+ * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, notifications).
+ *
+ * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
+ * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
+ * keys from different customers' systems never collide; app-created records use
+ * UUIDs.
  */
 
 export const ROLE_KEYS = ["user", "manager", "senior", "lead", "admin", "super"] as const;
@@ -20,6 +25,11 @@ export type Division = (typeof DIVISIONS)[number];
 export const HEALTH_BANDS = ["g", "a", "r"] as const;
 export type HealthBand = (typeof HEALTH_BANDS)[number];
 
+/** Present on every tenant-owned document. */
+const tenantScoped = {
+  tenantId: z.string().min(1),
+};
+
 const softDelete = {
   deletedAt: z.date().nullable().default(null),
   deletedBy: z.string().nullable().default(null),
@@ -30,8 +40,23 @@ const timestamps = {
   updatedAt: z.date(),
 };
 
+export const tenantSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  /** IANA zone used for day boundaries (today, overdue, this week). */
+  timeZone: z.string(),
+  /** The Entra tenant whose users sign in to this Ambient tenant. */
+  entraTenantId: z.string().nullable(),
+  active: z.boolean(),
+  createdAt: z.date(),
+});
+export type Tenant = z.infer<typeof tenantSchema>;
+
 export const repSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
+  /** Key in the customer's source system. */
+  sourceKey: z.string(),
   code: z.string(),
   name: z.string(),
   email: z.string().email(),
@@ -46,6 +71,7 @@ export type Rep = z.infer<typeof repSchema>;
 
 export const userSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
   entraOid: z.string().nullable(),
   email: z.string().email(),
   name: z.string(),
@@ -59,6 +85,9 @@ export type User = z.infer<typeof userSchema>;
 
 export const customerGroupSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
+  /** Key in the customer's source system. */
+  sourceKey: z.string(),
   name: z.string(),
   code: z.string(),
   level: z.enum(["conglomerate", "corporation", "standalone"]),
@@ -75,6 +104,9 @@ export type CustomerGroup = z.infer<typeof customerGroupSchema>;
 
 export const accountSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
+  /** Key in the customer's source system. */
+  sourceKey: z.string(),
   type: z.enum(["bill_to", "sold_to"]),
   groupId: z.string(),
   parentId: z.string().nullable(),
@@ -99,6 +131,7 @@ export const TASK_SOURCES = ["manual", "cara_ai", "manager_assigned"] as const;
 
 export const taskSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
   accountId: z.string(),
   /** Copied from the account at write time so the division lens needs no join. */
   division: z.enum(DIVISIONS),
@@ -121,6 +154,7 @@ export const VISIT_STATUSES = ["planned", "completed", "cancelled"] as const;
 
 export const visitSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
   accountId: z.string(),
   /** Copied from the account at write time so the division lens needs no join. */
   division: z.enum(DIVISIONS),
@@ -145,6 +179,7 @@ export const NOTIFICATION_TYPES = [
 
 export const notificationSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
   userId: z.string(),
   type: z.enum(NOTIFICATION_TYPES),
   accountId: z.string().nullable(),
@@ -161,6 +196,7 @@ export type Notification = z.infer<typeof notificationSchema>;
  */
 export const auditEntrySchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
   at: z.date(),
   actorUserId: z.string(),
   /** Set when an admin acts while viewing as someone else. */
@@ -176,6 +212,7 @@ export type AuditEntry = z.infer<typeof auditEntrySchema>;
 /** One dated sales snapshot per scope (a rep, or "org" for the whole business). */
 export const salesSnapshotSchema = z.object({
   _id: z.string(),
+  ...tenantScoped,
   scope: z.string(),
   asOf: z.date(),
   mtd: z.object({ actual: z.number(), target: z.number() }),

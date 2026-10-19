@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import type { Notification } from "@ambient/db";
 
@@ -23,6 +24,8 @@ import { TaskCheck } from "@/components/dashboard/task-check";
 import { WeekCalendar } from "@/components/dashboard/week-calendar";
 import { Avatar, Badge, Card, Dot, Empty, HealthPill, ProgressBar, Ring } from "@/components/ui/primitives";
 import { getDashboard, type DashboardData } from "@/lib/data/dashboard";
+
+import DashboardLoading from "./loading";
 import { fmtDay, fmtLongDay, fmtWeekday, greeting, money, num, signedMoney, timeAgo } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -37,7 +40,15 @@ const NOTIFICATION_ICON: Record<Notification["type"], [LucideIcon, string]> = {
   visit_reminder: [CalendarDays, "info"],
 };
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+
+async function Dashboard() {
   const d = await getDashboard();
   const first = d.user.name.split(" ")[0];
   const s = d.sales;
@@ -58,10 +69,10 @@ export default async function DashboardPage() {
           </div>
           <div className="mt-3.5 flex items-center gap-2.5">
             <div className="stack">
-              <Avatar name="Priya Nair" size="sm" tint={1} />
-              <Avatar name="Liam Carter" size="sm" tint={2} />
-              <Avatar name="Grace Whitfield" size="sm" tint={3} />
-              <Avatar name="+5" size="sm" />
+              {d.team.names.map((n, i) => (
+                <Avatar key={n} name={n} size="sm" tint={(i + 1) as 1 | 2 | 3} />
+              ))}
+              {d.team.total > 3 && <Avatar name={`+${d.team.total - 3}`} size="sm" />}
             </div>
             {d.scope.all && (
               <span className="text-muted" style={{ fontSize: 12.5 }}>

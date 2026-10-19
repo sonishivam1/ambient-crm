@@ -70,7 +70,7 @@ users can insert into it but not update or delete.
 | --- | --- |
 | A rep reads another team's accounts | Scope filter on every query; actions re-check scope |
 | A manager reads a rep's private email | Participant fence applies to every role, no override |
-| Cross-tenant data leak | `tenantId` on every document and index; scope always includes tenant (planned) |
+| Cross-tenant data leak | `tenantId` on every document and index; every query takes it from `getScope()` (built; verified with two seeded tenants) |
 | Prompt injection via captured email | Model sees summaries, not raw bodies, in interactive features; tools re-check scope and need user confirmation to write |
 | Leaked credentials | No secrets in git; rotate on exposure; per-environment users |
 | Tampering with history | Append-only audit log; soft delete only |

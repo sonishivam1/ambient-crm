@@ -42,9 +42,9 @@ export async function getDashboard() {
       groups.aggregate<{ _id: HealthBand | null; n: number }>([{ $match: scope.filter() }, { $group: { _id: "$health", n: { $sum: 1 } } }]).toArray(),
       accounts.find({ ...scope.filter(), type: "bill_to", health: "r", active: true }).sort({ fyRevenue: -1 }).limit(3).toArray(),
       accounts.find({ ...scope.filter(), type: "bill_to", active: true }).sort({ fyRevenue: -1 }).limit(4).toArray(),
-      notifications.countDocuments({ userId: user._id, readAt: null }),
-      notifications.find({ userId: user._id }).sort({ createdAt: -1 }).limit(3).toArray(),
-      sales.findOne({ scope: scope.reps.all ? "org" : (user.repId ?? "none") }, { sort: { asOf: -1 } }),
+      notifications.countDocuments({ ...scope.tenant(), userId: user._id, readAt: null }),
+      notifications.find({ ...scope.tenant(), userId: user._id }).sort({ createdAt: -1 }).limit(3).toArray(),
+      sales.findOne({ ...scope.tenant(), scope: scope.reps.all ? "org" : (user.repId ?? "none") }, { sort: { asOf: -1 } }),
     ]);
 
   const weekVisits = calendarVisits.filter((v) => v.scheduledAt >= weekStart && v.scheduledAt < weekEnd);
@@ -52,11 +52,12 @@ export async function getDashboard() {
   // Names for every account the cards mention, in one query.
   const accountIds = [...new Set([...todayTasks, ...calendarVisits, ...(nextVisit ? [nextVisit] : [])].map((x) => x.accountId))];
   const names = new Map(
-    (await accounts.find({ _id: { $in: accountIds } }, { projection: { name: 1 } }).toArray()).map((a) => [a._id, a.name]),
+    (await accounts.find({ ...scope.tenant(), _id: { $in: accountIds } }, { projection: { name: 1 } }).toArray()).map((a) => [a._id, a.name]),
   );
-  const ownerNames = new Map(
-    (await (await collection("reps")).find({}, { projection: { name: 1 } }).toArray()).map((r) => [r._id, r.name]),
-  );
+  const tenantReps = await (await collection("reps")).find({ ...scope.tenant(), active: true }, { projection: { name: 1 } }).toArray();
+  const ownerNames = new Map(tenantReps.map((r) => [r._id, r.name]));
+  const repScope = scope.reps;
+  const visibleReps = repScope.all ? tenantReps : tenantReps.filter((r) => repScope.repIds.includes(r._id));
 
   const mix = { g: 0, a: 0, r: 0 };
   for (const row of healthMix) if (row._id) mix[row._id] = row.n;
@@ -64,6 +65,7 @@ export async function getDashboard() {
   return {
     user,
     scope: { all: scope.reps.all, lens: scope.lens },
+    team: { names: visibleReps.slice(0, 3).map((r) => r.name), total: visibleReps.length },
     now,
     counts: { openTasks, overdue, visitsLeftThisWeek: weekVisits.filter((v) => v.status === "planned").length, unreadNotifications },
     todayTasks: todayTasks.map((t) => ({ id: t._id, title: t.title, account: names.get(t.accountId) ?? "", accountId: t.accountId, dueAt: t.dueAt, priority: t.priority, status: t.status, overdue: t.dueAt < startOfToday })),

@@ -9,7 +9,7 @@ costs. Status is **Proposed** (needs agreement), **Accepted**, or
 | [0001](0001-mongodb.md) | MongoDB Atlas as the primary datastore | Accepted |
 | [0002](0002-nextjs-cache-components.md) | Next.js 16 with Cache Components; server actions for writes | Accepted |
 | [0003](0003-monorepo-zod-models.md) | pnpm monorepo with Zod-first models | Accepted |
-| [0004](0004-multi-tenancy.md) | Multi-tenancy by `tenantId` on every document | Proposed |
+| [0004](0004-multi-tenancy.md) | Multi-tenancy by `tenantId` on every document | Accepted |
 | [0005](0005-hosting-and-sign-in.md) | Hosting on Vercel + Atlas; sign-in with Microsoft Entra ID | Proposed |
 | [0006](0006-ai-provider.md) | Claude through the AI SDK; embeddings in Atlas Vector Search | Proposed |
 

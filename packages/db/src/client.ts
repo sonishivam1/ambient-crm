@@ -8,11 +8,13 @@ import type {
   Rep,
   SalesSnapshot,
   Task,
+  Tenant,
   User,
   Visit,
 } from "./models";
 
 type CollectionMap = {
+  tenants: Tenant;
   reps: Rep;
   users: User;
   customerGroups: CustomerGroup;

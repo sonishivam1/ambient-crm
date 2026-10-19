@@ -2,30 +2,47 @@ import type { IndexDescription } from "mongodb";
 
 import { getDb, type CollectionName } from "./client";
 
-/** Every foreign key and hot filter column gets an index, as in the current build. */
+/**
+ * Every index starts with tenantId (ADR 0004), then covers each foreign key and
+ * hot filter. Uniqueness is per tenant unless the value is globally unique.
+ */
 export const INDEXES: Record<CollectionName, IndexDescription[]> = {
-  reps: [{ key: { code: 1 }, unique: true }, { key: { managerRepId: 1 } }],
+  tenants: [{ key: { entraTenantId: 1 }, unique: true, partialFilterExpression: { entraTenantId: { $type: "string" } } }],
+  reps: [{ key: { tenantId: 1, code: 1 }, unique: true }, { key: { tenantId: 1, managerRepId: 1 } }],
   users: [
-    { key: { email: 1 }, unique: true },
+    { key: { tenantId: 1, email: 1 }, unique: true },
+    // Entra object ids are globally unique, so this one is not tenant-prefixed.
     { key: { entraOid: 1 }, unique: true, partialFilterExpression: { entraOid: { $type: "string" } } },
-    { key: { repId: 1 } },
+    { key: { tenantId: 1, repId: 1 } },
   ],
-  customerGroups: [{ key: { ownerRepId: 1 } }, { key: { division: 1, health: 1 } }],
+  customerGroups: [
+    { key: { tenantId: 1, ownerRepId: 1, fyRevenue: -1 } },
+    { key: { tenantId: 1, division: 1, health: 1 } },
+    { key: { tenantId: 1, fyRevenue: -1 } },
+    { key: { tenantId: 1, name: 1 } },
+  ],
   accounts: [
-    { key: { groupId: 1 } },
-    { key: { parentId: 1 } },
-    { key: { ownerRepId: 1, type: 1 } },
-    { key: { code: 1 }, unique: true },
-    { key: { name: "text", code: "text" } },
+    { key: { tenantId: 1, groupId: 1, type: 1 } },
+    { key: { tenantId: 1, parentId: 1 } },
+    { key: { tenantId: 1, ownerRepId: 1, type: 1, fyRevenue: -1 } },
+    { key: { tenantId: 1, type: 1, fyRevenue: -1 } },
+    { key: { tenantId: 1, code: 1 }, unique: true },
   ],
   tasks: [
-    { key: { ownerRepId: 1, status: 1, dueAt: 1 } },
-    { key: { accountId: 1, status: 1 } },
+    { key: { tenantId: 1, ownerRepId: 1, status: 1, dueAt: 1 } },
+    { key: { tenantId: 1, accountId: 1, status: 1 } },
   ],
-  visits: [{ key: { repId: 1, scheduledAt: 1 } }, { key: { accountId: 1 } }],
-  notifications: [{ key: { userId: 1, createdAt: -1 } }],
-  salesSnapshots: [{ key: { scope: 1, asOf: -1 } }],
-  auditLog: [{ key: { at: -1 } }, { key: { entity: 1, entityId: 1, at: -1 } }, { key: { actorUserId: 1, at: -1 } }],
+  visits: [
+    { key: { tenantId: 1, repId: 1, scheduledAt: 1 } },
+    { key: { tenantId: 1, accountId: 1 } },
+  ],
+  notifications: [{ key: { tenantId: 1, userId: 1, createdAt: -1 } }],
+  salesSnapshots: [{ key: { tenantId: 1, scope: 1, asOf: -1 } }],
+  auditLog: [
+    { key: { tenantId: 1, at: -1 } },
+    { key: { tenantId: 1, entity: 1, entityId: 1, at: -1 } },
+    { key: { tenantId: 1, actorUserId: 1, at: -1 } },
+  ],
 };
 
 export async function ensureIndexes(): Promise<void> {

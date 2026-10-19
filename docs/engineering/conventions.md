@@ -4,9 +4,10 @@
 
 - Server-only read models live in `apps/web/lib/data/*.ts` and start with
   `const scope = await getScope()`.
-- Every query includes `...scope.filter()` (owner field and division lens) and
-  `deletedAt: null` for app-native collections. A query without the scope filter
-  is a bug, even if today's caller is an admin.
+- Every query includes `...scope.filter()` (tenant, owner field and division
+  lens) or, for collections with no owner, `...scope.tenant()`, plus
+  `deletedAt: null` for app-native collections. A query without one of them is a
+  bug, even if today's caller is an admin.
 - Fetch in parallel with `Promise.all`; join names in one follow-up query, not
   per row.
 - Return plain, serialisable objects shaped for the page (see

@@ -11,6 +11,7 @@ write it.
 
 | Class | Collections | Rule |
 | --- | --- | --- |
+| **Tenant** | `tenants` | One per customer organisation. Everything else belongs to exactly one tenant. |
 | **Mirror** | `reps`, `customerGroups`, `accounts`, `contracts` | Copied from the customer's systems nightly. Read-only in the app; deactivated, never deleted. |
 | **Rollup** | `salesSnapshots` (later: open orders, stock, health) | Dated snapshots, append-only. The dashboard reads the latest per scope. |
 | **App-native** | `users`, `tasks`, `visits`, `notifications`, later `contacts`, `notes`, `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
@@ -22,6 +23,8 @@ Solid boxes exist today; the rest are planned.
 
 ```mermaid
 erDiagram
+  TENANT ||--o{ REP : "owns all data (tenantId)"
+  TENANT ||--o{ USER : has
   REP ||--o{ REP : "manages (managerRepId)"
   USER }o--o| REP : "is (repId)"
   REP ||--o{ CUSTOMER_GROUP : owns
@@ -42,8 +45,16 @@ erDiagram
   MESSAGE ||--o| ANALYSIS : "planned"
   MEETING ||--o| ANALYSIS : "planned"
 
+  TENANT {
+    string _id
+    string name
+    string timeZone
+    string entraTenantId
+  }
   REP {
     string _id
+    string tenantId
+    string sourceKey
     string code
     string name
     string managerRepId
@@ -113,8 +124,9 @@ erDiagram
 
 ## Conventions
 
-- **IDs are strings.** Mirror records keep their source key (stable across
-  syncs); app-native records use UUIDs.
+- **IDs are strings.** Mirror records use `"<tenantId>:<sourceKey>"` and keep
+  `sourceKey` (stable across syncs, unique across tenants); app-native records use
+  UUIDs.
 - **Every time is a `Date`** stored as UTC. Display and day boundaries use the
   user's time zone (planned: per-tenant setting; today the server's zone).
 - **Enums are strings validated by Zod**, never database-level enums, so adding
@@ -127,18 +139,22 @@ erDiagram
 - **Bodies live in blob storage.** Captured email bodies and transcripts are
   stored outside MongoDB; the database keeps a short snippet, the blob pointer
   and the AI analysis.
-- **Tenant on everything** (planned, see [ADR 0004](decisions/0004-multi-tenancy.md)):
-  every document gets `tenantId`, and every index starts with it.
+- **Tenant on everything** ([ADR 0004](decisions/0004-multi-tenancy.md), built):
+  every document has `tenantId`, every index starts with it, and every query gets
+  it from `getScope()`.
 
 ## Indexes (built)
 
+Every index below is prefixed with `tenantId` except where noted as global.
+
 | Collection | Indexes | Serves |
 | --- | --- | --- |
+| `tenants` | `entraTenantId` unique (global, when set) | sign-in mapping |
 | `reps` | `code` unique, `managerRepId` | hierarchy walks |
-| `users` | `email` unique, `entraOid` unique (when set), `repId` | sign-in, scope |
-| `customerGroups` | `ownerRepId`, `division + health` | health mix, lists |
-| `accounts` | `groupId`, `parentId`, `ownerRepId + type`, `code` unique, text on `name + code` | lists, drill-down, palette |
-| `tasks` | `ownerRepId + status + dueAt`, `accountId + status` | dashboard, task lists |
+| `users` | `email` unique, `repId`; `entraOid` unique (global, when set) | sign-in, scope |
+| `customerGroups` | `ownerRepId + fyRevenue`, `division + health`, `fyRevenue`, `name` | accounts list, health mix |
+| `accounts` | `groupId + type`, `parentId`, `ownerRepId + type + fyRevenue`, `type + fyRevenue`, `code` unique | lists, drill-down, palette |
+| `tasks` | `ownerRepId + status + dueAt`, `accountId + status` | dashboard, open-task counts |
 | `visits` | `repId + scheduledAt`, `accountId` | calendar |
 | `notifications` | `userId + createdAt` | feed |
 | `salesSnapshots` | `scope + asOf` | latest snapshot |

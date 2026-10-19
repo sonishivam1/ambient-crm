@@ -15,8 +15,8 @@ import { LENSES, type Lens } from "@/lib/lens";
 
 import { useShell } from "./shell-context";
 
-type Me = { name: string; email: string; roleLabel: string };
-export type DevUser = { id: string; name: string; roleLabel: string };
+type Me = { name: string; email: string; roleLabel: string; tenant: string };
+export type DevUser = { id: string; name: string; roleLabel: string; tenant: string };
 
 const LENS_LABEL: Record<Lens, string> = { both: "Both", wholesale: "Wholesale", uniforms: "Uniforms" };
 
@@ -112,7 +112,7 @@ export function Topbar({
                     <b>{u.name}</b>
                     <br />
                     <span className="text-muted" style={{ fontSize: 11.5 }}>
-                      {u.roleLabel}
+                      {u.roleLabel} · {u.tenant}
                     </span>
                   </span>
                   {u.id === currentUserId && <Check size={16} className="ck" />}
@@ -138,6 +138,9 @@ export function Topbar({
               <b>{me.name}</b>
               <div className="text-muted" style={{ fontSize: 12.5 }}>
                 {me.email}
+              </div>
+              <div className="text-muted" style={{ fontSize: 12.5 }}>
+                {me.tenant}
               </div>
               <div className="mt-1.5">
                 <span className="role-badge">{me.roleLabel}</span>

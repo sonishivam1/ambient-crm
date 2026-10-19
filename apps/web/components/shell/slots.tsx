@@ -10,8 +10,8 @@ import { Skeleton } from "@/components/ui/primitives";
 import { Sidebar } from "./sidebar";
 import { Topbar, type DevUser } from "./topbar";
 
-async function unreadCount(userId: string) {
-  return (await collection("notifications")).countDocuments({ userId, readAt: null });
+async function unreadCount(tenantId: string, userId: string) {
+  return (await collection("notifications")).countDocuments({ tenantId, userId, readAt: null });
 }
 
 export async function SidebarSlot() {
@@ -24,25 +24,29 @@ export async function SidebarSlot() {
       status: { $in: OPEN_TASK_STATUSES },
       dueAt: { $lt: startOfToday },
     }),
-    unreadCount(scope.user._id),
+    unreadCount(scope.tenantId, scope.user._id),
   ]);
   return <Sidebar capabilities={scope.user.capabilities} counts={{ overdueTasks, unreadNotifications }} />;
 }
 
 export async function TopbarSlot() {
-  const { user, lens } = await getScope();
+  const { user, lens, tenantId } = await getScope();
   const [unread, devUsers] = await Promise.all([
-    unreadCount(user._id),
+    unreadCount(tenantId, user._id),
     devAuthEnabled()
-      ? (await collection("users"))
-          .find({ deletedAt: null }, { projection: { name: 1, role: 1 } })
-          .toArray()
-          .then((rows): DevUser[] => rows.map((u) => ({ id: u._id, name: u.name, roleLabel: ROLES[u.role].label })))
+      ? // Development only: lists users in every tenant so isolation can be tried out.
+        Promise.all([
+          (await collection("users")).find({ deletedAt: null }, { projection: { name: 1, role: 1, tenantId: 1 } }).sort({ tenantId: 1 }).toArray(),
+          (await collection("tenants")).find({}, { projection: { name: 1 } }).toArray(),
+        ]).then(([rows, tenants]): DevUser[] => {
+          const tenantName = new Map(tenants.map((t) => [t._id, t.name]));
+          return rows.map((u) => ({ id: u._id, name: u.name, roleLabel: ROLES[u.role].label, tenant: tenantName.get(u.tenantId) ?? u.tenantId }));
+        })
       : Promise.resolve(null),
   ]);
   return (
     <Topbar
-      me={{ name: user.name, email: user.email, roleLabel: user.capabilities.label }}
+      me={{ name: user.name, email: user.email, roleLabel: user.capabilities.label, tenant: user.tenant.name }}
       capabilities={user.capabilities}
       lens={lens}
       unread={unread}

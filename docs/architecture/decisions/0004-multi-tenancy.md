@@ -1,6 +1,6 @@
 # 0004 — Multi-tenancy by `tenantId` on every document
 
-**Status:** Proposed — needs a decision before Phase 1 (data spine)
+**Status:** Accepted (19 Oct 2026) — option A, implemented
 
 ## Context
 
@@ -28,6 +28,22 @@ it:
   tenant at sign-in.
 - The connection is resolved per tenant through one function, so moving a tenant
   to its own database later is a configuration change.
+
+## As built
+
+- `tenants` collection: name, IANA time zone, Entra tenant id (for sign-in mapping), active flag.
+- Every other document has `tenantId`; every index starts with it. Unique keys are
+  unique per tenant (`tenantId + code`, `tenantId + email`) except values that are
+  globally unique (Entra object id).
+- Mirror records use `_id = "<tenantId>:<sourceKey>"` and keep `sourceKey`, so two
+  customers' ERP keys can't collide and sync upserts stay deterministic.
+  App-created records use UUIDs.
+- `getScope()` exposes `tenant()` (tenant only) and `filter()` (tenant + rep scope +
+  division lens). Rep hierarchy walks (`$graphLookup`) are restricted to the tenant.
+- Audit rows carry `tenantId`.
+- The seed creates two tenants, and the second reuses the first one's `CO-ACME`
+  key and account codes on purpose; verified that each tenant's users see only
+  their own data.
 
 ## Consequences
 
