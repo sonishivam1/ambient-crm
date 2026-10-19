@@ -24,7 +24,7 @@ flowchart TB
 | Layer | Where | What it covers |
 | --- | --- | --- |
 | Unit | `apps/web/lib/**/*.test.ts` | Pure functions: `format.ts`, `lens.ts`, `accounts-url.ts`, the role matrix |
-| Integration | `apps/web/tests/integration/*.test.ts` | Visibility per role, tenant isolation, accounts list and drill-down, customer and group pages, palette search, task create/edit/cancel/complete, interactions, audit-log privacy |
+| Integration | `apps/web/tests/integration/*.test.ts` | Visibility per role, tenant isolation, per-tenant divisions, lenses and time zones, accounts list and drill-down, customer and group pages, palette search, task create/edit/cancel/complete, interactions, audit-log privacy |
 | End to end | — | Planned: Playwright against a seeded app |
 
 ## How integration tests work
@@ -65,6 +65,9 @@ signInAs(USERS.harbor.super);                 // the second tenant
   sees (nothing), and what another tenant sees (nothing).
 - **Every write gets an audit test,** including that note, description and
   summary text never appears in the audit row.
+- **Dates use the tenant's zone in tests too.** Build "today plus n days" with
+  `addDays` and `isoDayIn` from `@ambient/db/time` and the tenant's zone, never
+  `new Date()` arithmetic, so tests pass whatever the machine's zone.
 - Assert on behaviour the user would notice (counts, names, error messages),
   not on implementation details.
 - Tests only ever create, write and drop `ambient_test_*` databases; the guard

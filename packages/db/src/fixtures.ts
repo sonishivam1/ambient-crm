@@ -9,6 +9,7 @@
 import type { Db } from "mongodb";
 
 import { ensureIndexes } from "./indexes";
+import { calendarDaysBetween, isoDayIn, startOfDay, zonedParts, zonedTime } from "./time";
 import type {
   Account,
   CustomerGroup,
@@ -44,19 +45,23 @@ function rng(seed: string) {
 const pick = <T>(r: () => number, arr: readonly T[]) => arr[Math.floor(r() * arr.length)]!;
 
 const now = new Date();
-const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-const addDays = (n: number, hour = 9, minute = 0) => {
-  const d = new Date(today);
-  d.setDate(d.getDate() + n);
-  d.setHours(hour, minute, 0, 0);
-  return d;
-};
 const minutesAgo = (m: number) => new Date(now.getTime() - m * 60_000);
-const asOf = addDays(-1, 22, 30);
-const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-const endOfFy = new Date(today.getMonth() >= 6 ? today.getFullYear() + 1 : today.getFullYear(), 5, 30);
-const daysLeftInMonth = Math.round((endOfMonth.getTime() - today.getTime()) / 86_400_000);
-const daysLeftInYear = Math.round((endOfFy.getTime() - today.getTime()) / 86_400_000);
+
+/** Day arithmetic on the tenant's own calendar: "3 days from now at 17:00" means local time there. */
+function tenantCalendar(timeZone: string) {
+  const today = startOfDay(now, timeZone);
+  const t = zonedParts(today, timeZone);
+  const addDays = (n: number, hour = 9, minute = 0) => zonedTime(t.year, t.month, t.day + n, hour, minute, timeZone);
+  const endOfMonth = zonedTime(t.year, t.month + 1, 0, 0, 0, timeZone);
+  // Financial year ends 30 June.
+  const endOfFy = zonedTime(t.month >= 7 ? t.year + 1 : t.year, 6, 30, 0, 0, timeZone);
+  return {
+    addDays,
+    asOf: addDays(-1, 22, 30),
+    daysLeftInMonth: calendarDaysBetween(today, endOfMonth, timeZone),
+    daysLeftInYear: calendarDaysBetween(today, endOfFy, timeZone),
+  };
+}
 
 // ---------- tenant specs ----------
 type RepRow = [key: string, code: string, name: string, team: string, segment: string, manager: string | null];
@@ -72,6 +77,8 @@ export type TenantSpec = {
   name: string;
   domain: string;
   timeZone: string;
+  divisions: Tenant["divisions"];
+  lenses: Tenant["lenses"];
   sites: string[];
   reps: RepRow[];
   users: UserRow[];
@@ -89,6 +96,17 @@ export const NORTHWIND: TenantSpec = {
   name: "Northwind Supply Co.",
   domain: "northwind.example",
   timeZone: "Australia/Sydney",
+  divisions: [
+    { key: "wholesale", label: "Wholesale" },
+    { key: "uniforms", label: "Uniforms" },
+    { key: "icw", label: "ICW" },
+    { key: "other", label: "Other" },
+  ],
+  // ICW rolls up under Uniforms; "Other" only shows with no lens.
+  lenses: [
+    { key: "wholesale", label: "Wholesale", divisions: ["wholesale"] },
+    { key: "uniforms", label: "Uniforms", divisions: ["uniforms", "icw"] },
+  ],
   sites: ["Sydney HQ", "Melbourne DC", "Brisbane", "Perth", "Geelong", "Adelaide", "Newcastle", "Wollongong", "Toowoomba", "Auckland"],
   // Manager hierarchy: Grace → Liam → field reps.
   reps: [
@@ -207,6 +225,15 @@ export const HARBOR: TenantSpec = {
   name: "Harbor & Finch Distribution",
   domain: "harborfinch.example",
   timeZone: "Pacific/Auckland",
+  // A different business, with its own divisions, to prove they are per tenant.
+  divisions: [
+    { key: "trade", label: "Trade" },
+    { key: "institutional", label: "Institutional" },
+  ],
+  lenses: [
+    { key: "trade", label: "Trade", divisions: ["trade"] },
+    { key: "institutional", label: "Institutional", divisions: ["institutional"] },
+  ],
   sites: ["Auckland", "Wellington", "Christchurch", "Hamilton"],
   reps: [
     ["r1", "OP01", "Owen Price", "North Island", "Enterprise", null],
@@ -219,10 +246,10 @@ export const HARBOR: TenantSpec = {
     ["u-super", "super", "Rita Lopez", "Super Admin", null],
   ],
   groups: [
-    ["CG-BLUEWATER", "BLUEWATER MARINE SUPPLY", "BWM", "conglomerate", 9, 40, "Zara Ahmed", "g", 1.9e6, "wholesale", "Marine", "Coastal", "BLUEWATER"],
-    ["CO-ACME", "ACME ELECTRICAL NZ", "ACMEE", "corporation", 3, 12, "Zara Ahmed", "a", 740e3, "wholesale", "Electrical", "Trade", "ACME"],
-    ["CO-PINECREST", "PINECREST HEALTH", "PCH", "corporation", 4, 18, "Tom Becker", "r", 620e3, "uniforms", "Healthcare", "Hospitals", "PINECREST"],
-    ["SA-LUMEN", "LUMEN SCHOOLS TRUST", "LST", "standalone", 1, 5, "Owen Price", "g", 410e3, "uniforms", "Education", "Schools", "LUMEN"],
+    ["CG-BLUEWATER", "BLUEWATER MARINE SUPPLY", "BWM", "conglomerate", 9, 40, "Zara Ahmed", "g", 1.9e6, "trade", "Marine", "Coastal", "BLUEWATER"],
+    ["CO-ACME", "ACME ELECTRICAL NZ", "ACMEE", "corporation", 3, 12, "Zara Ahmed", "a", 740e3, "trade", "Electrical", "Trade", "ACME"],
+    ["CO-PINECREST", "PINECREST HEALTH", "PCH", "corporation", 4, 18, "Tom Becker", "r", 620e3, "institutional", "Healthcare", "Hospitals", "PINECREST"],
+    ["SA-LUMEN", "LUMEN SCHOOLS TRUST", "LST", "standalone", 1, 5, "Owen Price", "g", 410e3, "institutional", "Education", "Schools", "LUMEN"],
   ],
   tasks: [
     ["CO-PINECREST-BT1", "Resolve scrubs sizing complaint", "Tom Becker", -2, "high", "open", "ai", "wren"],
@@ -264,6 +291,7 @@ export type Built = {
 
 export function build(spec: TenantSpec): Built {
   const tenantId = spec.id;
+  const { addDays, asOf, daysLeftInMonth, daysLeftInYear } = tenantCalendar(spec.timeZone);
   const id = (key: string) => `${tenantId}:${key}`;
   const email = (name: string) => `${name.toLowerCase().replace(/\s+/g, ".")}@${spec.domain}`;
 
@@ -344,7 +372,7 @@ export function build(spec: TenantSpec): Built {
     })),
   );
 
-  const day = asOf.toISOString().slice(0, 10);
+  const day = isoDayIn(asOf, spec.timeZone);
   const snap = (scope: string, mtd: [number, number], ytd: [number, number], gmPct: number): SalesSnapshot => ({
     _id: id(`${scope}-${day}`), tenantId, scope, asOf,
     mtd: { actual: mtd[0], target: mtd[1] }, ytd: { actual: ytd[0], target: ytd[1] }, gmPct, daysLeftInMonth, daysLeftInYear,
@@ -354,7 +382,16 @@ export function build(spec: TenantSpec): Built {
     ...Object.entries(spec.repSales).map(([rep, [mtd, target, gm]]) => snap(id(rep), [mtd, target], [mtd * 3.4, target * 6.9], gm)),
   ];
 
-  const tenant: Tenant = { _id: tenantId, name: spec.name, timeZone: spec.timeZone, entraTenantId: null, active: true, createdAt: now };
+  const tenant: Tenant = {
+    _id: tenantId,
+    name: spec.name,
+    timeZone: spec.timeZone,
+    divisions: spec.divisions,
+    lenses: spec.lenses,
+    entraTenantId: null,
+    active: true,
+    createdAt: now,
+  };
   return { tenant, reps, users, groups, accounts, tasks, visits, interactions, notifications, salesSnapshots };
 }
 

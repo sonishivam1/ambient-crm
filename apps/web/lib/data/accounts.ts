@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
-import { DIVISIONS, HEALTH_BANDS, OPEN_TASK_STATUSES, collection, type Division, type HealthBand } from "@ambient/db";
+import { HEALTH_BANDS, OPEN_TASK_STATUSES, collection, type HealthBand } from "@ambient/db";
 
 import { ownerFilter } from "@/lib/auth/visibility";
 import { lensDivisions } from "@/lib/lens";
@@ -16,7 +16,8 @@ export type AccountView = (typeof ACCOUNT_VIEWS)[number];
 /** URL search params for /accounts, parsed leniently: anything invalid falls back to the default. */
 export const accountsQuerySchema = z.object({
   view: z.enum(ACCOUNT_VIEWS).catch("group"),
-  div: z.enum(["all", ...DIVISIONS]).catch("all"),
+  /** "all" or a division key; checked against the tenant's divisions when the query runs. */
+  div: z.string().regex(/^[a-z0-9_-]{1,40}$/).catch("all"),
   health: z.enum(["all", ...HEALTH_BANDS]).catch("all"),
   q: z.string().trim().max(100).catch(""),
   sort: z.enum(["fy", "name", "tasks"]).catch("fy"),
@@ -59,9 +60,11 @@ const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Base filter: tenant + rep scope, with the lens and the page's division filter intersected. */
 function baseFilter(scope: Scope, query: Pick<AccountsQuery, "div" | "health" | "q">) {
-  const allowed: Division[] = lensDivisions(scope.lens) ?? [...DIVISIONS];
-  const divisions = query.div === "all" ? allowed : allowed.filter((d) => d === query.div);
-  const filter: Record<string, unknown> = { ...scope.tenant(), ...ownerFilter(scope.reps), division: { $in: divisions } };
+  const lensKeys = lensDivisions(scope.lens, scope.user.tenant);
+  // A division outside the lens (or another tenant's) matches nothing rather than widening the lens.
+  const division =
+    query.div === "all" ? (lensKeys ? { $in: lensKeys } : undefined) : { $in: scope.divisions.some((d) => d.key === query.div) ? [query.div] : [] };
+  const filter: Record<string, unknown> = { ...scope.tenant(), ...ownerFilter(scope.reps), ...(division ? { division } : {}) };
   if (query.health !== "all") filter.health = query.health;
   if (query.q) {
     const pattern = new RegExp(escapeRegex(query.q), "i");

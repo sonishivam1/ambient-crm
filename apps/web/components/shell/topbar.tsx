@@ -11,26 +11,27 @@ import { useColorMode } from "@/components/theme/use-theme";
 import { Avatar } from "@/components/ui/primitives";
 import type { RoleCapabilities } from "@/lib/auth/roles";
 import { cn } from "@/lib/cn";
-import { LENSES, type Lens } from "@/lib/lens";
+import { ALL_LENS, type LensOption } from "@/lib/lens";
 
 import { useShell } from "./shell-context";
 
 type Me = { name: string; email: string; roleLabel: string; tenant: string };
 export type DevUser = { id: string; name: string; roleLabel: string; tenant: string };
 
-const LENS_LABEL: Record<Lens, string> = { both: "Both", wholesale: "Wholesale", uniforms: "Uniforms" };
-
 export function Topbar({
   me,
   capabilities,
   lens,
+  lenses,
   unread,
   devUsers,
   currentUserId,
 }: {
   me: Me;
   capabilities: RoleCapabilities;
-  lens: Lens;
+  lens: string;
+  /** The tenant's lenses, "All" first; empty when the tenant has none. */
+  lenses: LensOption[];
   unread: number;
   devUsers: DevUser[] | null;
   currentUserId: string;
@@ -50,23 +51,23 @@ export function Topbar({
         <span className="kbd">Ctrl K</span>
       </button>
 
-      {capabilities.lens && (
+      {capabilities.lens && lenses.length > 0 && (
         <div className="seg lens" role="radiogroup" aria-label="Division lens">
-          {LENSES.map((l) => (
+          {lenses.map((l) => (
             <button
-              key={l}
+              key={l.key}
               role="radio"
-              aria-checked={lens === l}
-              className={cn(lens === l && "on")}
+              aria-checked={lens === l.key}
+              className={cn(lens === l.key && "on")}
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
-                  await setLens(l);
-                  toast(`Division lens: ${l === "both" ? "Both divisions" : LENS_LABEL[l]}`);
+                  await setLens(l.key);
+                  toast(`Division lens: ${l.key === ALL_LENS ? "All divisions" : l.label}`);
                 })
               }
             >
-              {LENS_LABEL[l]}
+              {l.label}
             </button>
           ))}
         </div>

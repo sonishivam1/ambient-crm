@@ -3,8 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { DIVISIONS, type Division } from "@ambient/db";
-
 import { GroupTable } from "@/components/accounts/group-table";
 import { SearchBox } from "@/components/accounts/search-box";
 import { Badge, Dot, Empty, HealthPill, PageHead, Skeleton } from "@/components/ui/primitives";
@@ -12,12 +10,10 @@ import { accountsHref, sortHref } from "@/lib/accounts-url";
 import { cn } from "@/lib/cn";
 import { accountsQuerySchema, getAccountsPage, type AccountsPage, type AccountsQuery } from "@/lib/data/accounts";
 import { getScope } from "@/lib/data/scope";
-import { lensDivisions } from "@/lib/lens";
 import { money, num } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Accounts" };
 
-const DIVISION_LABEL: Record<Division, string> = { wholesale: "Wholesale", uniforms: "Uniforms", icw: "ICW", other: "Other" };
 const HEALTH_CHIPS = [
   ["all", "All health"],
   ["g", "Healthy"],
@@ -55,7 +51,7 @@ async function AccountsContent({ searchParams }: { searchParams: PageProps<"/acc
   const raw = await searchParams;
   const query = accountsQuerySchema.parse(Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])));
   const [page, scope] = await Promise.all([getAccountsPage(query), getScope()]);
-  const divisions = lensDivisions(scope.lens) ?? [...DIVISIONS];
+  const { divisions } = scope;
   const isGroup = page.kind === "group";
   const unit = isGroup ? "customer groups" : "accounts";
 
@@ -109,11 +105,12 @@ async function AccountsContent({ searchParams }: { searchParams: PageProps<"/acc
         <Link className={cn("chip", query.div === "all" && "on")} href={accountsHref(query, { div: "all" })}>
           All divisions
         </Link>
-        {divisions.map((d) => (
-          <Link key={d} className={cn("chip", query.div === d && "on")} href={accountsHref(query, { div: d })}>
-            {DIVISION_LABEL[d]}
-          </Link>
-        ))}
+        {divisions.length > 1 &&
+          divisions.map((d) => (
+            <Link key={d.key} className={cn("chip", query.div === d.key && "on")} href={accountsHref(query, { div: d.key })}>
+              {d.label}
+            </Link>
+          ))}
         <span className="vs" />
         {HEALTH_CHIPS.map(([h, label]) => (
           <Link key={h} className={cn("chip", query.health === h && "on")} href={accountsHref(query, { health: h })}>

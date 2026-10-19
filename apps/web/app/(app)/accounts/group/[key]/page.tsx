@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import type { Division, Interaction } from "@ambient/db";
+import type { Interaction } from "@ambient/db";
 
 import { BillToTable } from "@/components/accounts/bill-to-table";
 import { Card, Dot, Empty, HealthPill, Skeleton } from "@/components/ui/primitives";
@@ -13,7 +13,6 @@ import { fmtDate, fmtDay, initials, money, num, relativeDay } from "@/lib/format
 
 export const metadata: Metadata = { title: "Customer group" };
 
-const DIVISION_LABEL: Record<Division, string> = { wholesale: "Wholesale", uniforms: "Uniforms", icw: "ICW", other: "Other" };
 const ACTIVITY_ICON: Record<Interaction["type"], LucideIcon> = { note: NotebookText, call: Phone, meeting: Users };
 const ACTIVITY_LABEL: Record<Interaction["type"], string> = { note: "Note", call: "Call", meeting: "Meeting" };
 
@@ -62,7 +61,7 @@ async function GroupContent({ params }: PageProps<"/accounts/group/[key]">) {
             <HealthPill band={g.health} />
           </div>
           <div className="mt-1 text-muted">
-            <span className="capitalize">{g.level}</span> · {DIVISION_LABEL[g.division]} · {g.hierarchy.cg3} · owned by {g.owner}
+            <span className="capitalize">{g.level}</span> · {g.divisionLabel} · {g.hierarchy.cg3} · owned by {g.owner}
             {profile.showOwner && g.ownerCode && <span className="mono"> ({g.ownerCode})</span>}
           </div>
         </div>
@@ -123,7 +122,7 @@ async function GroupContent({ params }: PageProps<"/accounts/group/[key]">) {
           {(g.reported.billTos > counts.billTos || g.reported.soldTos > counts.soldTos) && (
             <div className="px-[22px] py-3.5 text-[12.5px] text-muted">
               The customer&apos;s systems list {num(g.reported.billTos)} bill-to and {num(g.reported.soldTos)} sold-to accounts; Ambient shows the ones
-              synced so far ({fmtDay(g.syncedAt)}).
+              synced so far ({fmtDay(g.syncedAt, profile.timeZone)}).
             </div>
           )}
         </div>
@@ -147,8 +146,8 @@ async function GroupContent({ params }: PageProps<"/accounts/group/[key]">) {
                         </Link>
                       </p>
                     </div>
-                    <time className="text-[12px] whitespace-nowrap text-muted" dateTime={a.at.toISOString()} title={fmtDate(a.at)}>
-                      {relativeDay(a.at)}
+                    <time className="text-[12px] whitespace-nowrap text-muted" dateTime={a.at.toISOString()} title={fmtDate(a.at, profile.timeZone)}>
+                      {relativeDay(a.at, profile.now, profile.timeZone)}
                     </time>
                   </div>
                 );
@@ -177,7 +176,7 @@ async function GroupContent({ params }: PageProps<"/accounts/group/[key]">) {
             </div>
             <div className="kv">
               <span>Synced</span>
-              <b>{fmtDay(g.syncedAt)}</b>
+              <b>{fmtDay(g.syncedAt, profile.timeZone)}</b>
             </div>
           </Card>
 

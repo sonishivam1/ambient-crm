@@ -10,6 +10,7 @@ Planned (nothing yet).
 | --- | --- | --- |
 | App shell, navigation, Ctrl K search | all | Built |
 | Light and dark mode | all | Built |
+| Tenant settings (divisions, lenses, time zone) | all | Built (admin editing screen next) |
 | Dashboard | `/` | Built |
 | Accounts list (groups, bill-to, sold-to) | `/accounts` | Built |
 | Customer group page | `/accounts/group/[key]` | Built (period figures wait for sync) |
@@ -39,6 +40,18 @@ notifications; a week calendar of visits; today's tasks with one-click
 completion; portfolio health ring; next visit; sales vs target with top
 accounts; at-risk accounts. Every number respects the user's visibility and the
 division lens, and rollups show their "as of" date.
+
+### Tenant settings — Built
+Each tenant has its own divisions (for example Trade and Institutional), its own
+division lenses (a lens can group several divisions), and its own time zone.
+- **Built:** the top-bar lens shows "All" plus the tenant's lenses (hidden when
+  it has none); division filters and labels on every page come from the tenant;
+  a lens or division from another tenant is ignored, never widened to.
+- **Built:** "today", "overdue", the week calendar, the greeting, due dates and
+  every displayed date follow the tenant's time zone, whatever the server's or
+  the browser's zone.
+- **Next:** an admin screen to edit divisions, lenses and the time zone (today
+  they are set in the tenant record).
 
 ### Accounts and customer groups — list Built
 Accounts roll up into customer groups at three levels (conglomerate,

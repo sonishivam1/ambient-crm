@@ -83,8 +83,11 @@ packages/db
 - **Ownership classes.** Mirror data (reps, groups, accounts, contracts) is
   read-only in the app and comes from the customer's ERP or warehouse. Rollups are
   dated snapshots. App-native data is soft-deleted (`deletedAt`, `deletedBy`).
-- **Division lens.** Senior roles can narrow to one division. Tasks and visits
-  carry the account's division so the lens needs no join.
+- **Division lens.** Each tenant defines its own divisions and lenses (a lens
+  groups one or more divisions). Senior roles can narrow to a lens. Tasks and
+  visits carry the account's division so the lens needs no join.
+- **Tenant time zone.** "Today", "overdue", due dates and every displayed date
+  use the tenant's time zone, never the server's or the browser's.
 
 ## Progress
 
@@ -98,6 +101,7 @@ packages/db
 | Customer profile: timeline, log interaction, tasks, related accounts | Done |
 | Tasks: today and all views, filters, create, edit, assign, cancel | Done |
 | Customer group page: health mix, bill-to drill-down, recent activity | Done |
+| Tenant settings: own divisions and lenses, own time zone for dates | Done |
 | Contracts, contacts, call cycle, notifications | Placeholder pages |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |

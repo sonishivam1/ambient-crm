@@ -37,7 +37,7 @@ export async function getAccountProfile(id: string) {
   if (!account) return null;
 
   const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfToday = scope.today;
   const byAccount = { ...scope.tenant(), accountId: account._id };
 
   const [group, parent, related, reps, users, tasks, visits, interactions] = await Promise.all([
@@ -113,6 +113,7 @@ export async function getAccountProfile(id: string) {
 
   return {
     now,
+    timeZone: scope.timeZone,
     account: {
       id: account._id,
       name: account.name,
@@ -121,6 +122,7 @@ export async function getAccountProfile(id: string) {
       site: account.site,
       segment: account.segment,
       division: account.division,
+      divisionLabel: scope.divisionLabel(account.division),
       health: account.health,
       fyRevenue: account.fyRevenue,
       owner: repName.get(account.ownerRepId) ?? "",

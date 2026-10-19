@@ -4,9 +4,11 @@ import { ChevronLeft, ChevronRight, MapPin, Phone, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { addDays, fromIsoDay, startOfWeek, zonedParts } from "@ambient/db/time";
+
 import { Badge } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
-import { fmtDay, isoDay, mondayOf } from "@/lib/format";
+import { fmtDay, isoDay } from "@/lib/format";
 
 export type CalendarVisit = {
   id: string;
@@ -21,22 +23,21 @@ export type CalendarVisit = {
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const ICON = { site: MapPin, call: Phone, meeting: Users };
 
-export function WeekCalendar({ visits, today }: { visits: CalendarVisit[]; today: Date }) {
+/** A Monday-first week of visits, on the tenant's calendar whatever the browser's zone. */
+export function WeekCalendar({ visits, today, timeZone }: { visits: CalendarVisit[]; today: Date; timeZone: string }) {
   const [week, setWeek] = useState(0);
-  const [selected, setSelected] = useState(isoDay(today));
+  const [selected, setSelected] = useState(isoDay(today, timeZone));
 
-  const start = mondayOf(today);
-  start.setDate(start.getDate() + week * 7);
-  const days = Array.from({ length: 7 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
-  const onDay = (key: string) => visits.filter((v) => isoDay(v.at) === key);
+  const weekStart = (n: number) => addDays(startOfWeek(today, timeZone), n * 7, timeZone);
+  const start = weekStart(week);
+  const days = Array.from({ length: 7 }, (_, i) => addDays(start, i, timeZone));
+  const onDay = (key: string) => visits.filter((v) => isoDay(v.at, timeZone) === key);
   const shown = onDay(selected);
 
   const moveWeek = (delta: number) => {
     const next = week + delta;
     setWeek(next);
-    const first = mondayOf(today);
-    first.setDate(first.getDate() + next * 7);
-    setSelected(isoDay(first));
+    setSelected(isoDay(weekStart(next), timeZone));
   };
 
   return (
@@ -46,7 +47,7 @@ export function WeekCalendar({ visits, today }: { visits: CalendarVisit[]; today
           <ChevronLeft size={14} />
         </button>
         <b>
-          {fmtDay(days[0]!)} – {fmtDay(days[6]!)}
+          {fmtDay(days[0]!, timeZone)} – {fmtDay(days[6]!, timeZone)}
         </b>
         <button className="btn icon sm ghost" aria-label="Next week" onClick={() => moveWeek(1)}>
           <ChevronRight size={14} />
@@ -59,7 +60,7 @@ export function WeekCalendar({ visits, today }: { visits: CalendarVisit[]; today
           </div>
         ))}
         {days.map((d) => {
-          const key = isoDay(d);
+          const key = isoDay(d, timeZone);
           return (
             <button
               key={key}
@@ -67,7 +68,7 @@ export function WeekCalendar({ visits, today }: { visits: CalendarVisit[]; today
               aria-pressed={key === selected}
               onClick={() => setSelected(key)}
             >
-              {d.getDate()}
+              {zonedParts(d, timeZone).day}
             </button>
           );
         })}
@@ -91,7 +92,7 @@ export function WeekCalendar({ visits, today }: { visits: CalendarVisit[]; today
           );
         })
       ) : (
-        <div className="evt justify-center text-muted">No visits on {fmtDay(new Date(`${selected}T00:00:00`))}</div>
+        <div className="evt justify-center text-muted">No visits on {fmtDay(fromIsoDay(selected, timeZone), timeZone)}</div>
       )}
     </>
   );

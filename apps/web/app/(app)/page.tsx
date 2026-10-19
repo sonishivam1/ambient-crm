@@ -52,7 +52,7 @@ async function Dashboard() {
   const d = await getDashboard();
   const first = d.user.name.split(" ")[0];
   const s = d.sales;
-  const asOf = s ? `as of ${fmtDay(s.asOf)}` : "no sales snapshot yet";
+  const asOf = s ? `as of ${fmtDay(s.asOf, d.timeZone)}` : "no sales snapshot yet";
   const mtdPct = s && s.mtd.target > 0 ? Math.round((s.mtd.actual / s.mtd.target) * 100) : null;
   const healthyPct = d.health.groups ? Math.round((d.health.g / d.health.groups) * 100) : 0;
 
@@ -60,9 +60,9 @@ async function Dashboard() {
     <>
       <div className="g-hero mb-[22px] items-stretch">
         <div className="px-2 pt-1.5">
-          <div className="eyebrow">{fmtLongDay(d.now)}</div>
+          <div className="eyebrow">{fmtLongDay(d.now, d.timeZone)}</div>
           <h1 className="title" style={{ fontSize: 30, margin: "8px 0 6px" }}>
-            {greeting(d.now)}, {first}
+            {greeting(d.now, d.timeZone)}, {first}
           </h1>
           <div className="sub" style={{ maxWidth: 340 }}>
             What are your priorities for today? Here’s what’s happening with your customers.
@@ -144,7 +144,7 @@ async function Dashboard() {
               <div className="min-w-0 flex-1">
                 <b>{t.title}</b>
                 <p>
-                  {t.account} · {t.overdue ? "overdue" : `due ${fmtDay(t.dueAt)}`}
+                  {t.account} · {t.overdue ? "overdue" : `due ${fmtDay(t.dueAt, d.timeZone)}`}
                 </p>
               </div>
               {t.overdue && <Badge tone="risk">Overdue</Badge>}
@@ -175,7 +175,7 @@ async function Dashboard() {
         </Card>
 
         <Card title="Call cycle · this week" link={{ href: "/call-cycle", label: "plan →" }}>
-          <WeekCalendar visits={d.calendar} today={d.now} />
+          <WeekCalendar visits={d.calendar} today={d.now} timeZone={d.timeZone} />
         </Card>
       </div>
 
@@ -190,7 +190,7 @@ async function Dashboard() {
                   <div className="tt">
                     <b>{t.title}</b>
                     <span>
-                      {t.account} · {t.overdue ? "overdue" : fmtDay(t.dueAt)}
+                      {t.account} · {t.overdue ? "overdue" : fmtDay(t.dueAt, d.timeZone)}
                     </span>
                   </div>
                   <div style={{ width: 110 }}>
@@ -241,7 +241,7 @@ async function Dashboard() {
                 <div className="min-w-0 flex-1">
                   <b style={{ fontSize: 15 }}>{d.nextVisit.account}</b>
                   <div className="text-muted" style={{ fontSize: 12.5 }}>
-                    {fmtWeekday(d.nextVisit.at)} · {d.nextVisit.purpose}
+                    {fmtWeekday(d.nextVisit.at, d.timeZone)} · {d.nextVisit.purpose}
                   </div>
                 </div>
               </div>

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { initials, isoDay, money, mondayOf, relativeDay, signedMoney, timeAgo } from "./format";
+import { fmtDate, fmtLongDay, greeting, initials, isoDay, money, relativeDay, signedMoney, timeAgo } from "./format";
+
+const SYD = "Australia/Sydney";
+const AKL = "Pacific/Auckland";
 
 describe("money", () => {
   it("abbreviates thousands and millions", () => {
@@ -18,27 +21,35 @@ describe("money", () => {
   });
 });
 
-describe("dates", () => {
-  const now = new Date(2026, 9, 19, 15, 0); // Mon 19 Oct 2026, 3pm local
+describe("dates on the tenant's calendar", () => {
+  // 23:30 Monday in Sydney is already 01:30 Tuesday in Auckland.
+  const instant = new Date("2026-10-19T12:30:00Z");
 
-  it("formats a local calendar day", () => {
-    expect(isoDay(new Date(2026, 0, 5, 23, 59))).toBe("2026-01-05");
+  it("formats the same instant as each tenant's local day", () => {
+    expect(isoDay(instant, SYD)).toBe("2026-10-19");
+    expect(isoDay(instant, AKL)).toBe("2026-10-20");
+    expect(fmtDate(instant, SYD)).toBe("19 Oct 2026");
+    expect(fmtLongDay(instant, AKL)).toBe("Tuesday 20 October");
   });
 
-  it("finds the Monday of the week", () => {
-    expect(isoDay(mondayOf(new Date(2026, 9, 25)))).toBe("2026-10-19"); // Sunday → previous Monday
-    expect(isoDay(mondayOf(now))).toBe("2026-10-19");
+  it("greets by the tenant's clock, not the server's", () => {
+    const sydMorning = new Date("2026-10-18T21:00:00Z"); // 08:00 Mon Sydney
+    expect(greeting(sydMorning, SYD)).toBe("Good morning");
+    expect(greeting(new Date("2026-10-19T05:00:00Z"), SYD)).toBe("Good afternoon"); // 16:00
+    expect(greeting(new Date("2026-10-19T07:30:00Z"), SYD)).toBe("Good evening"); // 18:30
   });
 
   it("describes days relative to today by calendar day, not 24-hour blocks", () => {
-    expect(relativeDay(new Date(2026, 9, 19, 1), now)).toBe("today");
-    expect(relativeDay(new Date(2026, 9, 18, 23), now)).toBe("yesterday");
-    expect(relativeDay(new Date(2026, 9, 20, 0, 1), now)).toBe("tomorrow");
-    expect(relativeDay(new Date(2026, 9, 14), now)).toBe("5 days ago");
-    expect(relativeDay(new Date(2026, 9, 29), now)).toBe("in 10 days");
+    const now = new Date("2026-10-19T04:00:00Z"); // 15:00 Mon Sydney
+    expect(relativeDay(new Date("2026-10-18T14:00:00Z"), now, SYD)).toBe("today"); // 01:00 Mon
+    expect(relativeDay(new Date("2026-10-18T12:00:00Z"), now, SYD)).toBe("yesterday"); // 23:00 Sun
+    expect(relativeDay(new Date("2026-10-19T13:01:00Z"), now, SYD)).toBe("tomorrow"); // 00:01 Tue
+    expect(relativeDay(new Date("2026-10-14T03:00:00Z"), now, SYD)).toBe("5 days ago");
+    expect(relativeDay(new Date("2026-10-29T03:00:00Z"), now, SYD)).toBe("in 10 days");
   });
 
   it("gives short elapsed times", () => {
+    const now = new Date("2026-10-19T04:00:00Z");
     expect(timeAgo(new Date(now.getTime() - 30_000), now)).toBe("just now");
     expect(timeAgo(new Date(now.getTime() - 12 * 60_000), now)).toBe("12m");
     expect(timeAgo(new Date(now.getTime() - 3 * 3_600_000), now)).toBe("3h");

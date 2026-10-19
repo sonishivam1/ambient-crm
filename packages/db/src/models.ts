@@ -19,8 +19,12 @@ import { z } from "zod";
 export const ROLE_KEYS = ["user", "manager", "senior", "lead", "admin", "super"] as const;
 export type RoleKey = (typeof ROLE_KEYS)[number];
 
-export const DIVISIONS = ["uniforms", "wholesale", "icw", "other"] as const;
-export type Division = (typeof DIVISIONS)[number];
+/**
+ * Divisions are tenant-defined (see `tenantSchema.divisions`): a key such as
+ * "wholesale" that accounts and the records copied from them carry.
+ */
+export type Division = string;
+const divisionKey = z.string().regex(/^[a-z0-9_-]{1,40}$/, "Division keys are lowercase letters, digits, - or _.");
 
 export const HEALTH_BANDS = ["g", "a", "r"] as const;
 export type HealthBand = (typeof HEALTH_BANDS)[number];
@@ -43,8 +47,15 @@ const timestamps = {
 export const tenantSchema = z.object({
   _id: z.string(),
   name: z.string(),
-  /** IANA zone used for day boundaries (today, overdue, this week). */
+  /** IANA zone used for day boundaries (today, overdue, this week) and due dates. */
   timeZone: z.string(),
+  /** The tenant's lines of business, in display order. */
+  divisions: z.array(z.object({ key: divisionKey, label: z.string().min(1).max(60) })).min(1),
+  /**
+   * The top-bar lens options for senior roles; each narrows every page to a set
+   * of divisions. Empty means the tenant has no lens.
+   */
+  lenses: z.array(z.object({ key: divisionKey, label: z.string().min(1).max(60), divisions: z.array(divisionKey).min(1) })).default([]),
   /** The Entra tenant whose users sign in to this Ambient tenant. */
   entraTenantId: z.string().nullable(),
   active: z.boolean(),
@@ -92,7 +103,7 @@ export const customerGroupSchema = z.object({
   code: z.string(),
   level: z.enum(["conglomerate", "corporation", "standalone"]),
   ownerRepId: z.string(),
-  division: z.enum(DIVISIONS),
+  division: divisionKey,
   health: z.enum(HEALTH_BANDS).nullable(),
   fyRevenue: z.number(),
   billToCount: z.number().int(),
@@ -114,7 +125,7 @@ export const accountSchema = z.object({
   code: z.string(),
   site: z.string(),
   ownerRepId: z.string(),
-  division: z.enum(DIVISIONS),
+  division: divisionKey,
   segment: z.string(),
   health: z.enum(HEALTH_BANDS).nullable(),
   fyRevenue: z.number(),
@@ -134,7 +145,7 @@ export const taskSchema = z.object({
   ...tenantScoped,
   accountId: z.string(),
   /** Copied from the account at write time so the division lens needs no join. */
-  division: z.enum(DIVISIONS),
+  division: divisionKey,
   title: z.string().min(1).max(200),
   description: z.string().max(4000).default(""),
   /** Execution notes and checklists; never copied into the audit log. */
@@ -160,7 +171,7 @@ export const visitSchema = z.object({
   ...tenantScoped,
   accountId: z.string(),
   /** Copied from the account at write time so the division lens needs no join. */
-  division: z.enum(DIVISIONS),
+  division: divisionKey,
   repId: z.string(),
   type: z.enum(VISIT_TYPES),
   status: z.enum(VISIT_STATUSES),
@@ -183,7 +194,7 @@ export const interactionSchema = z.object({
   ...tenantScoped,
   accountId: z.string(),
   /** Copied from the account at write time so the division lens needs no join. */
-  division: z.enum(DIVISIONS),
+  division: divisionKey,
   type: z.enum(INTERACTION_TYPES),
   summary: z.string().trim().min(1).max(4000),
   authorUserId: z.string(),

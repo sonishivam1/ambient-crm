@@ -21,7 +21,7 @@ export const USERS = {
 } as const;
 
 /** Make the next server call run as this user (and optionally with a division lens). */
-export function signInAs(userId: string, lens?: "both" | "wholesale" | "uniforms") {
+export function signInAs(userId: string, lens?: string) {
   cookieJar.clear();
   cookieJar.set(DEV_USER_COOKIE, userId);
   if (lens) cookieJar.set(LENS_COOKIE, lens);

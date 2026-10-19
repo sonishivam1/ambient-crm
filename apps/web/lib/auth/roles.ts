@@ -12,7 +12,7 @@ export type RoleCapabilities = {
   manager: boolean;
   admin: boolean;
   superAdmin: boolean;
-  /** Can switch the Wholesale / Uniforms division lens. */
+  /** Can switch the division lens (the lenses themselves are per tenant). */
   lens: boolean;
   canAssignTasks: boolean;
   canReview: boolean;

@@ -6,8 +6,8 @@
 | **Customer group** | A roll-up of accounts that belong to one customer. Levels: conglomerate, corporation, standalone. |
 | **Book** | The accounts a rep owns. |
 | **Rep** | A salesperson record from the ERP or HR system. Users link to a rep. |
-| **Division** | A line of business accounts belong to (for example wholesale or uniforms). |
-| **Division lens** | The top-bar switch that narrows every page to one division (senior roles). |
+| **Division** | A line of business accounts belong to. Each tenant defines its own (for example wholesale and uniforms, or trade and institutional). |
+| **Division lens** | The top-bar switch that narrows every page to one of the tenant's lenses, each covering one or more divisions (senior roles). |
 | **Health band** | Green (healthy), amber (watch) or red (at risk), from sales, activity and sentiment signals. |
 | **Mirror data** | Records copied from the customer's systems of record (reps, groups, accounts, contracts). Read-only in Ambient. |
 | **Rollup** | A dated snapshot of figures computed in the warehouse (sales vs target, open orders, stock). |

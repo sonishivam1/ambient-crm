@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import type { Division, Task } from "@ambient/db";
+import type { Task } from "@ambient/db";
 
 import { TaskCheck } from "@/components/dashboard/task-check";
 import { TasksFilterBar } from "@/components/tasks/filter-bar";
@@ -17,7 +17,6 @@ export const metadata: Metadata = { title: "Tasks" };
 
 type RawParams = Record<string, string | string[] | undefined>;
 
-const DIVISION_LABEL: Record<Division, string> = { wholesale: "Wholesale", uniforms: "Uniforms", icw: "ICW", other: "Other" };
 const PRIORITY: Record<Task["priority"], [string, Tone]> = { high: ["High", "risk"], normal: ["Medium", "warn"], low: ["Low", "out"] };
 const SOURCE: Record<Task["source"], [string, Tone]> = { manual: ["Manual", "out"], ai: ["Wren", "accent"], manager_assigned: ["Manager assigned", "info"] };
 const STATUS: Record<Task["status"], [string, Tone]> = {
@@ -53,7 +52,7 @@ async function TasksContent({ searchParams }: { searchParams: Promise<RawParams>
   const raw = await searchParams;
   const query = tasksQuerySchema.parse(Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, first(v)])));
   const options = await getTaskOptions();
-  const assign = { canAssign: options.canAssign, assignable: options.assignable, ownRepId: options.ownRepId };
+  const assign = { canAssign: options.canAssign, assignable: options.assignable, ownRepId: options.ownRepId, timeZone: options.timeZone };
 
   return (
     <>
@@ -84,7 +83,7 @@ async function TasksContent({ searchParams }: { searchParams: Promise<RawParams>
 
 async function TodayView({ options }: { options: TaskOptions }) {
   const { overdue, dueToday } = await getTodayTasks();
-  const assign = { canAssign: options.canAssign, assignable: options.assignable, ownRepId: options.ownRepId };
+  const assign = { canAssign: options.canAssign, assignable: options.assignable, ownRepId: options.ownRepId, timeZone: options.timeZone };
   const section = (label: string, rows: TaskRow[], accent: boolean, empty: string) => (
     <div className="card">
       <div className="wkh">
@@ -104,7 +103,7 @@ async function TodayView({ options }: { options: TaskOptions }) {
               {options.canAssign && <p>{t.owner}</p>}
             </div>
             <Badge tone={PRIORITY[t.priority][1]}>{PRIORITY[t.priority][0]}</Badge>
-            <span className="tnum text-[13px] whitespace-nowrap text-muted">{fmtDate(t.dueAt)}</span>
+            <span className="tnum text-[13px] whitespace-nowrap text-muted">{fmtDate(t.dueAt, options.timeZone)}</span>
             {t.overdue && <Badge tone="risk">Overdue</Badge>}
             <TaskRowMenu task={t} {...assign} />
           </div>
@@ -153,7 +152,7 @@ function hrefWith(raw: RawParams, patch: Record<string, string | null>) {
 
 async function AllView({ query, raw, options }: { query: TasksQuery; raw: RawParams; options: TaskOptions }) {
   const page = await getTasksPage(query);
-  const assign = { canAssign: options.canAssign, assignable: options.assignable, ownRepId: options.ownRepId };
+  const assign = { canAssign: options.canAssign, assignable: options.assignable, ownRepId: options.ownRepId, timeZone: options.timeZone };
   const sortTh = (label: string, key: TasksQuery["sort"]) => {
     const active = query.sort === key;
     const dir = active ? (query.dir === "asc" ? "desc" : "asc") : key === "created" ? "desc" : "asc";
@@ -173,7 +172,7 @@ async function AllView({ query, raw, options }: { query: TasksQuery; raw: RawPar
       <TasksFilterBar
         accounts={options.accounts}
         assignees={options.assignees}
-        divisions={options.divisions.map((d) => ({ value: d, label: DIVISION_LABEL[d] }))}
+        divisions={options.divisions.map((d) => ({ value: d.key, label: d.label }))}
         showDivision={options.showDivision}
         showAssignee={options.canAssign}
       />
@@ -202,7 +201,7 @@ async function AllView({ query, raw, options }: { query: TasksQuery; raw: RawPar
                   const done = t.status === "completed";
                   return (
                     <tr key={t.id}>
-                      {options.showDivision && <td className="text-text2">{DIVISION_LABEL[t.division]}</td>}
+                      {options.showDivision && <td className="text-text2">{t.divisionLabel}</td>}
                       <td>
                         <Link className="lnk" href={`/accounts/${encodeURIComponent(t.accountId)}`}>
                           {t.account}
@@ -212,7 +211,7 @@ async function AllView({ query, raw, options }: { query: TasksQuery; raw: RawPar
                         <span className={cn("font-bold", done && "text-muted line-through")}>{t.title}</span>
                       </td>
                       {options.canAssign && <td className="text-text2">{t.owner}</td>}
-                      <td className={cn("tnum whitespace-nowrap", t.overdue && "font-bold text-risk")}>{fmtDate(t.dueAt)}</td>
+                      <td className={cn("tnum whitespace-nowrap", t.overdue && "font-bold text-risk")}>{fmtDate(t.dueAt, options.timeZone)}</td>
                       <td>
                         <Badge tone={PRIORITY[t.priority][1]}>{PRIORITY[t.priority][0]}</Badge>
                       </td>
@@ -222,7 +221,7 @@ async function AllView({ query, raw, options }: { query: TasksQuery; raw: RawPar
                       <td>
                         <Badge tone={SOURCE[t.source][1]}>{SOURCE[t.source][0]}</Badge>
                       </td>
-                      <td className="tnum whitespace-nowrap text-text2">{fmtDate(t.createdAt)}</td>
+                      <td className="tnum whitespace-nowrap text-text2">{fmtDate(t.createdAt, options.timeZone)}</td>
                       <td className="text-text2">{t.createdBy}</td>
                       <td className="num">
                         <TaskRowMenu task={t} {...assign} />

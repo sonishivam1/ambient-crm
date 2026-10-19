@@ -2,9 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 
-import { DIVISIONS, OPEN_TASK_STATUSES, TASK_PRIORITIES, TASK_SOURCES, collection, type Division, type Task } from "@ambient/db";
-
-import { lensDivisions } from "@/lib/lens";
+import { OPEN_TASK_STATUSES, TASK_PRIORITIES, TASK_SOURCES, collection, type Division, type Task } from "@ambient/db";
+import { addDays, fromIsoDay } from "@ambient/db/time";
 
 import { getScope, type Scope } from "./scope";
 
@@ -29,7 +28,8 @@ export const tasksQuerySchema = z.object({
   status: listOf(STATUS_FILTERS),
   priority: listOf(TASK_PRIORITIES),
   source: listOf(TASK_SOURCES),
-  div: z.enum(["", ...DIVISIONS]).catch(""),
+  /** A division key; checked against the tenant's divisions when the query runs. */
+  div: z.string().regex(/^[a-z0-9_-]{0,40}$/).catch(""),
   account: z.string().max(200).catch(""),
   assignee: z.string().max(200).catch(""),
   from: isoDate,
@@ -45,6 +45,7 @@ export type TaskRow = {
   accountId: string;
   account: string;
   division: Division;
+  divisionLabel: string;
   title: string;
   description: string;
   notes: string;
@@ -61,23 +62,13 @@ export type TaskRow = {
 
 export type RepOption = { id: string; name: string; team: string };
 
-/** Local midnight today. Day boundaries follow the server's zone until per-tenant zones land. */
-export function startOfToday(now = new Date()) {
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-const localDay = (iso: string, endOfDay = false) => {
-  const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
-  return endOfDay ? new Date(y, m - 1, d, 23, 59, 59, 999) : new Date(y, m - 1, d);
-};
-
 function baseTaskFilter(scope: Scope) {
   return { ...scope.filter(), deletedAt: null, status: { $ne: "cancelled" as const } };
 }
 
 /** Names for the rows: accounts, reps (owners) and users (creators), in three queries. */
 async function decorate(scope: Scope, tasks: Task[]): Promise<TaskRow[]> {
-  const today = startOfToday();
+  const { today } = scope;
   const accountIds = [...new Set(tasks.map((t) => t.accountId))];
   const userIds = [...new Set(tasks.map((t) => t.createdByUserId))];
   const [accounts, reps, users] = await Promise.all([
@@ -93,6 +84,7 @@ async function decorate(scope: Scope, tasks: Task[]): Promise<TaskRow[]> {
     accountId: t.accountId,
     account: accountName.get(t.accountId) ?? "",
     division: t.division,
+    divisionLabel: scope.divisionLabel(t.division),
     title: t.title,
     description: t.description ?? "",
     notes: t.notes ?? "",
@@ -114,8 +106,8 @@ const byDueThenPriority = (a: Task, b: Task) =>
 /** The Today view: open tasks already overdue, and open tasks due today. */
 export async function getTodayTasks() {
   const scope = await getScope();
-  const today = startOfToday();
-  const tomorrow = new Date(today.getTime() + 86_400_000);
+  const { today, timeZone } = scope;
+  const tomorrow = addDays(today, 1, timeZone);
   const open = { ...scope.filter(), deletedAt: null, status: { $in: OPEN_TASK_STATUSES } };
   const tasks = await collection("tasks");
   const [overdue, dueToday] = await Promise.all([
@@ -129,7 +121,7 @@ export async function getTodayTasks() {
 /** The All view: filtered, sorted and paged with one aggregation. */
 export async function getTasksPage(query: TasksQuery) {
   const scope = await getScope();
-  const today = startOfToday();
+  const { today, timeZone } = scope;
   const and: Record<string, unknown>[] = [];
 
   if (query.status.length) {
@@ -142,14 +134,18 @@ export async function getTasksPage(query: TasksQuery) {
   }
   if (query.priority.length) and.push({ priority: { $in: query.priority } });
   if (query.source.length) and.push({ source: { $in: query.source } });
-  if (query.div) and.push({ division: query.div });
+  if (query.div) {
+    // A division outside the lens (or another tenant's) matches nothing rather than widening the lens.
+    and.push({ division: scope.divisions.some((d) => d.key === query.div) ? query.div : { $in: [] } });
+  }
   if (query.account) and.push({ accountId: query.account });
   if (query.assignee) and.push({ ownerRepId: query.assignee });
   if (query.from || query.to) {
     and.push({
       dueAt: {
-        ...(query.from ? { $gte: localDay(query.from) } : {}),
-        ...(query.to ? { $lte: localDay(query.to, true) } : {}),
+        // Whole days on the tenant's calendar: from its midnight up to (not including) the midnight after "to".
+        ...(query.from ? { $gte: fromIsoDay(query.from, timeZone) } : {}),
+        ...(query.to ? { $lt: addDays(fromIsoDay(query.to, timeZone), 1, timeZone) } : {}),
       },
     });
   }
@@ -212,7 +208,8 @@ export async function getTaskOptions() {
     assignable: caps.canAssignTasks ? visibleReps : [],
     canAssign: caps.canAssignTasks,
     ownRepId: scope.user.repId,
-    divisions: lensDivisions(scope.lens) ?? [...DIVISIONS],
+    divisions: scope.divisions,
+    timeZone: scope.timeZone,
     showDivision: caps.lens,
     title: caps.canAssignTasks ? "Team tasks" : "Your tasks",
   };

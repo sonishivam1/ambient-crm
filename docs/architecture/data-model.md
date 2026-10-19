@@ -51,6 +51,8 @@ erDiagram
     string _id
     string name
     string timeZone
+    array divisions
+    array lenses
     string entraTenantId
   }
   REP {
@@ -139,7 +141,14 @@ erDiagram
   `sourceKey` (stable across syncs, unique across tenants); app-native records use
   UUIDs.
 - **Every time is a `Date`** stored as UTC. Display and day boundaries use the
-  user's time zone (planned: per-tenant setting; today the server's zone).
+  tenant's `timeZone` (an IANA name such as `Australia/Sydney`): "today" is
+  local midnight there, a due date picked as a day is stored at 17:00 there,
+  and a date-range filter covers whole local days. The helpers live in
+  `@ambient/db/time` (pure `Intl`, safe in client components).
+- **Divisions are per tenant.** `tenants.divisions` lists `{ key, label }`;
+  `tenants.lenses` lists `{ key, label, divisions }`, each lens naming the
+  division keys it shows. A record's `division` is one of its tenant's keys;
+  labels always come from the tenant, never from code.
 - **Enums are strings validated by Zod**, never database-level enums, so adding
   a value is a code change only.
 - **Denormalise for the hot filter.** Tasks and visits copy their account's

@@ -10,7 +10,7 @@ import { cancelTask, completeTask, type AccountOption } from "@/app/actions/task
 
 import { TaskDialog, type DialogRep, type EditableTask } from "./task-dialog";
 
-type AssignProps = { canAssign: boolean; assignable: DialogRep[]; ownRepId: string | null };
+type AssignProps = { canAssign: boolean; assignable: DialogRep[]; ownRepId: string | null; timeZone: string };
 
 /**
  * "Add task". With `openFromUrl`, it is open whenever the URL carries

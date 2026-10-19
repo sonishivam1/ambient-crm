@@ -1,3 +1,5 @@
+import { calendarDaysBetween, isoDayIn, zonedParts } from "@ambient/db/time";
+
 const LOCALE = "en-AU";
 
 export function money(n: number | null | undefined): string {
@@ -14,22 +16,17 @@ export function signedMoney(n: number): string {
 
 export const num = (n: number) => n.toLocaleString(LOCALE);
 
-export const fmtDate = (d: Date) => d.toLocaleDateString(LOCALE, { day: "numeric", month: "short", year: "numeric" });
-export const fmtDay = (d: Date) => d.toLocaleDateString(LOCALE, { day: "numeric", month: "short" });
-export const fmtWeekday = (d: Date) => d.toLocaleDateString(LOCALE, { weekday: "short", day: "numeric" });
-export const fmtLongDay = (d: Date) => d.toLocaleDateString(LOCALE, { weekday: "long", day: "numeric", month: "long" });
+/*
+ * Every date formatter takes the tenant's time zone. There is deliberately no
+ * default: the server's zone is never the right calendar for a customer.
+ */
+export const fmtDate = (d: Date, timeZone: string) => d.toLocaleDateString(LOCALE, { day: "numeric", month: "short", year: "numeric", timeZone });
+export const fmtDay = (d: Date, timeZone: string) => d.toLocaleDateString(LOCALE, { day: "numeric", month: "short", timeZone });
+export const fmtWeekday = (d: Date, timeZone: string) => d.toLocaleDateString(LOCALE, { weekday: "short", day: "numeric", timeZone });
+export const fmtLongDay = (d: Date, timeZone: string) => d.toLocaleDateString(LOCALE, { weekday: "long", day: "numeric", month: "long", timeZone });
 
-/** yyyy-mm-dd in local time, used as a stable key for calendar days. */
-export function isoDay(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-export function mondayOf(d: Date): Date {
-  const x = new Date(d);
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
+/** yyyy-mm-dd on the tenant's calendar, used as a stable key for calendar days. */
+export const isoDay = (d: Date, timeZone: string) => isoDayIn(d, timeZone);
 
 export function timeAgo(from: Date, now = new Date()): string {
   const m = Math.floor((now.getTime() - from.getTime()) / 60_000);
@@ -49,15 +46,15 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
-export function greeting(now = new Date()): string {
-  const h = now.getHours();
+/** Good morning / afternoon / evening, by the clock in the tenant's zone. */
+export function greeting(now: Date, timeZone: string): string {
+  const h = zonedParts(now, timeZone).hour;
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
-/** "today", "yesterday", "in 3 days", "5 days ago" — whole calendar days. */
-export function relativeDay(d: Date, now = new Date()): string {
-  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-  const diff = Math.round((day(d) - day(now)) / 86_400_000);
+/** "today", "yesterday", "in 3 days", "5 days ago": whole days on the tenant's calendar. */
+export function relativeDay(d: Date, now: Date, timeZone: string): string {
+  const diff = calendarDaysBetween(now, d, timeZone);
   if (diff === 0) return "today";
   if (diff === -1) return "yesterday";
   if (diff === 1) return "tomorrow";

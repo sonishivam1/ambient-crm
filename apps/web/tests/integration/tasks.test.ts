@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { collection } from "@ambient/db";
+import { addDays, isoDayIn } from "@ambient/db/time";
 
 import { cancelTask, completeTask, createTask, updateTask } from "@/app/actions/tasks";
-import { isoDay } from "@/lib/format";
 import { getTasksPage, getTodayTasks, tasksQuerySchema } from "@/lib/data/tasks";
 
 import { USERS, signInAs } from "../support/session";
 
-const inDays = (n: number) => isoDay(new Date(Date.now() + n * 86_400_000));
+const SYD = "Australia/Sydney"; // Northwind's zone
+const inDays = (n: number) => isoDayIn(addDays(new Date(), n, SYD), SYD);
 const base = { accountId: "northwind:CO-ACME-BT1", priority: "normal" as const, description: "", notes: "" };
 const query = (params: Record<string, string> = {}) => tasksQuerySchema.parse({ view: "all", ...params });
 

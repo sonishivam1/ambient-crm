@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import type { Division, HealthBand, Task } from "@ambient/db";
+import type { HealthBand, Task } from "@ambient/db";
 
 import { LogInteractionButton } from "@/components/accounts/log-interaction";
 import { TaskCheck } from "@/components/dashboard/task-check";
@@ -37,7 +37,6 @@ const TIMELINE_FILTERS = [
 ] as const;
 type TimelineFilter = (typeof TIMELINE_FILTERS)[number][0];
 
-const DIVISION_LABEL: Record<Division, string> = { wholesale: "Wholesale", uniforms: "Uniforms", icw: "ICW", other: "Other" };
 const PRIORITY: Record<Task["priority"], [string, Tone]> = { high: ["High", "risk"], normal: ["Medium", "warn"], low: ["Low", "out"] };
 const SOURCE: Record<Task["source"], [string, Tone]> = { manual: ["Manual", "out"], ai: ["Wren", "accent"], manager_assigned: ["Manager assigned", "info"] };
 const STATUS: Record<Task["status"], string> = { open: "Open", in_progress: "In progress", completed: "Completed", cancelled: "Cancelled" };
@@ -94,7 +93,7 @@ async function ProfileContent({ params, searchParams }: PageProps<"/accounts/[id
             <HealthPill band={a.health} />
           </div>
           <div className="mt-1 text-muted">
-            {a.type === "bill_to" ? "Bill-To" : "Sold-To"} · {a.segment} · {DIVISION_LABEL[a.division]} · owned by {a.owner}
+            {a.type === "bill_to" ? "Bill-To" : "Sold-To"} · {a.segment} · {a.divisionLabel} · owned by {a.owner}
             {profile.group && (
               <>
                 {" · "}
@@ -116,8 +115,8 @@ async function ProfileContent({ params, searchParams }: PageProps<"/accounts/[id
               </>
             }
           />
-          <Stat label="Next visit" value={profile.nextVisit ? relativeDay(profile.nextVisit.at, profile.now) : "—"} />
-          <Stat label="Last touch" value={profile.lastTouch ? relativeDay(profile.lastTouch, profile.now) : "—"} />
+          <Stat label="Next visit" value={profile.nextVisit ? relativeDay(profile.nextVisit.at, profile.now, profile.timeZone) : "—"} />
+          <Stat label="Last touch" value={profile.lastTouch ? relativeDay(profile.lastTouch, profile.now, profile.timeZone) : "—"} />
           <LogInteractionButton accountId={a.id} accountName={a.name} />
         </div>
       </div>
@@ -201,8 +200,8 @@ function Overview({ profile, filter, base }: { profile: AccountProfile; filter: 
                   <b className="font-semibold">{t.body}</b>
                   <p>{t.by}</p>
                 </div>
-                <time className="text-[12px] whitespace-nowrap text-muted" dateTime={t.at.toISOString()} title={fmtDate(t.at)}>
-                  {relativeDay(t.at, profile.now)}
+                <time className="text-[12px] whitespace-nowrap text-muted" dateTime={t.at.toISOString()} title={fmtDate(t.at, profile.timeZone)}>
+                  {relativeDay(t.at, profile.now, profile.timeZone)}
                 </time>
               </div>
             );
@@ -232,7 +231,7 @@ function Overview({ profile, filter, base }: { profile: AccountProfile; filter: 
                 <CalendarDays size={17} />
               </span>
               <div>
-                <b>{fmtDate(profile.nextVisit.at)}</b>
+                <b>{fmtDate(profile.nextVisit.at, profile.timeZone)}</b>
                 <div className="text-[12.5px] text-muted">
                   {profile.nextVisit.purpose} · {profile.nextVisit.rep}
                 </div>
@@ -262,7 +261,7 @@ function Overview({ profile, filter, base }: { profile: AccountProfile; filter: 
           </div>
           <div className="kv">
             <span>Synced</span>
-            <b>{fmtDay(a.syncedAt)}</b>
+            <b>{fmtDay(a.syncedAt, profile.timeZone)}</b>
           </div>
         </Card>
 
@@ -333,6 +332,7 @@ function Tasks({ profile, options }: { profile: AccountProfile; options: TaskOpt
             canAssign={options.canAssign}
             assignable={options.assignable}
             ownRepId={options.ownRepId}
+            timeZone={profile.timeZone}
           />
         )}
       </div>
@@ -360,7 +360,7 @@ function Tasks({ profile, options }: { profile: AccountProfile; options: TaskOpt
                         <span className={cn("font-bold", done && "text-muted line-through")}>{t.title}</span>
                       </td>
                       <td>{t.owner}</td>
-                      <td className={cn(t.overdue && "font-bold text-risk")}>{fmtDate(t.dueAt)}</td>
+                      <td className={cn(t.overdue && "font-bold text-risk")}>{fmtDate(t.dueAt, profile.timeZone)}</td>
                       <td>
                         <Badge tone={PRIORITY[t.priority][1]}>{PRIORITY[t.priority][0]}</Badge>
                       </td>
@@ -394,7 +394,7 @@ function Sales({ profile }: { profile: AccountProfile }) {
         <div className="card kpi">
           <div className="lb">FY revenue</div>
           <div className="v">{money(profile.account.fyRevenue)}</div>
-          <div className="cap">this account · as of {fmtDay(profile.account.syncedAt)}</div>
+          <div className="cap">this account · as of {fmtDay(profile.account.syncedAt, profile.timeZone)}</div>
         </div>
         {profile.group && (
           <div className="card kpi">

@@ -33,17 +33,19 @@ type Props = {
   canAssign: boolean;
   assignable: DialogRep[];
   ownRepId: string | null;
+  /** The tenant's zone: due dates are calendar days there. */
+  timeZone: string;
 };
 
 /** Create or edit a task. All rules (scope, past due dates, who can be assigned) are enforced again on the server. */
-export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign, assignable, ownRepId }: Props) {
+export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign, assignable, ownRepId, timeZone }: Props) {
   const editing = !!task;
-  const today = isoDay(new Date());
+  const today = isoDay(new Date(), timeZone);
   const [account, setAccount] = useState<AccountOption | null>(
     task ? { id: task.accountId, name: task.account, code: "" } : (lockedAccount ?? null),
   );
   const [title, setTitle] = useState(task?.title ?? "");
-  const [dueDate, setDueDate] = useState(task ? isoDay(task.dueAt) : "");
+  const [dueDate, setDueDate] = useState(task ? isoDay(task.dueAt, timeZone) : "");
   const [priority, setPriority] = useState<EditableTask["priority"]>(task?.priority ?? "normal");
   const [description, setDescription] = useState(task?.description ?? "");
   const [notes, setNotes] = useState(task?.notes ?? "");

@@ -5,6 +5,7 @@ import { OPEN_TASK_STATUSES, collection } from "@ambient/db";
 import { ROLES } from "@/lib/auth/roles";
 import { devAuthEnabled } from "@/lib/auth/session";
 import { getScope } from "@/lib/data/scope";
+import { lensOptions } from "@/lib/lens";
 import { Skeleton } from "@/components/ui/primitives";
 
 import { Sidebar } from "./sidebar";
@@ -16,13 +17,12 @@ async function unreadCount(tenantId: string, userId: string) {
 
 export async function SidebarSlot() {
   const scope = await getScope();
-  const startOfToday = new Date(new Date().setHours(0, 0, 0, 0));
   const [overdueTasks, unreadNotifications] = await Promise.all([
     (await collection("tasks")).countDocuments({
       ...scope.filter(),
       deletedAt: null,
       status: { $in: OPEN_TASK_STATUSES },
-      dueAt: { $lt: startOfToday },
+      dueAt: { $lt: scope.today },
     }),
     unreadCount(scope.tenantId, scope.user._id),
   ]);
@@ -49,6 +49,7 @@ export async function TopbarSlot() {
       me={{ name: user.name, email: user.email, roleLabel: user.capabilities.label, tenant: user.tenant.name }}
       capabilities={user.capabilities}
       lens={lens}
+      lenses={lensOptions(user.tenant)}
       unread={unread}
       devUsers={devUsers}
       currentUserId={user._id}

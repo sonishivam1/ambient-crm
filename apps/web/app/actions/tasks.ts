@@ -6,10 +6,10 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 
 import { TASK_PRIORITIES, collection, getClient, type ClientSession, type Notification, type Task } from "@ambient/db";
+import { fromIsoDay } from "@ambient/db/time";
 
 import { audit } from "@/lib/audit";
 import { getScope, type Scope } from "@/lib/data/scope";
-import { startOfToday } from "@/lib/data/tasks";
 import { fmtDay } from "@/lib/format";
 
 export type TaskActionResult = { ok: true; created?: number } | { ok: false; error: string };
@@ -17,11 +17,8 @@ export type TaskActionResult = { ok: true; created?: number } | { ok: false; err
 const taskId = z.string().min(1).max(200);
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a due date.");
 
-/** Tasks are due at the end of the working day they're set for. */
-const dueFromIso = (iso: string) => {
-  const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
-  return new Date(y, m - 1, d, 17, 0, 0, 0);
-};
+/** Tasks are due at the end of the working day they're set for, on the tenant's clock. */
+const dueFromIso = (iso: string, timeZone: string) => fromIsoDay(iso, timeZone, 17, 0);
 
 const fields = {
   title: z.string().trim().min(1, "Add a title.").max(200, "Keep the title under 200 characters."),
@@ -76,7 +73,7 @@ async function notifyAssignees(scope: Scope, tasks: Task[], session: ClientSessi
         type: "task_assigned" as const,
         accountId: t.accountId,
         title: `${scope.user.name} assigned you a task`,
-        body: `${t.title} · due ${fmtDay(t.dueAt)}`,
+        body: `${t.title} · due ${fmtDay(t.dueAt, scope.timeZone)}`,
         readAt: null,
         createdAt: now,
       })),
@@ -93,10 +90,10 @@ export async function createTask(raw: unknown): Promise<TaskActionResult> {
   const parsed = createInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const input = parsed.data;
-  const dueAt = dueFromIso(input.dueDate);
-  if (dueAt < startOfToday()) return { ok: false, error: "The due date can't be in the past." };
-
   const scope = await getScope();
+  const dueAt = dueFromIso(input.dueDate, scope.timeZone);
+  if (dueAt < scope.today) return { ok: false, error: "The due date can't be in the past." };
+
   const { user } = scope;
   let owners: string[];
   if (input.assigneeRepIds.length && user.capabilities.canAssignTasks) {
@@ -186,9 +183,9 @@ export async function updateTask(raw: unknown): Promise<TaskActionResult> {
         result = { ok: false, error: "Task not found." };
         return;
       }
-      const dueAt = dueFromIso(input.dueDate);
+      const dueAt = dueFromIso(input.dueDate, scope.timeZone);
       const dueChanged = dueAt.getTime() !== before.dueAt.getTime();
-      if (dueChanged && dueAt < startOfToday()) {
+      if (dueChanged && dueAt < scope.today) {
         result = { ok: false, error: "The due date can't be in the past." };
         return;
       }

@@ -38,6 +38,8 @@ export default defineConfig({
           testTimeout: 60_000,
           hookTimeout: 180_000,
           maxWorkers: 3,
+          // A different worker limit needs its own group: unit tests run first, then these.
+          sequence: { groupOrder: 1 },
         },
       },
     ],

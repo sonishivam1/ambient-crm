@@ -2,7 +2,7 @@ import "server-only";
 
 import { OPEN_TASK_STATUSES, collection, type HealthBand } from "@ambient/db";
 
-import { mondayOf } from "@/lib/format";
+import { addDays, startOfWeek } from "@ambient/db/time";
 
 import { getScope } from "./scope";
 
@@ -11,14 +11,14 @@ const OPEN = { $in: OPEN_TASK_STATUSES };
 export async function getDashboard() {
   const scope = await getScope();
   const { user } = scope;
+  const { timeZone, today: startOfToday } = scope;
   const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfTomorrow = new Date(startOfToday.getTime() + 2 * 86_400_000);
-  const weekStart = mondayOf(now);
-  const weekEnd = new Date(weekStart.getTime() + 7 * 86_400_000);
+  const endOfTomorrow = addDays(startOfToday, 2, timeZone);
+  const weekStart = startOfWeek(now, timeZone);
+  const weekEnd = addDays(weekStart, 7, timeZone);
   // The calendar card can page a few weeks either way without a round trip.
-  const calStart = new Date(weekStart.getTime() - 28 * 86_400_000);
-  const calEnd = new Date(weekEnd.getTime() + 35 * 86_400_000);
+  const calStart = addDays(weekStart, -28, timeZone);
+  const calEnd = addDays(weekEnd, 35, timeZone);
 
   const [tasks, visits, accounts, groups, notifications, sales] = await Promise.all([
     collection("tasks"),
@@ -67,6 +67,7 @@ export async function getDashboard() {
     scope: { all: scope.reps.all, lens: scope.lens },
     team: { names: visibleReps.slice(0, 3).map((r) => r.name), total: visibleReps.length },
     now,
+    timeZone,
     counts: { openTasks, overdue, visitsLeftThisWeek: weekVisits.filter((v) => v.status === "planned").length, unreadNotifications },
     todayTasks: todayTasks.map((t) => ({ id: t._id, title: t.title, account: names.get(t.accountId) ?? "", accountId: t.accountId, dueAt: t.dueAt, priority: t.priority, status: t.status, overdue: t.dueAt < startOfToday })),
     calendar: calendarVisits.map((v) => ({ id: v._id, accountId: v.accountId, account: names.get(v.accountId) ?? "", purpose: v.purpose, type: v.type, status: v.status, at: v.scheduledAt })),

@@ -1,14 +1,30 @@
-import type { Division } from "@ambient/db";
+import type { Tenant } from "@ambient/db";
 
 export const LENS_COOKIE = "amb_lens";
-export const LENSES = ["both", "wholesale", "uniforms"] as const;
-export type Lens = (typeof LENSES)[number];
+/** The lens value that shows every division. */
+export const ALL_LENS = "all";
 
-export const isLens = (v: string | undefined): v is Lens => !!v && (LENSES as readonly string[]).includes(v);
+export type LensOption = { key: string; label: string };
+type TenantDivisions = Pick<Tenant, "divisions" | "lenses">;
 
-/** Divisions a lens shows. ICW rolls up under Uniforms. */
-export function lensDivisions(lens: Lens): Division[] | null {
-  if (lens === "wholesale") return ["wholesale"];
-  if (lens === "uniforms") return ["uniforms", "icw"];
-  return null;
+/** The top-bar choices for a tenant: "All" plus each lens it defines. Empty when the tenant has no lenses. */
+export function lensOptions(tenant: TenantDivisions): LensOption[] {
+  const lenses = tenant.lenses ?? [];
+  return lenses.length ? [{ key: ALL_LENS, label: "All" }, ...lenses.map((l) => ({ key: l.key, label: l.label }))] : [];
+}
+
+/** A saved lens if this tenant still has it, otherwise "all". */
+export function resolveLens(saved: string | undefined, tenant: TenantDivisions): string {
+  return saved && (tenant.lenses ?? []).some((l) => l.key === saved) ? saved : ALL_LENS;
+}
+
+/** The division keys a lens shows; null means every division. */
+export function lensDivisions(lens: string, tenant: TenantDivisions): string[] | null {
+  if (lens === ALL_LENS) return null;
+  return (tenant.lenses ?? []).find((l) => l.key === lens)?.divisions ?? null;
+}
+
+/** A division's display label, falling back to its key for data the tenant no longer lists. */
+export function divisionLabel(tenant: TenantDivisions, key: string): string {
+  return tenant.divisions.find((d) => d.key === key)?.label ?? key;
 }

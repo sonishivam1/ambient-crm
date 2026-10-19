@@ -39,7 +39,7 @@ export async function getGroupProfile(id: string) {
       accountId: { $in: accountIds },
       deletedAt: null,
       status: { $in: OPEN_TASK_STATUSES },
-      dueAt: { $lt: new Date(new Date().setHours(0, 0, 0, 0)) },
+      dueAt: { $lt: scope.today },
     }),
     (await collection("interactions"))
       .find({ ...scope.tenant(), accountId: { $in: accountIds }, deletedAt: null })
@@ -79,12 +79,15 @@ export async function getGroupProfile(id: string) {
 
   const owner = repById.get(group.ownerRepId);
   return {
+    now: new Date(),
+    timeZone: scope.timeZone,
     group: {
       id: group._id,
       name: group.name,
       code: group.code,
       level: group.level,
       division: group.division,
+      divisionLabel: scope.divisionLabel(group.division),
       health: group.health,
       fyRevenue: group.fyRevenue,
       hierarchy: group.hierarchy,
