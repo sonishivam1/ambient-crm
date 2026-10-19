@@ -15,7 +15,7 @@ flowchart LR
   emb --> vec[("Vector index<br/>Atlas Vector Search")]
   store --> st["Smart tasks and<br/>next actions"]
   store --> brief["Morning brief"]
-  store --> cara["Cara tools"]
+  store --> wren["Wren tools"]
   vec --> search["Semantic search"]
   an --> log[("aiInvocations<br/>model, prompt version,<br/>tokens, latency, status")]
 ```
@@ -24,13 +24,13 @@ flowchart LR
 | --- | --- | --- | --- |
 | Email analysis | structured generation + embedding | new matched email | redacted subject and body, sender, time |
 | Meeting analysis | structured generation (map-reduce for long transcripts) + embedding | transcript ready | redacted transcript, organiser, attendees |
-| Cara chat | streamed generation with tools, max 8 steps | user message | conversation + tool results (summaries, never bodies) |
+| Wren chat | streamed generation with tools, max 8 steps | user message | conversation + tool results (summaries, never bodies) |
 | Morning brief | generation | user opens the brief | task titles, flagged summaries, quiet accounts |
 | Account summary | generation | button on the profile | account facts, recent summaries, open tasks |
 | Smart tasks / next actions | none (reuses analysis follow-ups) | analysis written | — |
 | Semantic search | embedding of the query only | search | the query |
 
-## Cara's tool loop
+## Wren's tool loop
 
 ```mermaid
 sequenceDiagram

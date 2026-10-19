@@ -28,7 +28,7 @@ flowchart TB
 
 | Container | Responsibility | Tech | Status |
 | --- | --- | --- | --- |
-| Web app | All pages, server actions, route handlers, Cara chat streaming | Next.js 16 (App Router, Cache Components), React 19 | Built (shell, dashboard) |
+| Web app | All pages, server actions, route handlers, Wren chat streaming | Next.js 16 (App Router, Cache Components), React 19 | Built (shell, dashboard) |
 | Database | Operational store, vector index, audit log | MongoDB Atlas (replica set, Atlas Search and Vector Search) | Built (schema for current pages) |
 | Capture workers | Poll Graph for mail and meetings, match, store, queue analysis | Node.js workers on a schedule | Planned |
 | Analysis pipeline | Redact, analyse, embed captured content | AI SDK + LLM provider, queue-driven | Planned |
@@ -102,7 +102,7 @@ sequenceDiagram
 ```
 apps/web
   app/layout.tsx            root: font, colour-mode boot script, toaster
-  app/(app)/layout.tsx      signed-in shell: sidebar, top bar, palette, Cara tab
+  app/(app)/layout.tsx      signed-in shell: sidebar, top bar, palette, Wren tab
   app/(app)/**/page.tsx     one folder per route
   app/actions/              server actions (writes and palette search)
   components/shell/         shell pieces; slots.tsx loads their data on the server

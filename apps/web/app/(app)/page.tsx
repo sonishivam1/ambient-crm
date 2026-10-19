@@ -86,7 +86,7 @@ async function Dashboard() {
         </div>
         <QuickAddTile />
         <Tile href="/morning-brief" icon={Sun} title="Morning brief" sub="Overnight digest of what changed" />
-        <Tile href="/assistant" icon={Sparkles} title="Ask Cara" sub="Cross-book AI assistant" />
+        <Tile href="/assistant" icon={Sparkles} title="Ask Wren" sub="Cross-book AI assistant" />
         <Tile href="/reports" icon={FileChartColumn} title="Reports library" sub="Power BI, one click away" />
       </div>
 
@@ -212,10 +212,10 @@ async function Dashboard() {
           <div className="pi">
             <Sparkles size={22} />
           </div>
-          <h3>Meet Cara, your CRM assistant</h3>
+          <h3>Meet Wren, your CRM assistant</h3>
           <p>Ask cross-book questions, draft follow-ups, and get an AI account brief in seconds.</p>
           <Link className="btn dark" href="/assistant">
-            Open Cara
+            Open Wren
           </Link>
         </div>
 

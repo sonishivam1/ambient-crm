@@ -1149,8 +1149,8 @@ html[data-dark="1"] {
     border-color: var(--info);
   }
 
-  /* ---------- Cara ---------- */
-  .cara-tab {
+  /* ---------- Wren (assistant) ---------- */
+  .assistant-tab {
     position: fixed;
     right: 0;
     top: 50%;
@@ -1174,7 +1174,7 @@ html[data-dark="1"] {
     letter-spacing: 0.06em;
     transition: width 0.15s;
   }
-  .cara-tab:hover {
+  .assistant-tab:hover {
     width: 54px;
   }
 

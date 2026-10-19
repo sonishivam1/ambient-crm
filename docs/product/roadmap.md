@@ -22,7 +22,7 @@ gantt
   Review queue, Outlook add-in, backfill :         p2, after p1, 5d
   section AI layer
   Analysis, embeddings, semantic search  :         a1, after p2, 8d
-  Cara, morning brief, smart tasks       :         a2, after a1, 7d
+  Wren, morning brief, smart tasks       :         a2, after a1, 7d
   section Manager and admin
   Team, reports, usage, admin tools      :         m1, after a2, 10d
   section Launch
@@ -37,7 +37,7 @@ gantt
 | 1 Data spine | Full data model, ERP/warehouse sync with guardrails, manager hierarchy, visibility rules | Each role sees exactly the right accounts on real-shaped data |
 | 2 Core CRM | Accounts, profile, contacts, contracts, tasks, call cycle, notifications | Product demo sign-off on every core page |
 | 3 Passive capture | Email and meeting workers, matcher, review queue, backfill, Outlook add-in | Test mailboxes captured end to end with no manual step |
-| 4 AI layer | Redaction, analysis, embeddings, semantic search, Cara, morning brief, smart tasks | AI outputs reviewed on real test mail; cost per user within budget |
+| 4 AI layer | Redaction, analysis, embeddings, semantic search, Wren, morning brief, smart tasks | AI outputs reviewed on real test mail; cost per user within budget |
 | 5 Manager and admin | Team overview, reports, CRM usage, sync health, audit, view-as | Manager and admin acceptance testing |
 | 6 Launch | Security review, load test, monitoring, pilot customer, onboarding | Go-live approval for the pilot tenant |
 

@@ -2,7 +2,7 @@
 
 The CRM that fills itself in. Ambient captures customer email and meetings
 automatically, files them on each account's timeline, and puts an AI assistant
-(Cara) on top, so account managers spend their time with customers rather than
+(Wren) on top, so account managers spend their time with customers rather than
 logging activity.
 
 **Documentation:** start at [docs/](docs/README.md) — product, architecture
@@ -56,7 +56,7 @@ production. Real sign-in replaces it before any deployment.
 apps/web
   app/(app)/          every signed-in route; layout.tsx is the shell
   app/actions/        server actions (each one checks scope and writes an audit row)
-  components/shell/   sidebar, top bar, Ctrl K palette, Cara tab
+  components/shell/   sidebar, top bar, Ctrl K palette, Wren tab
   components/ui/      design-system primitives
   lib/auth/           session, roles, account visibility
   lib/data/           server-only queries, always through getScope()
@@ -94,7 +94,7 @@ packages/db
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |
-| AI layer: analysis, vector search, Cara, morning brief, smart tasks | Not started |
+| AI layer: analysis, vector search, Wren, morning brief, smart tasks | Not started |
 | Team overview, reports, CRM usage, admin tools | Placeholder pages |
 
 Each placeholder page lists what it must do when built.

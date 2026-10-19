@@ -26,7 +26,7 @@ flowchart TB
 - **Frustrations:** retyping emails into a CRM, missing a renewal date, not knowing
   a colleague already spoke to the customer.
 - **Ambient gives her:** the dashboard, account timeline, smart tasks, the morning
-  brief and Cara.
+  brief and Wren.
 
 ## Liam, sales manager (role: Manager)
 

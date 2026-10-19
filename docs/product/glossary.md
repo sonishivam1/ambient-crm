@@ -16,8 +16,8 @@
 | **Matcher** | The step that decides which account an email or meeting belongs to. |
 | **Review queue** | Captured items the matcher could not file confidently, waiting for a person. |
 | **Participant fence** | The rule that captured content is readable only by the internal people who were on it. |
-| **Smart task** | A task Cara suggests from a captured conversation; a person accepts or dismisses it. |
+| **Smart task** | A task Wren suggests from a captured conversation; a person accepts or dismisses it. |
 | **Next action** | A follow-up the AI found in a conversation, offered as a one-click task. |
-| **Cara** | Ambient's AI assistant. |
+| **Wren** | Ambient's AI assistant. |
 | **Scope** | What the signed-in user may see: their rep scope plus the division lens. Every query applies it. |
 | **Tenant** | One customer organisation using Ambient. All data is partitioned by tenant. |

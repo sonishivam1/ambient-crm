@@ -32,7 +32,7 @@ are reachable over HTTP by anyone who can reach the app.
 
 | Route | Caller | Auth |
 | --- | --- | --- |
-| `POST /api/chat` | Cara (streaming) | web session |
+| `POST /api/chat` | Wren (streaming) | web session |
 | `POST /api/addin/messages`, `POST /api/addin/meetings` | Outlook add-in | Office SSO bearer token |
 | `POST /api/webhooks/graph` | Microsoft Graph change notifications (optional, alongside polling) | Graph validation token + client state |
 | `GET /api/health` | Hosting health check | none; returns no data |

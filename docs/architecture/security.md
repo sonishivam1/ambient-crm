@@ -12,7 +12,7 @@
 
 ```mermaid
 flowchart TD
-  req["Page, server action or Cara tool"] --> who["getCurrentUser()<br/>who is asking?"]
+  req["Page, server action or Wren tool"] --> who["getCurrentUser()<br/>who is asking?"]
   who --> scope["getScope()<br/>rep scope + division lens"]
   scope --> q1{"Is the account inside<br/>the user's scope?"}
   q1 -- no --> deny["Not found<br/>(never 'forbidden': no existence leak)"]

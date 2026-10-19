@@ -127,7 +127,7 @@ export const TASK_STATUSES = ["open", "in_progress", "completed", "cancelled"] a
 /** Statuses that still need doing. */
 export const OPEN_TASK_STATUSES: Array<(typeof TASK_STATUSES)[number]> = ["open", "in_progress"];
 export const TASK_PRIORITIES = ["high", "normal", "low"] as const;
-export const TASK_SOURCES = ["manual", "cara_ai", "manager_assigned"] as const;
+export const TASK_SOURCES = ["manual", "ai", "manager_assigned"] as const;
 
 export const taskSchema = z.object({
   _id: z.string(),

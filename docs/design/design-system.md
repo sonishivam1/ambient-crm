@@ -42,11 +42,11 @@ flowchart LR
       top["Top bar (sticky)<br/>search pill · lens · light/dark · bell · user"]
       content["Content<br/>max 1640px, 18px grid gaps"]
     end
-    cara["Cara tab<br/>right edge"]
+    wren["Wren tab<br/>right edge"]
   end
   palette["Ctrl K palette<br/>overlay"]
   side --- main
-  main --- cara
+  main --- wren
   top -. opens .-> palette
 ```
 
@@ -64,7 +64,7 @@ flowchart LR
 | `card`, `<Card>` | Surface with optional title and link |
 | `kpi` | Metric card: label, value, caption, icon chip |
 | `tile`, `tile add` | Quick-link tile; dashed "add" variant |
-| `promo` | Accent gradient call-out (Cara) |
+| `promo` | Accent gradient call-out (Wren) |
 | `btn` + `primary` `dark` `soft` `ghost` `danger`, sizes `sm` `xs` `icon` | Buttons |
 | `bdg` + tone, `<Badge>` | Status pill |
 | `hp g/a/r`, `<HealthPill>` | Health label |

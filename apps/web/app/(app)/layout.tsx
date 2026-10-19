@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { CaraTab } from "@/components/shell/cara-tab";
+import { AssistantTab } from "@/components/shell/assistant-tab";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { ShellProvider } from "@/components/shell/shell-context";
 import { SidebarFallback, SidebarSlot, TopbarFallback, TopbarSlot } from "@/components/shell/slots";
@@ -17,7 +17,10 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         </Suspense>
         <main className="content">{children}</main>
       </div>
-      <CaraTab />
+      {/* Reads the pathname, so it renders at request time. */}
+      <Suspense fallback={null}>
+        <AssistantTab />
+      </Suspense>
       <CommandPalette />
     </ShellProvider>
   );

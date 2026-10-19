@@ -2,7 +2,7 @@
 
 Ambient is a CRM for B2B account managers that fills itself in. It captures
 customer email and meetings automatically, files them on each account's
-timeline, and puts an AI assistant (Cara) on top, so reps spend their time with
+timeline, and puts an AI assistant (Wren) on top, so reps spend their time with
 customers instead of logging activity.
 
 Every document marks what is **Built** today and what is **Planned**. When the
@@ -29,7 +29,7 @@ flowchart LR
     web["Web app<br/>Next.js"]
     workers["Capture workers<br/>email and meetings"]
     sync["Sync job<br/>ERP and warehouse"]
-    ai["AI layer<br/>analysis, search, Cara"]
+    ai["AI layer<br/>analysis, search, Wren"]
     db[("MongoDB Atlas")]
   end
   m365["Microsoft 365<br/>mail, calendar, Teams"]

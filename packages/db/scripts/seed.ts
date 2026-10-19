@@ -139,21 +139,21 @@ const NORTHWIND: TenantSpec = {
     ["SA-DELTA", "DELTA MINING SUPPLIES", "DMS", "standalone", 2, 6, "Priya Nair", "a", 290e3, "uniforms", "Mining", "Supplies", "DMS"],
   ],
   tasks: [
-    ["CO-ACME-BT1", "Follow up on delivery delay complaint", "Priya Nair", -3, "high", "open", "cara_ai", "cara"],
+    ["CO-ACME-BT1", "Follow up on delivery delay complaint", "Priya Nair", -3, "high", "open", "ai", "wren"],
     ["CO-NORTHERN-BT1", "Review renewal pack before pricing call", "Grace Whitfield", -1, "high", "in_progress", "manual", "u-senior"],
     ["CG-HARROW-BT1", "Send updated hi-vis range and price list", "Priya Nair", 0, "normal", "open", "manual", "u-rep"],
     ["CG-BRIGHTWELL-BT1", "Confirm Q4 store roll-out schedule", "Liam Carter", 0, "high", "open", "manager_assigned", "u-super"],
-    ["CO-METRO-BT1", "Prepare site-visit brief for Metro Services", "Mia Chen", 1, "normal", "open", "cara_ai", "cara"],
+    ["CO-METRO-BT1", "Prepare site-visit brief for Metro Services", "Mia Chen", 1, "normal", "open", "ai", "wren"],
     ["CG-MARLOWE-BT1", "Chase overdue purchase order PO-77120", "VIC Telesales", 2, "high", "open", "manual", "u-manager"],
     ["CG-CASTLEFORD-BT1", "Book stakeholder review with Castleford", "Grace Whitfield", 3, "normal", "open", "manual", "u-senior"],
     ["CO-SKYBRIDGE-BT1", "Draft uniform refresh proposal", "Noah Bennett", 4, "normal", "in_progress", "manager_assigned", "u-super"],
-    ["SA-SOUTHPORT-BT1", "Call buyer about stock shortage", "Jordan Reyes", -5, "high", "open", "cara_ai", "cara"],
+    ["SA-SOUTHPORT-BT1", "Call buyer about stock shortage", "Jordan Reyes", -5, "high", "open", "ai", "wren"],
     ["CG-KIWISAFE-BT1", "Send NZ compliance certificates", "Ella Thompson", 5, "low", "open", "manual", "u-senior"],
     ["CG-SENTINEL-BT1", "Reconcile open orders with warehouse", "VIC Telesales", 6, "normal", "open", "manual", "u-manager"],
     ["CO-WESTLINE-BT1", "Post-visit follow-up: sample boots", "Liam Carter", 7, "normal", "open", "manual", "u-manager"],
     ["SA-HARBOUR-BT1", "Submit council tender response", "Noah Bennett", 9, "high", "in_progress", "manager_assigned", "u-super"],
     ["CG-TRADEPOINT-BT1", "Quarterly range review", "VIC Telesales", 10, "low", "open", "manual", "u-manager"],
-    ["SA-DELTA-BT1", "Verify contact details after restructure", "Priya Nair", 12, "low", "open", "cara_ai", "cara"],
+    ["SA-DELTA-BT1", "Verify contact details after restructure", "Priya Nair", 12, "low", "open", "ai", "wren"],
     ["CO-ACME-BT1", "Schedule executive check-in", "Priya Nair", 14, "normal", "open", "manual", "u-rep"],
     ["CG-BRIGHTWELL-BT1", "Review shrinkage report with regional lead", "Liam Carter", 16, "normal", "open", "manual", "u-manager"],
     ["CO-METRO-BT1", "Renewal early-bird discount approval", "Mia Chen", 18, "normal", "open", "manager_assigned", "u-senior"],
@@ -187,12 +187,12 @@ const NORTHWIND: TenantSpec = {
   notifications: [
     ["at_risk_change", "CO-ACME-BT1", "ACME SAFETY moved to At risk", "Sentiment dropped after two delivery complaints in 48 hours.", 12, true],
     ["contract_renewal", "CO-NORTHERN-BT1", "Contract renews in 9 days", "Supply Agreement · $184K · no renewal task exists.", 55, true],
-    ["ai_suggestion", "SA-SOUTHPORT-BT1", "Cara drafted a follow-up task", "Offer alternative SKU for out-of-stock work boots.", 130, true],
+    ["ai_suggestion", "SA-SOUTHPORT-BT1", "Wren drafted a follow-up task", "Offer alternative SKU for out-of-stock work boots.", 130, true],
     ["task_assigned", "CG-BRIGHTWELL-BT1", "Alex Morgan assigned you a task", "Confirm Q4 store roll-out schedule · due today.", 200, false],
     ["email_flagged", "CG-MARLOWE-BT1", "Flagged email needs attention", "Purchase order overdue — customer expects response today.", 320, false],
     ["visit_reminder", "CO-METRO-BT1", "Visit today at 10:30 AM", "Metro Services · 4 open orders · last interaction 8 days ago.", 60 * 20, false],
     ["contract_renewal", "CO-ACME-BT1", "Contract renews in 21 days", "National Safety Program · $312K.", 60 * 26, false],
-    ["ai_suggestion", "CG-MARLOWE-BT1", "Cara noticed 24 days of silence", "Suggested a check-in call this week.", 60 * 30, false],
+    ["ai_suggestion", "CG-MARLOWE-BT1", "Wren noticed 24 days of silence", "Suggested a check-in call this week.", 60 * 30, false],
     ["at_risk_change", "SA-SOUTHPORT-BT1", "SOUTHPORT MARINE moved to At risk", "Stock-out on top-selling style plus negative sentiment.", 60 * 50, false],
     ["task_assigned", "CO-SKYBRIDGE-BT1", "New task assigned", "Draft uniform refresh proposal · due in 4 days.", 60 * 52, false],
   ],
@@ -227,7 +227,7 @@ const HARBOR: TenantSpec = {
     ["SA-LUMEN", "LUMEN SCHOOLS TRUST", "LST", "standalone", 1, 5, "Owen Price", "g", 410e3, "uniforms", "Education", "Schools", "LUMEN"],
   ],
   tasks: [
-    ["CO-PINECREST-BT1", "Resolve scrubs sizing complaint", "Tom Becker", -2, "high", "open", "cara_ai", "cara"],
+    ["CO-PINECREST-BT1", "Resolve scrubs sizing complaint", "Tom Becker", -2, "high", "open", "ai", "wren"],
     ["CO-ACME-BT1", "Send updated trade price list", "Zara Ahmed", 0, "normal", "open", "manual", "u-rep"],
     ["CG-BLUEWATER-BT1", "Plan summer range launch", "Zara Ahmed", 4, "normal", "open", "manager_assigned", "u-manager"],
     ["SA-LUMEN-BT1", "Confirm term-two uniform order", "Owen Price", 6, "low", "open", "manual", "u-manager"],
@@ -310,7 +310,7 @@ function build(spec: TenantSpec): Built {
     }
   });
   const divisionOf = (accountKey: string) => accounts.find((a) => a._id === id(accountKey))!.division;
-  const actor = (key: string) => (key === "cara" ? "cara" : id(key));
+  const actor = (key: string) => (key === "wren" ? "wren" : id(key));
 
   const tasks: Task[] = spec.tasks.map(([acct, title, owner, dueIn, priority, status, source, createdBy], i) => ({
     _id: id(`t${i + 1}`), tenantId, accountId: id(acct), division: divisionOf(acct), title,

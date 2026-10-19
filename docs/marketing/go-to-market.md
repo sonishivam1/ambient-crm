@@ -23,7 +23,7 @@ flowchart LR
 
 | Plan | For | Shape (to test) |
 | --- | --- | --- |
-| Team | Up to 25 reps | Per user per month; capture, dashboard, tasks, Cara |
+| Team | Up to 25 reps | Per user per month; capture, dashboard, tasks, Wren |
 | Business | 25–500 reps | Per user per month; adds warehouse sync, manager suite, review queue, SSO |
 | Enterprise | Large or regulated | Annual; dedicated database or region, custom connectors, support SLA |
 

@@ -13,7 +13,7 @@ search. Customers will ask where their data goes and what it costs.
 - All model calls go through the **Vercel AI SDK**, so the provider is
   configuration, not code.
 - **Anthropic Claude** as the default provider:
-  - `claude-sonnet-5-5` for analysis, Cara and account summaries;
+  - `claude-sonnet-5-5` for analysis, Wren and account summaries;
   - `claude-haiku-5-5` for high-volume, simple steps (classification, short briefs).
 - **Embeddings** from a dedicated embedding model (for example Voyage AI), stored
   in **Atlas Vector Search** next to the analysis they describe.

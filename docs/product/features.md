@@ -22,7 +22,7 @@ Planned (nothing yet).
 | Email and meeting capture | background workers | Planned |
 | Review queue | `/review-queue` | Placeholder |
 | Outlook add-in | Outlook task pane | Planned |
-| Cara assistant | `/assistant`, side panel | Placeholder |
+| Wren assistant | `/assistant`, side panel | Placeholder |
 | Search (quick and semantic) | `/search` | Placeholder |
 | Morning brief | `/morning-brief` | Placeholder |
 | Team overview, reports, CRM usage | `/team`, `/reports`, `/crm-usage` | Placeholder |
@@ -91,7 +91,7 @@ matcher the new address) or reject.
 "Send to Ambient" on an email and "Add to Ambient" on a meeting, for the cases
 passive capture misses. Creates contacts for unknown senders.
 
-### Cara, the AI assistant
+### Wren, the AI assistant
 Side panel and full page. Streams answers with citations. Tools: create a
 follow-up task, log a note, find similar emails, summarise an account, list
 overdue follow-ups. Every tool re-checks visibility and records what it did.
