@@ -14,6 +14,7 @@
     "db:up": "docker compose up -d mongo",
     "db:down": "docker compose down",
     "db:seed": "pnpm --filter @ambient/db seed",
-    "db:indexes": "pnpm --filter @ambient/db indexes"
+    "db:indexes": "pnpm --filter @ambient/db indexes",
+    "db:inspect": "pnpm --filter @ambient/db inspect"
   }
 }

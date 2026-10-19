@@ -3,8 +3,10 @@
  * people), so every screen can be built and reviewed before real data is
  * connected. Dates are relative to the day the seed runs.
  *
- * Destructive: drops every collection in MONGODB_DB first. Refuses to run
- * against anything but a local server.
+ * Destructive: drops every collection in MONGODB_DB first.
+ * - Local servers seed freely.
+ * - Any other server needs --allow-remote, and --reset as well if the
+ *   database already holds data.
  */
 import {
   closeClient,
@@ -22,8 +24,10 @@ import {
 } from "../src/index";
 
 const uri = process.env.MONGODB_URI ?? "";
-if (!/\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(uri)) {
-  console.error("Refusing to seed: MONGODB_URI must point at localhost.");
+const isLocal = /\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(uri);
+const args = new Set(process.argv.slice(2));
+if (!isLocal && !args.has("--allow-remote")) {
+  console.error("Refusing to seed a remote database. Re-run with --allow-remote if that is intended.");
   process.exit(1);
 }
 
@@ -251,7 +255,13 @@ const salesSnapshots: SalesSnapshot[] = [
 // ---------- write ----------
 async function main() {
   const db = await getDb();
-  for (const { name } of await db.listCollections({}, { nameOnly: true }).toArray()) {
+  const existing = await db.listCollections({}, { nameOnly: true }).toArray();
+  if (!isLocal && existing.length && !args.has("--reset")) {
+    console.error(`Refusing to wipe ${db.databaseName}: it already holds ${existing.length} collections. Add --reset to replace them.`);
+    process.exitCode = 1;
+    return;
+  }
+  for (const { name } of existing) {
     await db.collection(name).drop();
   }
   await (await collection("reps")).insertMany(reps);

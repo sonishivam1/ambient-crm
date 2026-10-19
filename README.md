@@ -24,9 +24,24 @@ pnpm install
 cp .env.example apps/web/.env.local
 cp .env.example packages/db/.env
 pnpm db:up        # local MongoDB (Atlas Local: replica set + vector search)
-pnpm db:seed      # fictional demo data; refuses to run against a non-local database
+pnpm db:seed      # fictional demo data
 pnpm dev          # http://localhost:3000
 ```
+
+### Using MongoDB Atlas
+
+Put the cluster's `mongodb+srv://` connection string in both env files (they are
+gitignored; never commit it) and allow your IP in Atlas → Network Access. Then:
+
+```bash
+pnpm db:inspect                                        # read-only: what the database holds
+pnpm --filter @ambient/db seed --allow-remote          # seed an empty remote database
+pnpm --filter @ambient/db seed --allow-remote --reset  # wipe and reseed a remote database
+```
+
+Seeding drops every collection in `MONGODB_DB` first. Against anything but
+localhost it refuses without `--allow-remote`, and refuses to wipe a database that
+already holds data without `--reset`.
 
 Sign-in is a development stand-in: the gear icon in the top bar switches between
 six seeded users, one per role. It only works with `AMBIENT_DEV_AUTH=1` outside

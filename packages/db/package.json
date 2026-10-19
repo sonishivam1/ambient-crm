@@ -10,7 +10,8 @@
     "seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
     "indexes": "tsx --env-file-if-exists=.env scripts/indexes.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "inspect": "tsx --env-file-if-exists=.env scripts/inspect.ts"
   },
   "dependencies": {
     "mongodb": "7.7.0",
