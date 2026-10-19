@@ -53,3 +53,13 @@ export function greeting(now = new Date()): string {
   const h = now.getHours();
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
+
+/** "today", "yesterday", "in 3 days", "5 days ago" — whole calendar days. */
+export function relativeDay(d: Date, now = new Date()): string {
+  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(d) - day(now)) / 86_400_000);
+  if (diff === 0) return "today";
+  if (diff === -1) return "yesterday";
+  if (diff === 1) return "tomorrow";
+  return diff < 0 ? `${-diff} days ago` : `in ${diff} days`;
+}

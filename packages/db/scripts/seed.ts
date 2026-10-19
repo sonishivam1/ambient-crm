@@ -19,6 +19,7 @@ import {
   getDb,
   type Account,
   type CustomerGroup,
+  type Interaction,
   type Notification,
   type Rep,
   type SalesSnapshot,
@@ -78,6 +79,7 @@ type UserRow = [key: string, role: User["role"], name: string, title: string, re
 type GroupRow = [key: string, name: string, code: string, level: CustomerGroup["level"], bt: number, st: number, owner: string, health: "g" | "a" | "r", fy: number, div: CustomerGroup["division"], cg3: string, cg2: string, cg1: string];
 type TaskRow = [acct: string, title: string, owner: string, dueIn: number, priority: Task["priority"], status: Task["status"], source: Task["source"], createdBy: string];
 type VisitRow = [dayOffset: number, acct: string, type: Visit["type"], purpose: string, status: Visit["status"], rep: string];
+type InteractionRow = [daysAgo: number, acct: string, type: Interaction["type"], summary: string, author: string];
 type NotifRow = [type: Notification["type"], acct: string, title: string, body: string, minutes: number, unread: boolean];
 
 type TenantSpec = {
@@ -91,6 +93,7 @@ type TenantSpec = {
   groups: GroupRow[];
   tasks: TaskRow[];
   visits: VisitRow[];
+  interactions: InteractionRow[];
   notifications: NotifRow[];
   orgSales: [mtd: [number, number], ytd: [number, number], gm: number];
   repSales: Record<string, [mtd: number, target: number, gm: number]>;
@@ -184,6 +187,16 @@ const NORTHWIND: TenantSpec = {
     [-14, "CO-METRO-BT1", "site", "Onboarding new site lead", "completed", "Mia Chen"],
     [-20, "SA-SOUTHPORT-BT1", "call", "Stock shortage escalation", "completed", "Jordan Reyes"],
   ],
+  interactions: [
+    [1, "CO-ACME-BT1", "call", "Buyer chased an ETA on pallets 3 and 4; promised tracking numbers by Friday.", "u-rep"],
+    [4, "CO-ACME-BT1", "note", "Procurement wants weekly delivery updates until the backlog clears.", "u-rep"],
+    [12, "CO-ACME-BT1", "meeting", "Quarterly review: agreed to trial the new hi-vis range at two sites.", "u-manager"],
+    [2, "CG-HARROW-BT1", "call", "Confirmed Q4 forecast; expects a 12% uplift on boots and hi-vis.", "u-rep"],
+    [9, "CG-HARROW-BT1", "note", "Embroidery proofs approved for the regional stores.", "u-rep"],
+    [3, "CG-BRIGHTWELL-BT1", "meeting", "Store roll-out planning with the regional lead; dates to confirm.", "u-manager"],
+    [6, "CO-NORTHERN-BT1", "note", "Renewal pack drafted; pricing review booked 45 days before end date.", "u-senior"],
+    [8, "SA-SOUTHPORT-BT1", "call", "Stock-out on the WB-220 boot; offered an in-stock alternative.", "u-lead"],
+  ],
   notifications: [
     ["at_risk_change", "CO-ACME-BT1", "ACME SAFETY moved to At risk", "Sentiment dropped after two delivery complaints in 48 hours.", 12, true],
     ["contract_renewal", "CO-NORTHERN-BT1", "Contract renews in 9 days", "Supply Agreement · $184K · no renewal task exists.", 55, true],
@@ -237,6 +250,10 @@ const HARBOR: TenantSpec = {
     [2, "CO-PINECREST-BT1", "meeting", "Sizing review with procurement", "planned", "Tom Becker"],
     [5, "CG-BLUEWATER-BT1", "call", "Range planning call", "planned", "Zara Ahmed"],
   ],
+  interactions: [
+    [1, "CO-PINECREST-BT1", "call", "Procurement reported scrubs running small; samples in two sizes up sent.", "u-manager"],
+    [5, "CO-ACME-BT1", "note", "New trade price list requested before the showroom visit.", "u-rep"],
+  ],
   notifications: [
     ["at_risk_change", "CO-PINECREST-BT1", "PINECREST HEALTH moved to At risk", "Two complaints about scrubs sizing this week.", 40, true],
     ["task_assigned", "CG-BLUEWATER-BT1", "Owen Price assigned you a task", "Plan summer range launch · due in 4 days.", 180, false],
@@ -255,6 +272,7 @@ type Built = {
   accounts: Account[];
   tasks: Task[];
   visits: Visit[];
+  interactions: Interaction[];
   notifications: Notification[];
   salesSnapshots: SalesSnapshot[];
 };
@@ -326,6 +344,12 @@ function build(spec: TenantSpec): Built {
     createdAt: addDays(-30), updatedAt: addDays(-30), deletedAt: null, deletedBy: null,
   }));
 
+  const interactions: Interaction[] = spec.interactions.map(([daysAgo, acct, type, summary, author], i) => ({
+    _id: id(`i${i + 1}`), tenantId, accountId: id(acct), division: divisionOf(acct), type, summary,
+    authorUserId: id(author), occurredAt: addDays(-daysAgo, 11 + (i % 5), i % 2 ? 15 : 0),
+    createdAt: addDays(-daysAgo, 12), updatedAt: addDays(-daysAgo, 12), deletedAt: null, deletedBy: null,
+  }));
+
   const notifications: Notification[] = users.flatMap((u) =>
     spec.notifications.map(([type, acct, title, body, minutes, unread], i) => ({
       _id: `${u._id}-n${i + 1}`, tenantId, userId: u._id, type, accountId: id(acct), title, body,
@@ -344,7 +368,7 @@ function build(spec: TenantSpec): Built {
   ];
 
   const tenant: Tenant = { _id: tenantId, name: spec.name, timeZone: spec.timeZone, entraTenantId: null, active: true, createdAt: now };
-  return { tenant, reps, users, groups, accounts, tasks, visits, notifications, salesSnapshots };
+  return { tenant, reps, users, groups, accounts, tasks, visits, interactions, notifications, salesSnapshots };
 }
 
 // ---------- write ----------
@@ -371,11 +395,12 @@ async function main() {
     await (await collection("accounts")).insertMany(b.accounts);
     await (await collection("tasks")).insertMany(b.tasks);
     await (await collection("visits")).insertMany(b.visits);
+    await (await collection("interactions")).insertMany(b.interactions);
     await (await collection("notifications")).insertMany(b.notifications);
     await (await collection("salesSnapshots")).insertMany(b.salesSnapshots);
     console.log(
       `Seeded ${db.databaseName} / ${spec.id}: ${b.reps.length} reps, ${b.users.length} users, ${b.groups.length} groups, ` +
-        `${b.accounts.length} accounts, ${b.tasks.length} tasks, ${b.visits.length} visits, ` +
+        `${b.accounts.length} accounts, ${b.tasks.length} tasks, ${b.visits.length} visits, ${b.interactions.length} interactions, ` +
         `${b.notifications.length} notifications, ${b.salesSnapshots.length} sales snapshots.`,
     );
   }

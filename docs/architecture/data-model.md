@@ -14,7 +14,7 @@ write it.
 | **Tenant** | `tenants` | One per customer organisation. Everything else belongs to exactly one tenant. |
 | **Mirror** | `reps`, `customerGroups`, `accounts`, `contracts` | Copied from the customer's systems nightly. Read-only in the app; deactivated, never deleted. |
 | **Rollup** | `salesSnapshots` (later: open orders, stock, health) | Dated snapshots, append-only. The dashboard reads the latest per scope. |
-| **App-native** | `users`, `tasks`, `visits`, `notifications`, later `contacts`, `notes`, `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
+| **App-native** | `users`, `tasks`, `visits`, `interactions`, `notifications`, later `contacts`, `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
 | **Observability** | `auditLog`, later `aiInvocations`, `syncRuns` | Append-only; production credentials get insert but not update or delete. |
 
 ## Entities
@@ -33,6 +33,8 @@ erDiagram
   REP ||--o{ ACCOUNT : owns
   ACCOUNT ||--o{ TASK : has
   ACCOUNT ||--o{ VISIT : has
+  ACCOUNT ||--o{ INTERACTION : "logged on"
+  USER ||--o{ INTERACTION : authors
   REP ||--o{ TASK : "owns (ownerRepId)"
   REP ||--o{ VISIT : "makes (repId)"
   USER ||--o{ NOTIFICATION : receives
@@ -101,6 +103,14 @@ erDiagram
     string type
     date scheduledAt
   }
+  INTERACTION {
+    string _id
+    string tenantId
+    string accountId
+    string type
+    string authorUserId
+    date occurredAt
+  }
   NOTIFICATION {
     string _id
     string userId
@@ -156,6 +166,7 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `accounts` | `groupId + type`, `parentId`, `ownerRepId + type + fyRevenue`, `type + fyRevenue`, `code` unique | lists, drill-down, palette |
 | `tasks` | `ownerRepId + status + dueAt`, `accountId + status` | dashboard, open-task counts |
 | `visits` | `repId + scheduledAt`, `accountId` | calendar |
+| `interactions` | `accountId + occurredAt` | profile timeline |
 | `notifications` | `userId + createdAt` | feed |
 | `salesSnapshots` | `scope + asOf` | latest snapshot |
 | `auditLog` | `at`, `entity + entityId + at`, `actorUserId + at` | audit browser |

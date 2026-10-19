@@ -13,7 +13,7 @@ Planned (nothing yet).
 | Dashboard | `/` | Built |
 | Accounts list (groups, bill-to, sold-to) | `/accounts` | Built |
 | Customer group page | `/accounts/group/[key]` | Placeholder |
-| Customer profile | `/accounts/[id]` | Placeholder |
+| Customer profile | `/accounts/[id]` | Built (overview, tasks; sales, orders, stock wait for sync) |
 | Contracts | `/contracts` | Placeholder |
 | Contacts | `/contacts` | Placeholder |
 | Tasks, smart tasks, next actions | `/tasks` | Placeholder (completion from dashboard is built) |
@@ -52,10 +52,19 @@ corporation, standalone), each with bill-to and sold-to accounts.
 - **Planned:** the customer group page (roll-up of revenue and health, full
   bill-to list).
 
-### Customer profile
-One page per account with tabs: overview, sales, health, open orders, stock,
-contracts, contacts, tasks, and a unified timeline of emails, meetings, visits,
-notes and calls. An AI account summary on request.
+### Customer profile — Built
+One page per account with tabs: overview, tasks, sales, health, open orders and
+stock.
+- **Built:** hero band (health, owner, group, FY revenue, open and overdue
+  tasks, next visit, last touch); **Log interaction** (note, call or meeting,
+  written with an audit row that never stores the text); a timeline of logged
+  interactions, completed visits and completed tasks, filterable by type; next
+  touchpoint, details and related accounts (sold-tos of a bill-to, or the
+  parent and siblings of a sold-to); a tasks tab with one-click completion.
+  Accounts outside the user's scope or tenant show "not found".
+- **Waiting on other features:** monthly sales, orders and stock (warehouse
+  sync), contacts and contracts cards (their own features), Wren's account
+  summary (AI layer), captured email and meetings on the timeline (capture).
 
 ### Contracts
 List with renewal bands (≤30, ≤60, ≤90 days) linked to accounts. Later:

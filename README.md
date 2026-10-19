@@ -90,7 +90,8 @@ packages/db
 | Dashboard | Done (live data, task completion) |
 | Multi-tenancy (`tenantId` everywhere, two seeded tenants) | Done |
 | Accounts list: views, filters, search, sort, drill-down | Done |
-| Account and group profiles, contracts, contacts, tasks, call cycle, notifications | Placeholder pages |
+| Customer profile: timeline, log interaction, tasks, related accounts | Done |
+| Group page, contracts, contacts, tasks list, call cycle, notifications | Placeholder pages |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |

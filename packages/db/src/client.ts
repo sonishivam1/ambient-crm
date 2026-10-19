@@ -4,6 +4,7 @@ import type {
   Account,
   AuditEntry,
   CustomerGroup,
+  Interaction,
   Notification,
   Rep,
   SalesSnapshot,
@@ -21,6 +22,7 @@ type CollectionMap = {
   accounts: Account;
   tasks: Task;
   visits: Visit;
+  interactions: Interaction;
   notifications: Notification;
   salesSnapshots: SalesSnapshot;
   auditLog: AuditEntry;

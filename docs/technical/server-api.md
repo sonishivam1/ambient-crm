@@ -14,6 +14,7 @@ callers outside the web app.
 | `getDashboard()` | `lib/data/dashboard.ts` | everything the dashboard renders, already scoped |
 | `getAccountsPage(query)` | `lib/data/accounts.ts` | one page of groups or accounts with summary and page count, from validated URL params |
 | `getChildAccounts(parent)` | `lib/data/accounts.ts` | bill-tos of a group or sold-tos of a bill-to, scoped |
+| `getAccountProfile(id)` | `lib/data/account-profile.ts` | the profile (account, group, related accounts, tasks, next visit, timeline), or `null` when outside scope |
 
 ## Server actions (built)
 
@@ -21,6 +22,7 @@ callers outside the web app.
 | --- | --- | --- | --- | --- |
 | `completeTask(id)` | `app/actions/tasks.ts` | task id | marks a task in scope complete, in a transaction | `task.complete` |
 | `paletteSearch(q)` | `app/actions/search.ts` | 2–100 chars | up to 8 accounts in scope matching name or code | — (read) |
+| `logInteraction(input)` | `app/actions/interactions.ts` | account id, type, summary (1–4,000 chars) | logs a note, call or meeting on an account in scope, in a transaction | `interaction.log` (type and account only, never the text) |
 | `loadChildAccounts(parent)` | `app/actions/accounts.ts` | `{ kind, id }`, kind `group` or `billTo` | child rows for an expanded accounts row, in scope | — (read) |
 | `setLens(lens)` | `app/actions/session.ts` | `both` \| `wholesale` \| `uniforms` | sets the lens cookie (senior roles only) | — |
 | `switchDevUser(id)` | `app/actions/session.ts` | seeded user id | development only: switch signed-in user | — |

@@ -8,7 +8,7 @@ import { z } from "zod";
  * Ownership classes:
  * - Mirror: copied from the customer's ERP or warehouse, read-only in the app (reps, groups, accounts).
  * - Rollup: dated warehouse snapshots, append-only (salesSnapshots).
- * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, notifications).
+ * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, interactions, notifications).
  *
  * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
  * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
@@ -167,6 +167,28 @@ export const visitSchema = z.object({
   ...softDelete,
 });
 export type Visit = z.infer<typeof visitSchema>;
+
+export const INTERACTION_TYPES = ["note", "call", "meeting"] as const;
+
+/**
+ * Activity a person logs against an account (a note, a call, a meeting).
+ * Visible to anyone who can see the account. Captured email and meetings are a
+ * separate, participant-fenced collection (planned).
+ */
+export const interactionSchema = z.object({
+  _id: z.string(),
+  ...tenantScoped,
+  accountId: z.string(),
+  /** Copied from the account at write time so the division lens needs no join. */
+  division: z.enum(DIVISIONS),
+  type: z.enum(INTERACTION_TYPES),
+  summary: z.string().trim().min(1).max(4000),
+  authorUserId: z.string(),
+  occurredAt: z.date(),
+  ...timestamps,
+  ...softDelete,
+});
+export type Interaction = z.infer<typeof interactionSchema>;
 
 export const NOTIFICATION_TYPES = [
   "at_risk_change",

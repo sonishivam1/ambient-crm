@@ -62,6 +62,7 @@ per role).
 | --- | --- |
 | `Error parsing package.json` / `Unexpected token` at character 1 | A file was saved with a byte-order mark (PowerShell `Set-Content -Encoding utf8` does this). Re-save as UTF-8 without BOM, delete `apps/web/.next`, restart. |
 | Old error persists after a fix | Turbopack caches to disk: stop the server, delete `apps/web/.next`, start again. |
+| A change to `globals.css` doesn't show up | The dev server occasionally misses stylesheet edits. Restart `pnpm dev` (no need to clear `.next`). |
 | `Cannot find name 'LayoutProps'` | Route types are generated: run `pnpm --filter web typecheck` (it runs `next typegen`). |
 | Atlas connection times out | Your IP is not in the Atlas access list, or a VPN changed your IP. |
 | `Refusing to seed a remote database` | Intended. Add `--allow-remote` (and `--reset` to wipe existing data). |

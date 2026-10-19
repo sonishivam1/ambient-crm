@@ -36,6 +36,7 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
     { key: { tenantId: 1, repId: 1, scheduledAt: 1 } },
     { key: { tenantId: 1, accountId: 1 } },
   ],
+  interactions: [{ key: { tenantId: 1, accountId: 1, occurredAt: -1 } }],
   notifications: [{ key: { tenantId: 1, userId: 1, createdAt: -1 } }],
   salesSnapshots: [{ key: { tenantId: 1, scope: 1, asOf: -1 } }],
   auditLog: [
