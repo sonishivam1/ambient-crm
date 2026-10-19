@@ -12,7 +12,7 @@ Planned (nothing yet).
 | Light and dark mode | all | Built |
 | Dashboard | `/` | Built |
 | Accounts list (groups, bill-to, sold-to) | `/accounts` | Built |
-| Customer group page | `/accounts/group/[key]` | Placeholder |
+| Customer group page | `/accounts/group/[key]` | Built (period figures wait for sync) |
 | Customer profile | `/accounts/[id]` | Built (overview, tasks; sales, orders, stock wait for sync) |
 | Contracts | `/contracts` | Placeholder |
 | Contacts | `/contacts` | Placeholder |
@@ -49,8 +49,13 @@ corporation, standalone), each with bill-to and sold-to accounts.
   bill-tos and bill-tos to sold-tos in place; owner and hierarchy columns for
   managers. All state is in the URL, so views are shareable. Respects tenant,
   visibility and the division lens.
-- **Planned:** the customer group page (roll-up of revenue and health, full
-  bill-to list).
+- **Built — group page:** header with level, division, owner and FY revenue;
+  bill-to and sold-to counts; health mix across every account in the group;
+  open and overdue tasks across the group; bill-to table that expands to
+  sold-tos; recent activity logged on any account in the group; group details.
+  Out-of-scope or other-tenant groups show "not found".
+- **Planned:** month and year to date figures and open orders for the group
+  (warehouse sync).
 
 ### Customer profile — Built
 One page per account with tabs: overview, tasks, sales, health, open orders and

@@ -94,7 +94,8 @@ packages/db
 | Accounts list: views, filters, search, sort, drill-down | Done |
 | Customer profile: timeline, log interaction, tasks, related accounts | Done |
 | Tasks: today and all views, filters, create, edit, assign, cancel | Done |
-| Group page, contracts, contacts, call cycle, notifications | Placeholder pages |
+| Customer group page: health mix, bill-to drill-down, recent activity | Done |
+| Contracts, contacts, call cycle, notifications | Placeholder pages |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |

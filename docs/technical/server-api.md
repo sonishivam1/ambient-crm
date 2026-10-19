@@ -17,6 +17,7 @@ callers outside the web app.
 | `getTodayTasks()` | `lib/data/tasks.ts` | open tasks overdue and due today, in scope |
 | `getTasksPage(query)` | `lib/data/tasks.ts` | one page of tasks from validated URL filters, with total and page count |
 | `getTaskOptions()` | `lib/data/tasks.ts` | filter options and who the user may assign to |
+| `getGroupProfile(id)` | `lib/data/group-profile.ts` | the group page (group, bill-tos with sold-to counts, health mix, task counts, recent activity), or `null` when outside scope |
 | `getAccountProfile(id)` | `lib/data/account-profile.ts` | the profile (account, group, related accounts, tasks, next visit, timeline), or `null` when outside scope |
 
 ## Server actions (built)
