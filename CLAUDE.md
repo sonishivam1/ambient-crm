@@ -18,9 +18,10 @@ must respect.
 - **Next: the AI layer, step by step** on OpenAI
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
   [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  Steps 1 to 4 are built (engine core; fact sources and cards; the account
-  summary with its cache; the morning brief, on request, kept for the day);
-  step 5 (Wren chat, read-only) is next. The 7am brief job waits for hosting.
+  Steps 1 to 5 are built (engine core; fact sources and cards; the account
+  summary with its cache; the morning brief, kept for the day; Wren chat,
+  read-only, on `/assistant`); step 6 (proposals, and the side panel) is next.
+  The 7am brief job waits for hosting.
   The real model is tried only once the team's OpenAI key arrives; until then
   tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
 - **Not built:** real sign-in and hosting (waits on
@@ -171,8 +172,10 @@ docs/engineering/build-log.md  history of every change, newest first
   never put an email, phone number or real id in a fact.
 - Verify, then show: schema and handles are checked before anything is
   displayed; figures appear on cards rendered from records.
-- Tools return `{ ok: true, facts, cards }` or `{ ok: false, reason, ask }`;
-  propose tools never write. Accept runs the existing server action
+- Tools (`defineAiTool`) return `{ ok: true, …facts }` or
+  `{ ok: false, reason, ask }`; every tool in one question shares one facts
+  builder; account names resolve only among the user's own accounts
+  (`resolveAccount`). Propose tools never write. Accept runs the existing server action
   (scope check, audit row), idempotent by proposal id.
 - `aiInvocations` holds metadata only, never prompt or reply text. Answer
   text lives only in `aiOutputs`: per user, served only for unchanged facts,

@@ -10,7 +10,7 @@ import { factsBuilder, type FactPacket } from "../facts";
 
 import { factDate } from "./format";
 import { notOnRecord } from "./gaps";
-import { addAccount, addContact, addContract, addInteraction, addTask, addVisit } from "./records";
+import { addAccount, addContact, addContract, addInteraction, addTask, addVisit, type FactsBuilder } from "./records";
 
 /** How many of each record one account's facts hold. */
 export const ACCOUNT_CAPS = { tasks: 10, plannedVisits: 3, recentVisits: 3, interactions: 5, contracts: 10, contacts: 8 } as const;
@@ -23,6 +23,16 @@ export const ACCOUNT_CAPS = { tasks: 10, plannedVisits: 3, recentVisits: 3, inte
  * found" for all of them.
  */
 export async function accountFacts(scope: Scope, input: { accountId: string }): Promise<FactPacket | null> {
+  const f = factsBuilder();
+  const data = await accountData(scope, input, f);
+  return data && f.build(data);
+}
+
+/**
+ * The same facts, added to a builder that is already in use (a chat turn's,
+ * where several tools share one set of handles). Null when not visible.
+ */
+export async function accountData(scope: Scope, input: { accountId: string }, f: FactsBuilder): Promise<Record<string, unknown> | null> {
   const profile = await getAccountProfile(input.accountId);
   if (!profile) return null;
   const { account } = profile;
@@ -48,8 +58,7 @@ export async function accountFacts(scope: Scope, input: { accountId: string }): 
   const lastCompleted = recent[0]?.scheduledAt ?? null;
   const lastInteraction = profile.timeline.find((i) => i.kind === "interaction")?.at ?? null;
 
-  const f = factsBuilder();
-  const facts = {
+  return {
     account: addAccount(f, account, {
       segment: account.segment,
       division: account.divisionLabel,
@@ -84,5 +93,4 @@ export async function accountFacts(scope: Scope, input: { accountId: string }): 
       timeZone: tz,
     }),
   };
-  return f.build(facts);
 }

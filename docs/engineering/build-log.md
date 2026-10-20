@@ -13,6 +13,23 @@ how it was verified, and any lesson worth keeping.
 
 ## 20 Oct 2026
 
+### AI step 5: Wren chat (read-only)
+- **What:** `/assistant`: questions answered with five read tools that run as
+  the user (`list_tasks`, `get_account`, `list_visits`, `list_renewals`,
+  `find_contacts`), sharing one set of handles per question, at most 4 calls.
+  Progress lines stream from `POST /api/v1/ai/chat` (the first streaming
+  `defineRoute`); the answer comes only after verification, with cards.
+  Conversations are saved per user for 90 days and sent back as plain text.
+- **Why:** the most-asked-for AI surface, built on the same safety layer as
+  the one-shot features.
+- **Verified:** 17 integration and 3 unit tests; 260 web tests; lint,
+  typecheck and build clean; four planted bugs fail the suite; the route and
+  page checked live without a key. A browser check caught a crash (an effect
+  returning `scrollIntoView()`'s Promise), now fixed.
+- **Lessons:** a scoped read behind a tool masked an unscoped name match; test
+  each barrier on its own. Check that a mutation really changes behaviour.
+- **Plan:** [AI step 5](../plans/ai-step-5-wren-chat.md).
+
 ### AI step 4: morning brief
 - **What:** `/morning-brief`: up to six verified items from the user's day
   (a manager's team), each with its records as cards, under a headline counted

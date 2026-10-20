@@ -11,6 +11,7 @@ import { z } from "zod";
  * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, interactions, contacts, notifications).
  * - Observability: append-only (auditLog, aiInvocations); aiUsage is the AI budget ledger.
  * - Cache: aiOutputs, verified AI answers per user, deleted after at most 7 days.
+ * - Conversations: aiConversations, a user's Wren chats, deleted 90 days after the last turn.
  *
  * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
  * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
@@ -431,6 +432,39 @@ export const aiOutputSchema = z.object({
   expiresAt: z.date(),
 });
 export type AiOutput = z.infer<typeof aiOutputSchema>;
+
+/** One turn of a Wren chat: the user's question, or Wren's verified answer as it was shown. */
+export const aiTurnSchema = z.object({
+  _id: z.string(),
+  role: z.enum(["user", "assistant"]),
+  /** The question, or the answer's main text. */
+  text: z.string(),
+  bullets: z.array(z.string()),
+  followUpQuestion: z.string().nullable(),
+  /** The records the answer cited, as cards, as they were shown. */
+  cards: z.array(z.unknown()),
+  /** An answer that cited no records (nothing found, a question back, out of scope). */
+  uncited: z.boolean(),
+  createdAt: z.date(),
+});
+export type AiTurn = z.infer<typeof aiTurnSchema>;
+
+/**
+ * A user's Wren conversation. Private to that user: never shared, sent to the
+ * model only as context for their own next question. Deleted 90 days after
+ * the last turn (TTL on expiresAt).
+ */
+export const aiConversationSchema = z.object({
+  _id: z.string(),
+  ...tenantScoped,
+  userId: z.string(),
+  title: z.string(),
+  turns: z.array(aiTurnSchema),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  expiresAt: z.date(),
+});
+export type AiConversation = z.infer<typeof aiConversationSchema>;
 
 /** One dated sales snapshot per scope (a rep, or "org" for the whole business). */
 export const salesSnapshotSchema = z.object({

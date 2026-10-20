@@ -6,7 +6,11 @@
  */
 import { MockLanguageModelV4 } from "ai/test";
 
-export type StandInReply = object | string | Error | { delayMs: number; reply: object | string | Error };
+/** A reply that calls tools instead of answering; the SDK runs them and calls the model again. */
+export type StandInToolCalls = { toolCalls: { toolName: string; input: object }[] };
+export type StandInReply = object | string | Error | StandInToolCalls | { delayMs: number; reply: object | string | Error };
+
+const isToolCalls = (r: unknown): r is StandInToolCalls => !!r && typeof r === "object" && Array.isArray((r as StandInToolCalls).toolCalls);
 
 const USAGE = {
   inputTokens: { total: 120, noCache: 120, cacheRead: undefined, cacheWrite: undefined },
@@ -26,6 +30,7 @@ function sleep(ms: number, signal?: AbortSignal) {
 function createStandIn() {
   let replies: StandInReply[] = [];
   const sent: string[] = [];
+  let calls = 0;
 
   const model = new MockLanguageModelV4({
     provider: "stand-in",
@@ -40,6 +45,15 @@ function createStandIn() {
         next = next.reply as StandInReply;
       }
       if (next instanceof Error) throw next;
+      if (isToolCalls(next)) {
+        calls += 1;
+        return {
+          content: next.toolCalls.map((c, i) => ({ type: "tool-call" as const, toolCallId: `call-${calls}-${i}`, toolName: c.toolName, input: JSON.stringify(c.input) })),
+          finishReason: { unified: "tool-calls" as const, raw: undefined },
+          usage: USAGE,
+          warnings: [],
+        };
+      }
       return {
         content: [{ type: "text", text: typeof next === "string" ? next : JSON.stringify(next) }],
         finishReason: { unified: "stop", raw: undefined },

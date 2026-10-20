@@ -17,6 +17,7 @@ write it.
 | **App-native** | `users`, `tasks`, `visits`, `interactions`, `contacts`, `notifications`, later `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
 | **Observability** | `auditLog`, `aiInvocations` (plus the `aiUsage` budget ledger), later `syncRuns` | Append-only; production credentials get insert but not update or delete. |
 | **Cache** | `aiOutputs` | Verified AI answers per user; replaced on regenerate, deleted after at most 7 days (TTL). |
+| **Conversations** | `aiConversations` | A user's Wren chats; private, deletable, deleted 90 days after the last turn (TTL). |
 
 ## Entities
 
@@ -206,8 +207,11 @@ erDiagram
   built from, and the `cards` and `notes` it was shown with (a `day` feature
   such as the morning brief serves those as they were until local midnight);
   it holds the answer's text, so it is per user and expires (`expiresAt`,
-  TTL). `aiInvocations.outcome` includes `cached`. See
-  [AI layer](ai.md).
+  TTL). `aiInvocations.outcome` includes `cached`.
+  `aiConversations` holds one user's Wren chat: a title, and turns (the
+  question, or the verified answer with its bullets, follow-up question and
+  the cards it was shown with). Only that user can read, continue or delete
+  it; it is deleted 90 days after the last turn. See [AI layer](ai.md).
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't
   deleted (checked in the write path, so deleted contacts can share one).
@@ -244,3 +248,4 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `aiInvocations` | `createdAt`, `userId + createdAt`, `feature + createdAt` | rate limits, usage and cost reporting |
 | `aiUsage` | `_id` only (`tenantId:month`) | budget reservations |
 | `aiOutputs` | `_id` (`tenantId:userId:feature:subjectId`), `expiresAt` (TTL, single field), `feature + subjectId` | cache lookups, expiry |
+| `aiConversations` | `userId + updatedAt`, `expiresAt` (TTL, single field) | the user's list, expiry |

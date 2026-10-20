@@ -4,9 +4,11 @@ import { Suspense } from "react";
 import { Answer } from "@/components/ai/account-summary";
 import { Brief } from "@/components/ai/morning-brief";
 import { AiCards } from "@/components/ai/cards";
+import { WrenChat } from "@/components/ai/wren-chat";
 import { Card, PageHead, Skeleton } from "@/components/ui/primitives";
 import type { BriefAnswerView } from "@/lib/ai/brief-view";
 import type { AiCardData } from "@/lib/ai/cards";
+import type { ChatTurnView } from "@/lib/ai/chat-view";
 import type { SummaryAnswerView } from "@/lib/ai/summary-view";
 import { myDayFacts } from "@/lib/ai/facts/my-day";
 import { getScope } from "@/lib/data/scope";
@@ -95,6 +97,29 @@ const SAMPLE_BRIEF: BriefAnswerView = {
   changed: true,
 };
 
+/** A made-up Wren conversation: a question, a cited answer with cards, and a reply without records. */
+const turn = (t: Partial<ChatTurnView> & Pick<ChatTurnView, "id" | "role" | "text">): ChatTurnView => ({
+  bullets: [],
+  followUpQuestion: null,
+  cards: [],
+  uncited: false,
+  createdAt: "2026-10-20T22:00:00.000Z",
+  ...t,
+});
+const SAMPLE_CHAT: ChatTurnView[] = [
+  turn({ id: "q1", role: "user", text: "What's overdue at Sample Logistics?" }),
+  turn({
+    id: "a1",
+    role: "assistant",
+    text: "One task is overdue: the revised price list, due on 14 Oct. Send it before Thursday's site visit.",
+    bullets: ["The workwear supply agreement also ends in 23 days."],
+    followUpQuestion: "Want the account summary?",
+    cards: SAMPLE_CARDS.filter((c) => ["T1", "K1"].includes(c.handle)),
+  }),
+  turn({ id: "q2", role: "user", text: "Mark it done" }),
+  turn({ id: "a2", role: "assistant", text: "I can't change tasks yet. Open Tasks to complete it.", uncited: true }),
+];
+
 export default function Page() {
   return (
     <>
@@ -113,6 +138,15 @@ export default function Page() {
 
       <div className="mb-[18px] max-w-[860px]">
         <Brief answer={SAMPLE_BRIEF} timeZone="Australia/Sydney" />
+      </div>
+
+      <div className="mb-[18px]">
+        <WrenChat
+          conversations={[{ id: "sample", title: "What's overdue at Sample Logistics?", updatedAt: "2026-10-20T22:00:00.000Z" }]}
+          conversationId="sample"
+          turns={SAMPLE_CHAT}
+          unavailable="A sample conversation: questions are off here."
+        />
       </div>
 
       <Card title="AI cards: from your “my day” facts">

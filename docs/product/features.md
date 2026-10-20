@@ -23,7 +23,7 @@ Planned (nothing yet).
 | Email and meeting capture | background workers | Planned |
 | Review queue | `/review-queue` | Placeholder |
 | Outlook add-in | Outlook task pane | Planned |
-| Wren assistant | `/assistant`, side panel | Placeholder |
+| Wren assistant | `/assistant` (side panel after AI step 6) | Built (AI, read-only, needs the OpenAI key) |
 | Search (quick and semantic) | `/search` | Placeholder |
 | Morning brief | `/morning-brief` | Built (AI, needs the OpenAI key) |
 | Team overview, reports, CRM usage | `/team`, `/reports`, `/crm-usage` | Placeholder |
@@ -191,7 +191,7 @@ passive capture misses. Creates contacts for unknown senders.
 ### Wren, the AI assistant
 Built step by step on one AI engine with OpenAI
 ([AI layer](../architecture/ai.md), [prompts](../architecture/ai-prompts.md)).
-**Built so far (steps 1 to 4):** the engine (gates per tenant, feature and
+**Built so far (steps 1 to 5):** the engine (gates per tenant, feature and
 role; monthly token budgets; rate limits; verified output; a usage log), fact
 sources and cards, and the first feature:
 - **Account summary** (built): "Generate" on the customer profile's Wren
@@ -203,10 +203,13 @@ sources and cards, and the first feature:
 
 Planned:
 - **Morning brief** (built): see below.
-- **Chat** (step 5): side panel and full page; answers questions about the
-  user's own tasks, accounts, visits, renewals and contacts. Answers are checked
-  before they're shown, with the records as cards. Conversations are kept per
-  user.
+- **Chat** (built, read-only): `/assistant` answers questions about your own
+  tasks, accounts, visits, renewals and contacts. While Wren looks things up
+  you see what it's checking; the answer appears once it's verified, with the
+  records it used as cards and a suggested next question. If a name could mean
+  several accounts, Wren asks which. Conversations are kept for you for 90
+  days (and can be deleted); they survive refresh. It can't change anything
+  yet. The side panel comes with step 6. Works once the OpenAI key is set.
 - **Proposals** (step 6): Wren proposes a task, a note or a visit; nothing
   changes until the user accepts, through the same action as the normal form.
   After a post-visit report, suggested follow-up tasks to accept or dismiss.

@@ -103,7 +103,7 @@ export type AiPeek<O> =
 const TRY_AGAIN = "Couldn't generate this right now. Try again in a moment.";
 const NOT_FOUND = "That record isn't available.";
 const INVALID = "That request isn't valid.";
-const ROLE_LABEL: Record<RoleKey, string> = {
+export const ROLE_LABEL: Record<RoleKey, string> = {
   user: "Account manager",
   manager: "Manager",
   senior: "Senior manager",
@@ -113,10 +113,10 @@ const ROLE_LABEL: Record<RoleKey, string> = {
 };
 const RETRY_NOTE = "\n\nYour previous reply did not match the required output format. Reply again, following it exactly.";
 
-type ErrorKind = (typeof AI_ERROR_KINDS)[number];
+export type ErrorKind = (typeof AI_ERROR_KINDS)[number];
 
 /** A code for the log. Error messages are never logged: they can echo provider responses. */
-function errorKind(e: unknown): ErrorKind {
+export function errorKind(e: unknown): ErrorKind {
   if (NoObjectGeneratedError.isInstance(e)) return "schema";
   if (APICallError.isInstance(e)) return "provider";
   const name = e instanceof Error ? e.name : "";
@@ -124,12 +124,13 @@ function errorKind(e: unknown): ErrorKind {
   return "unknown";
 }
 
-function addUsage(total: { input: number; output: number }, usage: LanguageModelUsage | undefined) {
+export function addUsage(total: { input: number; output: number }, usage: LanguageModelUsage | undefined) {
   total.input += usage?.inputTokens ?? 0;
   total.output += usage?.outputTokens ?? 0;
 }
 
-function citedSources(value: unknown, into: string[] = []): string[] {
+/** Every handle a verified output cites, in order of first mention. */
+export function citedSources(value: unknown, into: string[] = []): string[] {
   if (Array.isArray(value)) value.forEach((v) => citedSources(v, into));
   else if (value && typeof value === "object") {
     for (const [k, v] of Object.entries(value)) {

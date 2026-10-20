@@ -57,6 +57,9 @@ export type ContactCardData = Base & {
   name: string;
   jobTitle: string;
   roles: string[];
+  /** Shown on the card only, where a tool chose to; never part of the facts. */
+  email?: string;
+  phone?: string;
 };
 
 export type InteractionCardData = Base & {

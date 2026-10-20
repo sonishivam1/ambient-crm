@@ -1233,6 +1233,337 @@ html[data-dark="1"] {
     text-transform: uppercase;
     color: var(--muted);
   }
+  /* Wren chat (components/ai/wren-chat): one card, the list and the chat side by side;
+     the messages scroll and the question box stays at the bottom. */
+  .wren {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    height: calc(100dvh - 250px);
+    min-height: 520px;
+    background: var(--surface);
+    border: 1px solid var(--line2);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .wren-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    padding: 16px 12px;
+    border-right: 1px solid var(--line2);
+    background: var(--surface2);
+  }
+  .wren-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 4px;
+  }
+  .wren-list-head b {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .wren-list ul {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+  .wren-list li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 4px;
+    border-radius: 12px;
+  }
+  .wren-list li a {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .wren-list li a b {
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .wren-list li a span {
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .wren-list li:hover,
+  .wren-list li.on {
+    background: var(--surface);
+  }
+  .wren-list li .btn {
+    opacity: 0;
+  }
+  .wren-list li:hover .btn,
+  .wren-list li.on .btn,
+  .wren-list li .btn:focus-visible {
+    opacity: 1;
+  }
+  .wren-none {
+    padding: 8px 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .wren-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+  .wren-log {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  /* Centred in the empty chat. */
+  .wren-empty {
+    margin: auto;
+    max-width: 520px;
+    text-align: center;
+  }
+  .wren-empty .ic {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 14px;
+    border-radius: 16px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+  }
+  .wren-empty h2 {
+    margin: 0 0 6px;
+    font-size: 19px;
+  }
+  .wren-empty p {
+    margin: 0 0 18px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .wren-msg {
+    max-width: 760px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .wren-msg p {
+    margin: 0;
+  }
+  .wren-msg.user {
+    align-self: flex-end;
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 16px 16px 4px 16px;
+    background: var(--side);
+    color: #eef0f7;
+    white-space: pre-wrap;
+  }
+  /* Navy disappears on the dark background; use the raised surface instead. */
+  html[data-dark="1"] .wren-msg.user {
+    background: var(--surface3);
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+  .wren-msg.assistant {
+    align-self: flex-start;
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--line2);
+    border-radius: 16px 16px 16px 4px;
+    background: var(--surface2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .wren-bullets {
+    margin: 0;
+    padding-left: 18px;
+    list-style: disc;
+  }
+  .wren-bullets li::marker {
+    color: var(--accent);
+  }
+  .wren-progress {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .wren-progress li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .wren-progress li.now {
+    color: var(--text2);
+  }
+  .wren-note {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  /* Suggested questions and the follow-up question: coral outline pills. */
+  .wren-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .wren-chip {
+    padding: 7px 14px;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--accent);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      border-color 0.15s;
+  }
+  .wren-chip:hover:not(:disabled) {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .wren-chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .wren-chip:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .wren-follow {
+    align-self: flex-start;
+  }
+  .wren-unavailable {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+  }
+  /* The bottom of the chat: error, question box, disclaimer. */
+  .wren-foot {
+    padding: 14px 20px 12px;
+    border-top: 1px solid var(--line2);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .wren-error {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--risk);
+  }
+  /* A pill field and a separate Ask button, side by side. */
+  .wren-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wren-input input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    outline: 0;
+    transition: border-color 0.15s;
+  }
+  .wren-input input::placeholder {
+    color: var(--muted);
+  }
+  .wren-input input:focus {
+    border-color: var(--accent);
+  }
+  .wren-input input:disabled {
+    background: var(--surface2);
+    cursor: not-allowed;
+  }
+  .wren-input .btn {
+    flex: none;
+    height: 44px;
+    padding: 0 20px;
+  }
+  .wren-foot .ai-disclaimer {
+    text-align: center;
+  }
+  @media (max-width: 900px) {
+    .wren {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: calc(100dvh - 210px);
+    }
+    .wren-list {
+      border-right: 0;
+      border-bottom: 1px solid var(--line2);
+      padding: 12px;
+    }
+    .wren-list ul {
+      max-height: 120px;
+    }
+    .wren-log {
+      padding: 16px;
+    }
+    .wren-foot {
+      padding: 10px 12px 12px;
+    }
+    /* One row that scrolls sideways, so the suggestions don't squeeze the chat. */
+    .wren-chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      margin: 0 -12px;
+      padding: 0 12px 2px;
+      scrollbar-width: none;
+    }
+    .wren-chips::-webkit-scrollbar {
+      display: none;
+    }
+    .wren-chip {
+      flex: none;
+      white-space: nowrap;
+    }
+  }
+  .spin {
+    animation: spin 0.9s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spin {
+      animation: none;
+    }
+  }
   .bar {
     height: 8px;
     border-radius: 99px;
@@ -2123,6 +2454,11 @@ html[data-dark="1"] {
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @keyframes fade {
   from {
     opacity: 0;

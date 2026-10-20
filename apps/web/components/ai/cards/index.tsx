@@ -107,6 +107,7 @@ export function ContactCard({ card }: { card: ContactCardData }) {
   return (
     <Shell href={card.href} icon={<UserRound size={17} />} title={card.name} meta={card.jobTitle || "—"}>
       {card.roles.length > 0 && <span className="ai-card-t">{card.roles.join(" · ")}</span>}
+      {(card.email || card.phone) && <span className="ai-card-m">{[card.email, card.phone].filter(Boolean).join(" · ")}</span>}
     </Shell>
   );
 }

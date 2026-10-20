@@ -37,6 +37,9 @@ callers outside the web app.
 | `accountSummary`, `accountSummaryState(accountId)` | `lib/ai/features/account-summary.ts` | The account summary feature, and the card's starting state for the profile |
 | `morningBrief`, `morningBriefState()`, `morningBriefHeadline()` | `lib/ai/features/morning-brief.ts` | The morning brief feature, the page's starting state, and today's headline for the dashboard tile (no facts, no call) |
 | `latestNotes(feature, input)` | `lib/ai/engine.ts` | Today's cached notes for a `day` feature, without building facts; writes nothing |
+| `runChatTurn(input, onProgress)` | `lib/ai/chat.ts` | One Wren question: access, limits, tools as the user, verification, saving; never throws for expected failures |
+| `defineAiTool(def)`, `resolveAccount(scope, name)` | `lib/ai/tools/define.ts` | Declares a read tool; matches an account name among the user's own accounts only |
+| `listConversations`, `getConversation`, `deleteConversation` | `lib/ai/conversations.ts` | The user's own conversations only |
 | `accountFacts(scope, { accountId })` | `lib/ai/facts/account.ts` | One account's facts and cards, on `getAccountProfile()`; null when not visible |
 | `myDayFacts(scope)` | `lib/ai/facts/my-day.ts` | What needs the user today (the team's for managers), with full counts |
 | `factsBuilder()` | `lib/ai/facts.ts` | Handles, allowed fields and cards for a fact source; `build()` adds the fingerprint |
@@ -62,6 +65,7 @@ The account summary is the first feature users see (step 3). See
 | `markNotificationRead(id)` | `app/actions/notifications.ts` | notification id | marks one of your own notifications read (keeps the first read time); `false` if it isn't yours | — (read state, not business data) |
 | `markAllNotificationsRead()` | `app/actions/notifications.ts` | — | marks all your unread notifications read; returns how many | — |
 | `generateAccountSummary({ accountId, refresh })` | `app/actions/ai.ts` | account id; `refresh` skips the cache | runs the account summary; returns the verified answer (points, next step, cards, notes, generated time) or a refusal message; writes no CRM data | — (logged in `aiInvocations`) |
+| `deleteWrenConversation(id)` | `app/actions/ai.ts` | conversation id | deletes one of your own Wren conversations; false when it isn't yours | — |
 | `generateMorningBrief({ refresh })` | `app/actions/ai.ts` | `refresh` writes a new brief | runs today's brief; returns the headline, items, cards, time written and whether the records changed since, or a refusal message; writes no CRM data | — (logged in `aiInvocations`) |
 | `searchBillToAccounts(q)` | `app/actions/accounts.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task and contact dialogs | — (read) |
 | `listSoldTos(billToId)` | `app/actions/accounts.ts` | bill-to id | its sold-to sites, empty when the bill-to isn't in scope | — (read) |
@@ -86,6 +90,7 @@ Every route handler is versioned under `/api/v1`
 | --- | --- | --- |
 | `GET /api/health` | `{ "status": "ok" }`; unversioned, no data | none |
 | `GET /api/v1/me` | `{ user: { name, email, role, roleLabel }, tenant: { name, timeZone } }` | signed in |
+| `POST /api/v1/ai/chat` | Body `{ conversationId \| null, message }`. NDJSON: `{ type: "progress", text }` lines, then one `{ type: "answer", conversationId, question, answer }` or `{ type: "error", reason, message }`; a failure mid-stream is a `{ error }` line | signed in |
 
 ```ts
 // app/api/v1/<area>/<name>/route.ts (schemas in schema.ts beside it)
@@ -97,6 +102,13 @@ export const GET = defineRoute({
   output: MeResponse,    // a result that doesn't match is a 500; undeclared fields are dropped
   handler: async ({ input, scope, requestId, log }) => ({ … }),
 });
+
+// A streaming route: `stream` instead of `output` and `handler`.
+export const POST = defineRoute({
+  name: "ai.chat", version: 1, auth: "user", input: ChatRequest,
+  stream: { events: ChatEvent, run: async ({ input }, send) => { send({ type: "progress", text: "…" }); } },
+});
+// NDJSON; each event is checked against `events` (one that isn't becomes an internal error line).
 ```
 
 Handlers raise expected failures with `ApiError(status, code, message)`
@@ -109,7 +121,6 @@ carry `X-API-Version: 1`; a route with `deprecation` adds `Deprecation`,
 
 | Route | Caller | Auth |
 | --- | --- | --- |
-| `POST /api/v1/ai/chat` | Wren (streaming, AI step 5) | web session |
 | `POST /api/v1/addin/messages`, `POST /api/v1/addin/meetings` | Outlook add-in | Office SSO bearer token |
 | `POST /api/v1/webhooks/graph` | Microsoft Graph change notifications (optional, alongside polling) | Graph validation token + client state |
 

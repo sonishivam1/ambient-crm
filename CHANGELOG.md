@@ -16,6 +16,11 @@ see the [build log](docs/engineering/build-log.md).
   up to six things that need you today, with their records, under a headline
   counted from your records. It's kept for the day and says when things have
   changed since; the dashboard tile shows the headline. Needs the OpenAI key.
+- **Wren chat:** ask about your tasks, visits, renewals, contacts and accounts
+  on the Assistant page. You see what Wren is checking, then a checked answer
+  with the records it used; it asks when a name could mean several accounts.
+  Conversations are kept for 90 days and can be deleted. Read-only for now.
+  Needs the OpenAI key.
 
 ### Core CRM
 - **Dashboard:** today's tasks, the week's visits, key figures, at-risk

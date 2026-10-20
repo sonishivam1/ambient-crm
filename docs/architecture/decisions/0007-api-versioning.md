@@ -34,7 +34,9 @@ Ambient, so a change to a route can break them silently.
 - A guard test (`apps/web/tests/unit/guards.test.ts`) fails if a `route.ts`
   lives outside `app/api/v1/…` (other than `app/api/health`) or doesn't use
   `defineRoute`.
-- First routes: `GET /api/health` and `GET /api/v1/me`.
+- First routes: `GET /api/health` and `GET /api/v1/me`; then
+  `POST /api/v1/ai/chat` (AI step 5), the first streaming route
+  (`defineRoute` with `stream`, NDJSON events checked against a schema).
 
 ## Consequences
 

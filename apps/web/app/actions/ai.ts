@@ -2,17 +2,19 @@
 
 import { z } from "zod";
 
+import { deleteConversation } from "@/lib/ai/conversations";
 import { runAiFeature } from "@/lib/ai/engine";
 import { accountSummary, summaryView } from "@/lib/ai/features/account-summary";
 import { briefView, morningBrief } from "@/lib/ai/features/morning-brief";
 import type { BriefActionResult } from "@/lib/ai/brief-view";
 import type { SummaryActionResult } from "@/lib/ai/summary-view";
+import { getScope } from "@/lib/data/scope";
 import { loggedAction } from "@/lib/log";
 
 /*
  * AI actions only run engine features: the engine checks access, scope,
  * limits and budget, verifies the answer and logs the request. Nothing here
- * writes CRM data.
+ * writes CRM data. Wren chat questions go through POST /api/v1/ai/chat.
  */
 
 const summaryInput = z.object({ accountId: z.string().min(1).max(200), refresh: z.boolean().default(false) });
@@ -36,4 +38,11 @@ export const generateMorningBrief = loggedAction("ai.morningBrief", async functi
   if (!input.success) return { ok: false, reason: "invalid_input", message: "That request isn't valid." };
   const result = await runAiFeature(morningBrief, {}, { refresh: input.data.refresh });
   return result.ok ? { ok: true, answer: briefView(result) } : result;
+});
+
+/** Delete one of your own Wren conversations. False when it isn't yours (or is already gone). */
+export const deleteWrenConversation = loggedAction("ai.deleteConversation", async function deleteWrenConversation(rawId: string): Promise<boolean> {
+  const id = z.string().min(1).max(100).safeParse(rawId);
+  if (!id.success) return false;
+  return deleteConversation(await getScope(), id.data);
 });

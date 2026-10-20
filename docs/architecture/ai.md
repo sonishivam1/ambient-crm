@@ -290,7 +290,7 @@ sequenceDiagram
   W-->>U: verified answer + task cards
 ```
 
-- At most 4 tool calls per question; the closing of the tab aborts the call.
+- At most 4 tool calls per question, 30 seconds in all.
 - Read tools first (step 5); propose tools with Confirm (step 6).
 - Conversations are stored per user, kept for 90 days, never shared, and never
   sent anywhere except as context for that user's own next turn.
@@ -351,8 +351,8 @@ before the next.
 | 2. Fact sources and cards | Account and "my day" fact sources with handles and allowed fields; account, task, visit, contract, contact, interaction and notification cards | ✅ Built |
 | 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | ✅ Built |
 | 4. Morning brief | Second feature; on request, kept for the day (the 7am trigger comes with hosting) | ✅ Built |
-| 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | Next |
-| 6. Proposals | Propose tools, Confirm cards, existing actions, idempotent Accept; follow-up suggestions after visit reports | Planned |
+| 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | ✅ Built |
+| 6. Proposals | Propose tools, Confirm cards, existing actions, idempotent Accept; follow-up suggestions after visit reports; the side panel | Next |
 | 7. Evaluation and feedback | `pnpm ai:eval`, thumbs up/down; run on key day | Planned |
 | Later | Natural-language filters, meeting prep, next best action, report narratives; email and meeting analysis and semantic search after capture | — |
 
@@ -378,11 +378,15 @@ apps/web/lib/ai/
   facts/           fact sources on scoped read models: account, my-day               (built)
   features/        one file per feature: account-summary, morning-brief; text.ts     (built)
   brief-view.ts    what the brief page receives, safe in client components            (built)
-  tools/           one file per tool                                                  (step 5)
+  tools/           define.ts (defineAiTool, account matching), read.ts (five tools)   (built)
+  chat.ts          runChatTurn: one question, tools, verification, saving             (built)
+  conversations.ts aiConversations: per user, 90 days                                (built)
+  chat-view.ts     turns, the chat route's events and request, safe in clients        (built)
 apps/web/components/ai/cards/    one card per record kind                            (built)
 apps/web/components/ai/account-summary.tsx   the profile's Wren summary card        (built)
 apps/web/components/ai/morning-brief.tsx     the morning brief page's body           (built)
-apps/web/components/ai/          proposal card, chat panel                           (step 5 on)
+apps/web/components/ai/wren-chat.tsx         the /assistant page's chat              (built)
+apps/web/components/ai/          proposal card, side panel                          (step 6)
 apps/web/tests/support/ai-stand-in.ts   the test-only stand-in model                (built)
 ```
 
@@ -413,6 +417,29 @@ has no test hook.
   `{ ok: false, reason, message }`; reasons are the gate refusals plus
   `invalid_input`, `not_found` (step 2), `rejected` (every claim invented) and
   `failed`. Messages never include provider error text.
+
+## Wren chat (built in step 5)
+
+- **A question:** access and limits (one question is one request), the user's
+  conversation, then the model with the policy and chat prompts, the last 6
+  questions and answers as plain text, and the five read tools. Progress
+  lines stream as tools run; the answer is sent only after verification.
+- **Tools** (`defineAiTool`): `list_tasks`, `get_account`, `list_visits`,
+  `list_renewals`, `find_contacts`. Each runs as the user on the pages' read
+  models and adds its records to the question's one facts builder, so handles
+  are unique across tools. Account names match only the user's own accounts;
+  none or several gets `ok: false` with the question to ask. At most 15
+  records per tool with the total; a fifth call is refused.
+- **Verification:** handles are checked against this question's tool results
+  only. If records came back, the answer must cite one or it's rejected; if
+  none did, the answer is shown without cards, marked "No records were used",
+  and bullets are dropped. Text is cut and cleaned like the other features.
+- **Conversations (`aiConversations`):** per user, never shared, the verified
+  answers with the cards they were shown with; 90 days after the last turn
+  (TTL); deletable. Earlier turns never carry handles into a new question.
+- **Route:** `POST /api/v1/ai/chat`, `defineRoute` with `stream`: NDJSON
+  events (`progress`, then `answer` or `error`), each checked against its
+  schema.
 
 ## Morning brief and the day cache (built in step 4)
 

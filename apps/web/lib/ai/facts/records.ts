@@ -126,12 +126,21 @@ export function addContract(f: FactsBuilder, k: ContractRow, timeZone: string, o
   );
 }
 
-/** Names, titles and roles only: never email or phone. */
-export function addContact(f: FactsBuilder, c: ContactRow) {
+/**
+ * The fact holds names, titles and roles only: never email or phone. With
+ * `withDetails`, the card (screen only) also shows them.
+ */
+export function addContact(f: FactsBuilder, c: ContactRow, opts: { withDetails?: boolean } = {}) {
   return f.add(
     "contact",
     { name: c.name, title: c.jobTitle || undefined, roles: c.roleLabels.length ? c.roleLabels : undefined },
-    { name: c.name, jobTitle: c.jobTitle, roles: c.roleLabels, href: `/contacts?account=${encodeURIComponent(c.accountId)}` },
+    {
+      name: c.name,
+      jobTitle: c.jobTitle,
+      roles: c.roleLabels,
+      href: `/contacts?account=${encodeURIComponent(c.accountId)}`,
+      ...(opts.withDetails ? { email: c.email || undefined, phone: c.phone || undefined } : {}),
+    },
   );
 }
 

@@ -188,23 +188,28 @@ Settings: tier `fast`, temperature 0.2, at most 600 output tokens. Kept per
 user until local midnight with the cards it was written with (cache mode
 `day`); Refresh writes a new one.
 
-## Wren chat (`wren-chat` v1, step 5)
+## Wren chat (`wren-chat` v1, step 5, built)
+
+Code: `apps/web/lib/ai/prompts/wren-chat.ts`; tool descriptions in
+`apps/web/lib/ai/tools/read.ts` (a test checks both match this page).
 
 ```text
 TASK
-Answer {{userName}}'s questions about their own accounts, tasks, visits,
-contacts and contracts.
+Answer the user's questions about their own accounts, tasks, visits, contacts
+and contracts.
 
 HOW TO WORK
 - Decide which tool or tools answer the question, call them, then answer only
   from what they return. Use at most 4 tool calls per question.
+- Always look records up with a tool, even if an earlier answer in this
+  conversation mentioned them. Earlier answers are context, not facts.
 - If a request is missing something a tool needs (which account, what to look
   for), ask for it in one short question instead of calling the tool.
 - If a name could mean several accounts, ask which one; never pick for the user.
 - Tool results are the only <facts>. If a tool returns nothing, say you found
   nothing and suggest what to check.
-- If a tool returns ok: false, that action did not happen. Say what was not
-  done and why, and ask the question it suggests.
+- If a tool returns ok: false, say what you couldn't do and ask the question
+  in its ask field.
 - For anything outside this CRM (general knowledge, other companies, coding,
   advice unrelated to these accounts), say briefly that you can only help with
   their CRM data.
@@ -212,42 +217,58 @@ HOW TO WORK
   yet and point to the page where they can.
 
 ANSWER
-- The records you used are shown to the user as cards. Don't list them again.
-- Say what they mean in one to three sentences: the total, what stands out
-  (the oldest, the highest priority, a pattern) and what to do first.
-- Add up to 5 short bullets only for points the cards don't show.
+- answer.text: what the records mean, in one to three sentences: the total,
+  what stands out (the oldest, the highest priority, a pattern) and what to
+  do first. answer.sources: the handles it is based on.
+- The records in answer.sources are shown to the user as cards. Don't list
+  them again.
+- bullets: up to 5 short points the cards don't show, each with sources.
+- followUpQuestion: one short question the user might ask next, or null.
 ```
 
-Output:
+Context: the last 6 questions and answers of the conversation, as plain text
+(no handles), then the new question. Tool results are the facts; handles are
+shared across all tools in one question.
+
+Output (strict structured output; checked and limited by code):
 
 ```ts
 {
-  answer: string,                 // 1–3 sentences
-  bullets: Array<{ text: string; sources: string[] }>, // at most 5
-  sources: string[],              // handles whose cards to show, in order
-  followUpQuestion: string | null,
+  answer: { text: string; sources: string[] },        // at most 400 characters
+  bullets: Array<{ text: string; sources: string[] }>, // at most 5, 160 characters each
+  followUpQuestion: string | null,                    // at most 200 characters
 }
+// When the tools returned records, answer must cite at least one or the reply
+// is rejected. When none came back, the answer is shown without cards and
+// marked "No records were used"; bullets are dropped.
 ```
+
+Settings: tier `fast`, temperature 0.2, at most 800 output tokens, at most 4
+tool calls and 30 seconds per question.
 
 ### Tools
 
-Tool descriptions are prompts too; parameters are enums wherever possible.
+Tool descriptions are prompts too; parameters are enums wherever possible, and
+optional ones are `null` (strict function calling).
 
 | Tool | Kind | Description given to the model | Parameters |
 | --- | --- | --- | --- |
-| `list_tasks` | read | The user's tasks. Use for to-dos, follow-ups, overdue or due work. | `status: overdue \| due_today \| open`, `accountName?`, `limit` (≤ 20) |
-| `get_account` | read | Everything about one customer account. Use when the user names an account. | `name` (matched only among the user's own accounts) |
-| `list_visits` | read | Visits, calls and meetings. Use for schedule and "when did we last see" questions. | `range: past_30_days \| this_week \| next_14_days`, `accountName?` |
-| `list_renewals` | read | Contracts ending soon or recently ended. | `withinDays: 30 \| 60 \| 90` |
-| `find_contacts` | read | People at customer accounts. | `accountName?`, `role?`, `query?` |
+| `list_tasks` | read | The user's tasks. Use for to-dos, follow-ups, and overdue or due work. | `status`: overdue, due_today, open; `accountName` or null |
+| `get_account` | read | Everything about one customer account: health, owner, revenue, tasks, visits, notes, contracts and contacts. Use when the user names an account. | `name` (matched only among the user's own accounts) |
+| `list_visits` | read | Visits, calls and meetings, past or planned. Use for the schedule and for "when did we last see" questions. | `range`: past_30_days, this_week, next_14_days; `accountName` or null |
+| `list_renewals` | read | Contracts ending soon, or ended in the last 90 days. Use for renewals and contract end dates. | `withinDays`: 30, 60, 90 |
+| `find_contacts` | read | People at the user's customer accounts, with their job titles and roles. Use to find who to talk to. | `accountName`, `role`, `query`, each or null |
 | `propose_task` | propose (step 6) | Prepare a task for the user to accept. Does not create it. Needs what to do, in the user's words, and a due date; ask if either is missing. | `accountName?`, `title`, `dueDate`, `priority` |
 | `propose_visit` | propose (step 6) | Prepare a visit for the user to accept. | `accountName?`, `date`, `time?`, `type`, `purpose?` |
 | `propose_note` | propose (step 6) | Prepare a note or call log for the user to accept. | `accountName?`, `type`, `summary` |
 
-Every tool runs on a fact source as the signed-in user and returns
-`{ ok: true, facts, cards }` or `{ ok: false, reason, ask? }`. A propose tool
-refuses (`ok: false`) a generic title, a missing or past due date, or an
-account the user can't see, with the question to ask instead.
+Every tool runs as the signed-in user on scoped read models and returns
+`{ ok: true, …facts }` (at most 15 records, with the total) or
+`{ ok: false, reason, ask }`: an account name that matches none of the user's
+accounts, or several ("Which one do you mean: …?"), a role the tenant doesn't
+have, or a fifth tool call. A propose tool (step 6) will refuse a generic
+title, a missing or past due date, or an account the user can't see, with the
+question to ask instead.
 
 ## Follow-up suggestions (`followup-suggestions` v1, step 6)
 
