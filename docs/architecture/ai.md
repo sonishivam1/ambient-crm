@@ -349,8 +349,8 @@ before the next.
 | --- | --- | --- |
 | 1. Engine core | `defineAiFeature`, `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, `aiInvocations`, `aiUsage` budget ledger, test-only stand-in, security tests | ✅ Built |
 | 2. Fact sources and cards | Account and "my day" fact sources with handles and allowed fields; account, task, visit, contract, contact, interaction and notification cards | ✅ Built |
-| 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | Next |
-| 4. Morning brief | Second feature, plus the 7am trigger | Planned |
+| 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | ✅ Built |
+| 4. Morning brief | Second feature, plus the 7am trigger | Next |
 | 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | Planned |
 | 6. Proposals | Propose tools, Confirm cards, existing actions, idempotent Accept; follow-up suggestions after visit reports | Planned |
 | 7. Evaluation and feedback | `pnpm ai:eval`, thumbs up/down; run on key day | Planned |
@@ -365,7 +365,9 @@ models, anything that sends messages to customers.
 apps/web/lib/ai/
   config.ts        OPENAI_* settings read on use, tiers, rate limits, time limit      (built)
   client.ts        the only file that imports @ai-sdk/openai: modelFor(tier)          (built)
-  engine.ts        defineAiFeature, runAiFeature (defineAiTool in step 5)             (built)
+  engine.ts        defineAiFeature, runAiFeature, peekAiFeature (defineAiTool, step 5) (built)
+  cache.ts         aiOutputs: per-user verified answers, until the facts change      (built)
+  summary-view.ts  what the summary card receives, safe in client components          (built)
   gates.ts         key, tenant policy, feature, role, rate limit, budget left         (built)
   budget.ts        aiUsage ledger: atomic reserve, settle, tokens left                (built)
   facts.ts         fact packets, factsBuilder, allowed fields, fencing, fingerprint   (built)
@@ -374,9 +376,10 @@ apps/web/lib/ai/
   log.ts           aiInvocations rows, metadata only                                  (built)
   prompts/         versioned prompt modules; policy.ts is v1                          (built)
   facts/           fact sources on scoped read models: account, my-day               (built)
-  features/        one file per feature                                               (step 3 on)
+  features/        one file per feature: account-summary                             (built)
   tools/           one file per tool                                                  (step 5)
 apps/web/components/ai/cards/    one card per record kind                            (built)
+apps/web/components/ai/account-summary.tsx   the profile's Wren summary card        (built)
 apps/web/components/ai/          proposal card, chat panel                           (step 5 on)
 apps/web/tests/support/ai-stand-in.ts   the test-only stand-in model                (built)
 ```
@@ -408,6 +411,33 @@ has no test hook.
   `{ ok: false, reason, message }`; reasons are the gate refusals plus
   `invalid_input`, `not_found` (step 2), `rejected` (every claim invented) and
   `failed`. Messages never include provider error text.
+
+## Account summary and the cache (built in step 3)
+
+- **Flow:** input → scope → access (key, tenant switch, feature, role) →
+  facts → cached answer for these exact facts? → limits (rate, budget) →
+  model → verify → `limit` → save → log. A cache hit skips the limits, costs
+  no tokens and is logged as `cached`.
+- **Cache (`aiOutputs`):** one row per user, feature and subject, holding the
+  verified, limited output. Served only when the facts fingerprint, prompt
+  and policy versions and model match, and for at most the feature's
+  `ttlDays` (7 for the summary; a TTL index deletes old rows). Facts are
+  always rebuilt under the user's current scope first, and a cached answer is
+  verified again before it's shown. Refresh skips the cache.
+- **Stale answers are hidden:** when the records change, the card says so and
+  offers Generate; the old text isn't shown, since its handles could point at
+  different records now.
+- **`peekAiFeature`** tells a page what it can show without calling the model
+  (unavailable with the reason, none, stale, or the cached answer) and writes
+  nothing.
+- **Feature hooks:** `limit` caps the verified output (the summary: 7 points
+  in section order, 240 characters each, markup and printed handles removed);
+  `notes` returns code-computed lines from the facts (the summary's "Not on
+  record" gaps, which the model never writes).
+- **The card** (`components/ai/account-summary.tsx`): generated only on
+  request; points under Status, Needs attention and Recent activity; the next
+  step; Not on record; the records used as cards; "Generated 5m ago ·
+  Refresh"; every refusal and failure as a plain message.
 
 ## Fact sources and cards (built in step 2)
 

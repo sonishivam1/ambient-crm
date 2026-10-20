@@ -191,11 +191,17 @@ passive capture misses. Creates contacts for unknown senders.
 ### Wren, the AI assistant
 Built step by step on one AI engine with OpenAI
 ([AI layer](../architecture/ai.md), [prompts](../architecture/ai-prompts.md)).
-**Built so far (step 1):** the engine itself: gates (AI switch, features and
-roles per tenant), monthly token budgets, rate limits, verified output and a
-usage log. No AI feature is visible to users yet. Planned:
-- **Account summary** (step 3): "Generate" on the customer profile writes a
-  short briefing; the records it used appear as cards.
+**Built so far (steps 1 to 3):** the engine (gates per tenant, feature and
+role; monthly token budgets; rate limits; verified output; a usage log), fact
+sources and cards, and the first feature:
+- **Account summary** (built): "Generate" on the customer profile's Wren
+  summary card writes a short briefing under Status, Needs attention and
+  Recent activity, with one next step, what's not on record (worked out from
+  the records, not by the AI) and the records it used as cards. It's kept for
+  you until the account's records change (7 days at most); Refresh writes a
+  new one. Works once the OpenAI key is set.
+
+Planned:
 - **Morning brief** (step 4): see below.
 - **Chat** (step 5): side panel and full page; answers questions about the
   user's own tasks, accounts, visits, renewals and contacts. Answers are checked

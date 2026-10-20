@@ -9,11 +9,12 @@ import { createLogger } from "@ambient/logger";
 import { getScope, type Scope } from "@/lib/data/scope";
 
 import { estimateTokens, reserveTokens, settleTokens } from "./budget";
-import { modelFor } from "./client";
-import { CALL_TIMEOUT_MS, type AiTier } from "./config";
+import { cachedOutput, latestOutput, saveOutput, type CacheKey } from "./cache";
 import type { AiCardData } from "./cards";
+import { modelFor } from "./client";
+import { CALL_TIMEOUT_MS, modelIdFor, type AiTier } from "./config";
 import { renderFacts, type FactPacket } from "./facts";
-import { REFUSAL_MESSAGE, checkGates, type AiRefusal } from "./gates";
+import { REFUSAL_MESSAGE, checkAccess, checkLimits, type AiRefusal } from "./gates";
 import { logInvocation } from "./log";
 import { POLICY_VERSION, policyPrompt, promptContext } from "./prompts/policy";
 import { verifySources } from "./verify";
@@ -22,7 +23,8 @@ import { verifySources } from "./verify";
  * The AI engine. Every AI capability in Ambient is a definition run by
  * runAiFeature(), which applies the same safety layer to all of them:
  *
- *   input → scope → gates → facts → budget → model call → verify → settle → log
+ *   input → scope → access → facts → cache? → limits → budget → model call
+ *         → verify → limit → cache → log
  *
  * Nothing else in the app calls a model. See docs/architecture/ai.md.
  */
@@ -51,6 +53,12 @@ export type AiFeature<I, O> = {
   temperature: number;
   maxOutputTokens: number;
   timeoutMs?: number;
+  /** Caps applied to the verified output (counts, lengths, markup) before anyone sees it. */
+  limit?: (output: O) => O;
+  /** Lines worked out by code from the facts, shown with the answer (never from the model). */
+  notes?: (facts: FactPacket) => string[];
+  /** Keep the verified answer per user and subject until its facts change, `ttlDays` at most. */
+  cache?: { subject: (input: I) => string; ttlDays: number };
 };
 
 export function defineAiFeature<I, O>(feature: AiFeature<I, O>): AiFeature<I, O> {
@@ -59,21 +67,34 @@ export function defineAiFeature<I, O>(feature: AiFeature<I, O>): AiFeature<I, O>
 
 export type AiFailure = AiRefusal | "invalid_input" | "not_found" | "rejected" | "failed";
 
-export type AiResult<O> =
-  | {
-      ok: true;
-      output: O;
-      /** "repaired" when invented sources were dropped or a retry was needed. */
-      outcome: "ok" | "repaired";
-      /** Handles the verified output cites, in order. */
-      sources: string[];
-      /** The cited records as cards, in the same order: what the user sees beside the text. */
-      cards: AiCardData[];
-    }
-  | { ok: false; reason: AiFailure; message: string };
+export type AiAnswer<O> = {
+  output: O;
+  /** "repaired" when invented sources were dropped or a retry was needed; "cached" when no model was called. */
+  outcome: "ok" | "repaired" | "cached";
+  /** Handles the verified output cites, in order. */
+  sources: string[];
+  /** The cited records as cards, in the same order: what the user sees beside the text. */
+  cards: AiCardData[];
+  /** The feature's code-computed notes for these facts. */
+  notes: string[];
+  /** When the answer was generated (earlier than now when cached). */
+  generatedAt: Date;
+};
+
+export type AiResult<O> = ({ ok: true } & AiAnswer<O>) | { ok: false; reason: AiFailure; message: string };
+
+/** What a page can show without calling the model. */
+export type AiPeek<O> =
+  | { state: "unavailable"; reason: AiFailure; message: string }
+  /** Nothing generated yet (or it expired). */
+  | { state: "none" }
+  /** A summary exists but the records have changed since; it isn't shown. */
+  | { state: "stale" }
+  | { state: "ready"; answer: AiAnswer<O> };
 
 const TRY_AGAIN = "Couldn't generate this right now. Try again in a moment.";
 const NOT_FOUND = "That record isn't available.";
+const INVALID = "That request isn't valid.";
 const ROLE_LABEL: Record<RoleKey, string> = {
   user: "Account manager",
   manager: "Manager",
@@ -116,10 +137,52 @@ function citedSources(value: unknown, into: string[] = []): string[] {
   return into;
 }
 
+/** The answer as the user sees it: cards for what it cites, and the feature's notes. */
+function present<I, O>(feature: AiFeature<I, O>, facts: FactPacket, output: O, outcome: AiAnswer<O>["outcome"], generatedAt: Date): AiAnswer<O> {
+  const sources = citedSources(output);
+  return {
+    output,
+    outcome,
+    sources,
+    cards: sources.flatMap((h) => facts.cards.get(h) ?? []),
+    notes: feature.notes?.(facts) ?? [],
+    generatedAt,
+  };
+}
+
+/**
+ * A cached answer for these exact facts, checked again against them before it
+ * is shown. Null when there is none, or it no longer verifies cleanly.
+ */
+async function fromCache<I, O>(scope: Scope, feature: AiFeature<I, O>, key: CacheKey, facts: FactPacket): Promise<AiAnswer<O> | null> {
+  const row = await cachedOutput(scope, key);
+  if (!row) return null;
+  const parsed = feature.output.safeParse(row.output);
+  if (!parsed.success) return null;
+  const verified = verifySources(parsed.data, facts.handles);
+  if (verified.removed > 0) return null;
+  return present(feature, facts, verified.output, "cached", row.createdAt);
+}
+
+function cacheKeyFor<I, O>(feature: AiFeature<I, O>, input: I, facts: FactPacket, model: string): CacheKey | null {
+  if (!feature.cache) return null;
+  return {
+    feature: feature.id,
+    subject: feature.cache.subject(input),
+    fingerprint: facts.fingerprint,
+    promptVersion: feature.version,
+    policyVersion: POLICY_VERSION,
+    model,
+  };
+}
+
+const notFoundLog = (scope: Scope, feature: string) =>
+  createLogger("ai", { tenantId: scope.tenantId, userId: scope.user._id }).info({ feature, reason: "not_found" }, "AI request for a record that isn't visible");
+
 /** Run one AI feature for the signed-in user. Never throws for expected failures. */
-export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unknown): Promise<AiResult<O>> {
+export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unknown, options: { refresh?: boolean } = {}): Promise<AiResult<O>> {
   const parsed = feature.input.safeParse(rawInput);
-  if (!parsed.success) return { ok: false, reason: "invalid_input", message: "That request isn't valid." };
+  if (!parsed.success) return { ok: false, reason: "invalid_input", message: INVALID };
   const input = parsed.data;
   const scope = await getScope();
 
@@ -129,15 +192,30 @@ export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unk
     return { ok: false, reason: refusal, message: REFUSAL_MESSAGE[refusal] };
   };
 
-  const refusal = await checkGates(scope, feature);
-  if (refusal) return refuse(refusal);
+  const denied = await checkAccess(scope, feature);
+  if (denied) return refuse(denied);
 
   const facts = await feature.facts(scope, input);
   // Out of scope, another tenant's or missing: the same answer, and no model call.
   if (!facts) {
-    createLogger("ai", { tenantId: scope.tenantId, userId: scope.user._id }).info({ feature: feature.id, reason: "not_found" }, "AI request for a record that isn't visible");
+    notFoundLog(scope, feature.id);
     return { ok: false, reason: "not_found", message: NOT_FOUND };
   }
+
+  // Access passed, so a model is configured for the tier.
+  const cacheKey = cacheKeyFor(feature, input, facts, modelIdFor(feature.tier) ?? "");
+  if (cacheKey && !options.refresh) {
+    const started = Date.now();
+    const hit = await fromCache(scope, feature, cacheKey, facts);
+    if (hit) {
+      await logInvocation(scope, { ...base, model: cacheKey.model, inputTokens: 0, outputTokens: 0, latencyMs: Date.now() - started, attempts: 0, outcome: "cached", refusal: null, errorKind: null });
+      return { ok: true, ...hit };
+    }
+  }
+
+  const limited = await checkLimits(scope);
+  if (limited) return refuse(limited);
+
   const instructions = `${policyPrompt(
     promptContext({ tenantName: scope.user.tenant.name, userName: scope.user.name, roleLabel: ROLE_LABEL[scope.user.role], timeZone: scope.timeZone }),
   )}\n\n${feature.task(input)}`;
@@ -200,9 +278,33 @@ export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unk
     await logInvocation(scope, { ...metrics, outcome: "rejected", errorKind: null });
     return { ok: false, reason: "rejected", message: TRY_AGAIN };
   }
+  const shown = feature.limit ? feature.limit(verified.output) : verified.output;
   const outcome = verified.removed > 0 || attempts > 1 ? "repaired" : "ok";
+  const generatedAt = cacheKey ? await saveOutput(scope, cacheKey, shown, feature.cache!.ttlDays) : new Date();
   await logInvocation(scope, { ...metrics, outcome, errorKind: null });
-  const sources = citedSources(verified.output);
-  const cards = sources.flatMap((h) => facts.cards.get(h) ?? []);
-  return { ok: true, output: verified.output, outcome, sources, cards };
+  return { ok: true, ...present(feature, facts, shown, outcome, generatedAt) };
+}
+
+/**
+ * What a page shows for a cached feature without calling the model: whether
+ * the user can use it, and the cached answer when its facts are unchanged.
+ * Writes nothing: no invocation row, no budget, no rate limit.
+ */
+export async function peekAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unknown): Promise<AiPeek<O>> {
+  const parsed = feature.input.safeParse(rawInput);
+  if (!parsed.success) return { state: "unavailable", reason: "invalid_input", message: INVALID };
+  const input = parsed.data;
+  const scope = await getScope();
+
+  const denied = await checkAccess(scope, feature);
+  if (denied) return { state: "unavailable", reason: denied, message: REFUSAL_MESSAGE[denied] };
+  if (!feature.cache) return { state: "none" };
+
+  const facts = await feature.facts(scope, input);
+  if (!facts) return { state: "unavailable", reason: "not_found", message: NOT_FOUND };
+
+  const key = cacheKeyFor(feature, input, facts, modelIdFor(feature.tier) ?? "")!;
+  const hit = await fromCache(scope, feature, key, facts);
+  if (hit) return { state: "ready", answer: hit };
+  return (await latestOutput(scope, feature.id, key.subject)) ? { state: "stale" } : { state: "none" };
 }

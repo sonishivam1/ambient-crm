@@ -18,8 +18,8 @@ must respect.
 - **Next: the AI layer, step by step** on OpenAI
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
   [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  Steps 1 (engine core) and 2 (fact sources and cards) are built; step 3
-  (account summary) is next.
+  Steps 1 to 3 are built (engine core; fact sources and cards; the account
+  summary with its cache); step 4 (morning brief) is next.
   The real model is tried only once the team's OpenAI key arrives; until then
   tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
 - **Not built:** real sign-in and hosting (waits on
@@ -173,7 +173,10 @@ docs/engineering/build-log.md  history of every change, newest first
 - Tools return `{ ok: true, facts, cards }` or `{ ok: false, reason, ask }`;
   propose tools never write. Accept runs the existing server action
   (scope check, audit row), idempotent by proposal id.
-- `aiInvocations` holds metadata only, never prompt or reply text.
+- `aiInvocations` holds metadata only, never prompt or reply text. Answer
+  text lives only in `aiOutputs`: per user, served only for unchanged facts,
+  7 days at most. A page shows a cached answer with `peekAiFeature`, which
+  never calls the model.
 - Prompts are versioned modules matching
   [AI prompts](docs/architecture/ai-prompts.md); change both and bump the
   version together.

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { Answer } from "@/components/ai/account-summary";
 import { AiCards } from "@/components/ai/cards";
 import { Card, PageHead, Skeleton } from "@/components/ui/primitives";
 import type { AiCardData } from "@/lib/ai/cards";
+import type { SummaryAnswerView } from "@/lib/ai/summary-view";
 import { myDayFacts } from "@/lib/ai/facts/my-day";
 import { getScope } from "@/lib/data/scope";
 
@@ -62,6 +64,21 @@ const SAMPLE_CARDS: AiCardData[] = [
   { kind: "notification", handle: "N1", href: "/notifications", title: "Contract renews in 30 days", body: "Workwear supply agreement ends on 12 Nov.", when: "Mon 20 Oct 2026, 7:00 am" },
 ];
 
+/** A made-up account summary, laid out as on a profile's narrow column. */
+const SAMPLE_SUMMARY: SummaryAnswerView = {
+  points: [
+    { section: "status", text: "Watch: last contact was a call on 8 Oct; the last site visit was positive.", sources: ["I1", "V2"] },
+    { section: "attention", text: "The revised price list was due on 14 Oct and is still open.", sources: ["T1"] },
+    { section: "attention", text: "The workwear supply agreement ($480,000) ends on 12 Nov, in 23 days.", sources: ["K1"] },
+    { section: "activity", text: "On the call, the buyer asked about winter-range lead times and wants samples this month.", sources: ["I1"] },
+  ],
+  nextStep: { text: "Send the revised price list with winter samples before the site visit on 23 Oct.", sources: ["T1", "V1"] },
+  cards: SAMPLE_CARDS.filter((c) => ["T1", "K1", "I1", "V1", "V2"].includes(c.handle)),
+  notes: ["No active contacts"],
+  generatedAt: new Date("2026-10-20T08:00:00Z"),
+  cached: false,
+};
+
 export default function Page() {
   return (
     <>
@@ -72,6 +89,10 @@ export default function Page() {
           The records behind an AI answer. Made-up values here; in the app they come from the user&apos;s own scoped records, never from model text.
         </p>
         <AiCards cards={SAMPLE_CARDS} />
+      </Card>
+
+      <Card title="Wren summary: a sample answer" className="mb-[18px] max-w-[420px]">
+        <Answer answer={SAMPLE_SUMMARY} />
       </Card>
 
       <Card title="AI cards: from your “my day” facts">

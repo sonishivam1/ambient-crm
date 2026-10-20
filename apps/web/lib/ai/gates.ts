@@ -20,21 +20,30 @@ export const REFUSAL_MESSAGE: Record<AiRefusal, string> = {
 };
 
 /**
- * Every check that must pass before a model is called, in order. Returns the
- * first refusal, or null. A refused request never calls the model and never
- * counts against the budget or the rate limit.
+ * Who may use the feature at all: a key is set, the tenant has AI on and this
+ * feature switched on, and the role is allowed by the feature and the tenant.
+ * Checked before facts are built and before a cached answer is shown, so
+ * switching AI off hides cached answers too.
  */
-export async function checkGates(scope: Scope, feature: { id: string; roles: readonly RoleKey[] }): Promise<AiRefusal | null> {
+export async function checkAccess(scope: Scope, feature: { id: string; roles: readonly RoleKey[] }): Promise<AiRefusal | null> {
   if (!aiConfigured()) return "not_configured";
   const policy = scope.user.tenant.ai;
   if (!policy.enabled) return "ai_disabled";
   if (!policy.features.includes(feature.id)) return "feature_disabled";
   const role = scope.user.role;
   if (!feature.roles.includes(role) || !policy.roles.includes(role)) return "role_not_allowed";
+  return null;
+}
 
+/**
+ * Limits on calling the model: the user's rate limits and the tenant's budget.
+ * Checked only when a model call is about to happen; a cached answer skips them.
+ * A refused request never calls the model and never counts against either.
+ */
+export async function checkLimits(scope: Scope): Promise<AiRefusal | null> {
   // Only requests that reached the model count towards the limits.
   const calls = await collection("aiInvocations");
-  const mine = { ...scope.tenant(), userId: scope.user._id, outcome: { $ne: "refused" as const } };
+  const mine = { ...scope.tenant(), userId: scope.user._id, outcome: { $nin: ["refused" as const, "cached" as const] } };
   const now = Date.now();
   const [lastMinute, lastDay] = await Promise.all([
     calls.countDocuments({ ...mine, createdAt: { $gte: new Date(now - 60_000) } }, { limit: RATE_LIMIT.perMinute }),

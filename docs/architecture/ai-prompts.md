@@ -78,51 +78,65 @@ From step 6 the first LIMITS line about changing data becomes: "You can
 propose changes with the propose tools. Nothing changes until the user accepts
 the proposal; never say a change is done."
 
-## Account summary (`account-summary` v1, step 3)
+## Account summary (`account-summary` v1, step 3, built)
+
+Code: `apps/web/lib/ai/prompts/account-summary.ts` (a test checks the two match).
 
 ```text
 TASK
-Brief {{userName}} on one customer account before they contact it.
+Brief the user on one customer account before they contact it.
 
-Write 4 to 8 points, in this order, including a section only when <facts>
-supports it:
-1. status    – health band, last touch, sentiment from recent visit reports
-2. attention – overdue or soon-due tasks, renewals within 90 days, risk signals
-3. activity  – the most recent 3 to 5 interactions or visits, one point each
-4. next_step – exactly one recommendation, tied to a specific fact
+Write 3 to 7 points, each in one section, in this order, including a section
+only when <facts> supports it:
+- status: health, last touch, and sentiment from recent visit reports
+- attention: overdue or soon-due tasks, renewals within 90 days, visits whose
+  day passed without being closed, risk signals
+- activity: the most recent interactions or visits, one point each, at most 3
 
-Each point: at most 25 words, with at least one source.
-If nothing in <facts> calls for action, set next_step to null.
-List anything a manager would expect but is missing from <facts> (for example
-"no visit in the last 90 days") in gaps.
+Then nextStep: exactly one recommendation, tied to a specific fact. If nothing
+in <facts> calls for action, set nextStep to null.
+
+Each point and the next step: at most 25 words, with at least one source.
+notOnRecord lists what is missing from the record; never contradict it, and
+don't repeat it as a point.
 ```
 
-Facts (from the `account` fact source, scoped):
+Facts: the `accountFacts` source (step 2), scoped to the user; shortened here.
 
 ```json
 {
-  "account": { "handle": "A1", "name": "ACME SAFETY", "type": "bill_to", "health": "At risk",
-               "owner": "Priya Nair", "fyRevenue": "$980K", "lastTouch": "3 days ago" },
-  "tasks": [{ "handle": "T1", "title": "Follow up on delivery delay complaint",
-              "status": "open", "due": "Sat 18 Oct", "overdue": true }],
-  "visits": [{ "handle": "V1", "type": "Site visit", "date": "Sat 18 Oct",
-               "status": "planned", "purpose": "Delivery issue walk-through" }],
+  "account": { "handle": "A1", "name": "ACME SAFETY", "type": "Bill-to", "health": "At risk",
+               "owner": "Priya Nair", "fyRevenue": "$539K", "lastTouch": "Mon 19 Oct 2026" },
+  "counts": { "openTasks": 2, "overdueTasks": 1, "contracts": 1, "activeContacts": 3 },
+  "tasks": [{ "handle": "T1", "title": "<untrusted>Follow up on delivery delay complaint</untrusted>",
+              "status": "Open", "due": "Sat 17 Oct 2026", "overdue": true, "priority": "High" }],
+  "visits": { "planned": [{ "handle": "V1", "when": "Sat 18 Oct 2026, 9:00 am", "type": "Site visit",
+                            "purpose": "<untrusted>Delivery issue walk-through</untrusted>",
+                            "status": "Planned, day passed, not closed" }],
+              "recent": [] },
+  "interactions": [{ "handle": "I1", "type": "Call", "date": "Mon 19 Oct 2026", "by": "Priya Nair",
+                     "summary": "<untrusted>Buyer chased an ETA on pallets 3 and 4…</untrusted>" }],
   "contracts": [{ "handle": "K1", "name": "National Safety Program", "value": "$312K",
-                  "ends": "10 Nov 2026", "daysLeft": 21 }],
-  "interactions": [{ "handle": "I1", "type": "Call", "date": "Thu 16 Oct",
-                     "summary": "<untrusted>Customer reported late pallets…</untrusted>" }]
+                  "end": "Tue 10 Nov 2026", "daysLeft": 21, "band": "≤ 30 days" }],
+  "contacts": [{ "handle": "C1", "name": "Hannah Brooks", "title": "Procurement Manager", "roles": ["Buyer"] }],
+  "notOnRecord": ["No completed visit in the last 90 days"]
 }
 ```
 
-Output:
+Output (strict structured output; limits applied by code after verification):
 
 ```ts
 {
-  points: Array<{ section: "status" | "attention" | "activity"; text: string; sources: string[] }>, // 3–7
+  points: Array<{ section: "status" | "attention" | "activity"; text: string; sources: string[] }>,
   nextStep: { text: string; sources: string[] } | null,
-  gaps: string[], // at most 3
 }
+// After verification: at most 7 points, in section order; text cut to 240
+// characters; markup and printed handles removed. Gaps ("Not on record") are
+// notOnRecord, computed by code; the model never writes one.
 ```
+
+Settings: tier `fast`, temperature 0.2, at most 700 output tokens. The answer
+is cached per user and account until the facts change (7 days at most).
 
 ## Morning brief (`morning-brief` v1, step 4)
 

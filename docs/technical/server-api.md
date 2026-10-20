@@ -32,12 +32,14 @@ callers outside the web app.
 | Function | File | Does |
 | --- | --- | --- |
 | `defineAiFeature(def)` | `lib/ai/engine.ts` | Declares a feature: id, version, roles, tier, input and output schemas, facts builder, task prompt, temperature, output cap |
-| `runAiFeature(feature, input)` | `lib/ai/engine.ts` | Runs it for the signed-in user: input check, gates, facts, budget reservation, model call, verification, settlement and logging. Returns `{ ok: true, output, outcome, sources, cards }` or `{ ok: false, reason, message }` (`not_found` when the fact source returns null); never throws for expected failures |
+| `runAiFeature(feature, input, { refresh })` | `lib/ai/engine.ts` | Runs it for the signed-in user: input check, access, facts, cache, limits, budget reservation, model call, verification, limits, cache save and logging. Returns `{ ok: true, output, outcome, sources, cards, notes, generatedAt }` (`outcome` is `cached` when no model was called) or `{ ok: false, reason, message }` (`not_found` when the fact source returns null); never throws for expected failures |
+| `peekAiFeature(feature, input)` | `lib/ai/engine.ts` | What a page can show without calling the model: `unavailable` (with reason and message), `none`, `stale` or `ready` with the cached answer. Writes nothing |
+| `accountSummary`, `accountSummaryState(accountId)` | `lib/ai/features/account-summary.ts` | The account summary feature, and the card's starting state for the profile |
 | `accountFacts(scope, { accountId })` | `lib/ai/facts/account.ts` | One account's facts and cards, on `getAccountProfile()`; null when not visible |
 | `myDayFacts(scope)` | `lib/ai/facts/my-day.ts` | What needs the user today (the team's for managers), with full counts |
 | `factsBuilder()` | `lib/ai/facts.ts` | Handles, allowed fields and cards for a fact source; `build()` adds the fingerprint |
 
-No feature is exposed to users yet (step 3 adds the first). See
+The account summary is the first feature users see (step 3). See
 [AI layer](../architecture/ai.md).
 
 ## Server actions (built)
@@ -57,6 +59,7 @@ No feature is exposed to users yet (step 3 adds the first). See
 | `completeVisit(input)` | `app/actions/visits.ts` | visit id, sentiment, three 1–5 ratings, key points, follow-ups | completes a visit on or after its day with its report, or adds the report to a completed one | `visit.complete` / `visit.report` (scores only; text flagged, never copied) |
 | `markNotificationRead(id)` | `app/actions/notifications.ts` | notification id | marks one of your own notifications read (keeps the first read time); `false` if it isn't yours | — (read state, not business data) |
 | `markAllNotificationsRead()` | `app/actions/notifications.ts` | — | marks all your unread notifications read; returns how many | — |
+| `generateAccountSummary({ accountId, refresh })` | `app/actions/ai.ts` | account id; `refresh` skips the cache | runs the account summary; returns the verified answer (points, next step, cards, notes, generated time) or a refusal message; writes no CRM data | — (logged in `aiInvocations`) |
 | `searchBillToAccounts(q)` | `app/actions/accounts.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task and contact dialogs | — (read) |
 | `listSoldTos(billToId)` | `app/actions/accounts.ts` | bill-to id | its sold-to sites, empty when the bill-to isn't in scope | — (read) |
 | `paletteSearch(q)` | `app/actions/search.ts` | 2–100 chars | up to 8 accounts in scope matching name or code, and up to 5 active contacts matching name or email | — (read) |

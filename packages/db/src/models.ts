@@ -10,6 +10,7 @@ import { z } from "zod";
  * - Rollup: dated warehouse snapshots, append-only (salesSnapshots).
  * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, interactions, contacts, notifications).
  * - Observability: append-only (auditLog, aiInvocations); aiUsage is the AI budget ledger.
+ * - Cache: aiOutputs, verified AI answers per user, deleted after at most 7 days.
  *
  * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
  * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
@@ -354,7 +355,8 @@ export const auditEntrySchema = z.object({
 export type AuditEntry = z.infer<typeof auditEntrySchema>;
 
 export const AI_TIERS = ["fast", "strong"] as const;
-export const AI_OUTCOMES = ["ok", "repaired", "rejected", "refused", "failed"] as const;
+/** `cached`: served from aiOutputs with no model call. */
+export const AI_OUTCOMES = ["ok", "repaired", "rejected", "refused", "failed", "cached"] as const;
 export const AI_REFUSALS = ["not_configured", "ai_disabled", "feature_disabled", "role_not_allowed", "budget_exhausted", "rate_limited"] as const;
 export const AI_ERROR_KINDS = ["timeout", "provider", "schema", "unknown"] as const;
 
@@ -400,6 +402,30 @@ export const aiUsageSchema = z.object({
   updatedAt: z.date(),
 });
 export type AiUsage = z.infer<typeof aiUsageSchema>;
+
+/**
+ * A verified AI answer, cached for one user, feature and subject (such as an
+ * account). Served only while the facts it was built from are unchanged
+ * (same fingerprint), under the same prompt and policy versions and model.
+ * Holds the answer text, so it is per user and expires (TTL on expiresAt).
+ */
+export const aiOutputSchema = z.object({
+  /** `${tenantId}:${userId}:${feature}:${subjectId}` */
+  _id: z.string(),
+  ...tenantScoped,
+  userId: z.string(),
+  feature: z.string(),
+  subjectId: z.string(),
+  factsFingerprint: z.string(),
+  promptVersion: z.number().int(),
+  policyVersion: z.number().int(),
+  model: z.string(),
+  /** The verified, limited output, exactly as it was shown. */
+  output: z.unknown(),
+  createdAt: z.date(),
+  expiresAt: z.date(),
+});
+export type AiOutput = z.infer<typeof aiOutputSchema>;
 
 /** One dated sales snapshot per scope (a rep, or "org" for the whole business). */
 export const salesSnapshotSchema = z.object({

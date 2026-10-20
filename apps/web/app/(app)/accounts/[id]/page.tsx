@@ -1,4 +1,4 @@
-import { Building, CalendarDays, ChevronLeft, MapPin, NotebookText, Phone, Sparkles, SquareCheck, Users, type LucideIcon } from "lucide-react";
+import { Building, CalendarDays, ChevronLeft, MapPin, NotebookText, Phone, SquareCheck, Users, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,11 +7,13 @@ import { Suspense } from "react";
 import type { HealthBand, Task } from "@ambient/db";
 
 import { LogInteractionButton } from "@/components/accounts/log-interaction";
+import { AccountSummaryPanel } from "@/components/ai/account-summary";
 import { AddContactButton } from "@/components/contacts/contact-controls";
 import { TaskCheck } from "@/components/dashboard/task-check";
 import { AddTaskButton } from "@/components/tasks/task-controls";
 import { AddVisitButton } from "@/components/visits/visit-controls";
 import { Avatar, Badge, Card, Empty, HealthPill, Skeleton, type Tone } from "@/components/ui/primitives";
+import { accountSummaryState } from "@/lib/ai/features/account-summary";
 import { cn } from "@/lib/cn";
 import { BAND, daysLeftLabel } from "@/lib/contracts";
 import { getAccountProfile, type AccountProfile, type TimelineItem } from "@/lib/data/account-profile";
@@ -220,13 +222,9 @@ function Overview({ profile, filter, base, options }: { profile: AccountProfile;
 
       <div className="flex flex-col gap-[18px]">
         <Card title={<span className="eyebrow">Wren summary</span>}>
-          <p className="mt-0 mb-3.5 text-[13.5px] text-muted">
-            A fresh read on this account from its correspondence and open tasks, generated on request. Arrives with the AI layer.
-          </p>
-          <button className="btn sm" disabled>
-            <Sparkles size={15} />
-            Generate
-          </button>
+          <Suspense fallback={<Skeleton className="h-[72px] rounded-[14px]" />}>
+            <WrenSummary accountId={profile.account.id} />
+          </Suspense>
         </Card>
 
         <Card title="Next touchpoint">
@@ -316,6 +314,11 @@ function Overview({ profile, filter, base, options }: { profile: AccountProfile;
       </div>
     </div>
   );
+}
+
+/** Starts from the cached summary when the records are unchanged; never calls the model on its own. */
+async function WrenSummary({ accountId }: { accountId: string }) {
+  return <AccountSummaryPanel accountId={accountId} initial={await accountSummaryState(accountId)} />;
 }
 
 function Contacts({ profile }: { profile: AccountProfile }) {

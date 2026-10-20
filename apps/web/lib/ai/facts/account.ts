@@ -9,6 +9,7 @@ import { decorateVisits } from "@/lib/data/visits";
 import { factsBuilder, type FactPacket } from "../facts";
 
 import { factDate } from "./format";
+import { notOnRecord } from "./gaps";
 import { addAccount, addContact, addContract, addInteraction, addTask, addVisit } from "./records";
 
 /** How many of each record one account's facts hold. */
@@ -31,9 +32,11 @@ export async function accountFacts(scope: Scope, input: { accountId: string }): 
   // Planned ones come oldest first, so a visit whose day passed without being closed shows.
   const visits = await collection("visits");
   const onAccount = { ...scope.tenant(), accountId: account.id, deletedAt: null };
-  const [planned, recent] = await Promise.all([
+  const [planned, recent, plannedCount] = await Promise.all([
     visits.find({ ...onAccount, status: "planned" }).sort({ scheduledAt: 1 }).limit(ACCOUNT_CAPS.plannedVisits).toArray(),
     visits.find({ ...onAccount, status: "completed" }).sort({ scheduledAt: -1 }).limit(ACCOUNT_CAPS.recentVisits).toArray(),
+    // Counted without the cap: a gap must be true of the whole record.
+    visits.countDocuments({ ...onAccount, status: "planned" }),
   ]);
   const [plannedRows, recentRows] = await Promise.all([decorateVisits(scope, planned), decorateVisits(scope, recent)]);
 
@@ -41,6 +44,9 @@ export async function accountFacts(scope: Scope, input: { accountId: string }): 
   const open = profile.tasks.filter((t) => OPEN_TASK_STATUSES.includes(t.status));
   const done = profile.tasks.filter((t) => t.status === "completed").reverse();
   const tasks = [...open, ...done].slice(0, ACCOUNT_CAPS.tasks);
+
+  const lastCompleted = recent[0]?.scheduledAt ?? null;
+  const lastInteraction = profile.timeline.find((i) => i.kind === "interaction")?.at ?? null;
 
   const f = factsBuilder();
   const facts = {
@@ -67,6 +73,16 @@ export async function accountFacts(scope: Scope, input: { accountId: string }): 
       .map((i) => addInteraction(f, { ...i, accountId: account.id }, tz)),
     contracts: profile.contracts.slice(0, ACCOUNT_CAPS.contracts).map((k) => addContract(f, k, tz)),
     contacts: profile.contacts.slice(0, ACCOUNT_CAPS.contacts).map((c) => addContact(f, c)),
+    notOnRecord: notOnRecord({
+      openTasks: profile.counts.openTasks,
+      plannedVisits: plannedCount,
+      lastCompletedVisit: lastCompleted,
+      lastInteraction,
+      activeContacts: profile.contacts.length,
+      contracts: profile.contracts.length,
+      today: scope.today,
+      timeZone: tz,
+    }),
   };
   return f.build(facts);
 }

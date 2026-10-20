@@ -3,6 +3,7 @@ import { MongoClient, type Collection, type Db } from "mongodb";
 import type {
   Account,
   AiInvocation,
+  AiOutput,
   AiUsage,
   AuditEntry,
   Contact,
@@ -34,6 +35,7 @@ type CollectionMap = {
   auditLog: AuditEntry;
   aiInvocations: AiInvocation;
   aiUsage: AiUsage;
+  aiOutputs: AiOutput;
 };
 
 export type CollectionName = keyof CollectionMap;

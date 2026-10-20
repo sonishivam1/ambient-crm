@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 20 Oct 2026 (AI step 2, fact sources and cards)._
+_Last updated: 20 Oct 2026 (AI step 3, account summary)._
 
 ## Where we are
 
@@ -44,8 +44,9 @@ sign-in.
 | Later | Passive capture, review queue, Outlook add-in | 3 |
 | ✅ Done | AI step 1, engine core: `defineAiFeature` / `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, usage log, token budgets, rate limits, test-only stand-in | 4 |
 | ✅ Done | AI step 2: fact sources (account, my day) with handles, allowed fields, fencing and caps; cards for every record kind | 4 |
-| ⏭ Next | AI step 3: account summary on the profile, with caching | 4 |
-| Later | AI steps 4–7: morning brief, Wren read-only chat, proposals and follow-up suggestions, evaluation and feedback | 4 |
+| ✅ Done | AI step 3: account summary on the profile, cached per user until the records change, gaps worked out by code | 4 |
+| ⏭ Next | AI step 4: morning brief, plus the 7am trigger | 4 |
+| Later | AI steps 5–7: Wren read-only chat, proposals and follow-up suggestions, evaluation and feedback | 4 |
 | Later | AI key day: configure the OpenAI key, run the evaluation set, tune prompts | 4 |
 | Later | Email and meeting analysis, embeddings, semantic search (after capture) | 4 |
 | Later | Team overview, reports, CRM usage, admin tools | 5 |
@@ -71,8 +72,9 @@ gantt
   AI engine core (step 1)                  :done,   a9, 2026-10-20, 1d
   Logging and API foundation               :done,   b9, 2026-10-20, 1d
   Fact sources and cards (step 2)          :done,   a0, 2026-10-20, 1d
-  Account summary, morning brief (3–4)     :active, a1, after a0, 4d
-  Wren chat, proposals, evaluation (5–7)   :        a2, after a1, 7d
+  Account summary (step 3)                 :done,   a1, 2026-10-20, 1d
+  Morning brief (step 4)                   :active, a3, after a1, 2d
+  Wren chat, proposals, evaluation (5–7)   :        a2, after a3, 7d
   section Foundations
   Sign-in, hosting, deployments           :        f1, after a2, 7d
   section Data spine

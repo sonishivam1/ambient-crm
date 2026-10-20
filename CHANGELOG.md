@@ -7,8 +7,11 @@ see the [build log](docs/engineering/build-log.md).
 
 ### AI (in progress)
 - AI engine foundations: AI is off by default per organisation, with chosen
-  roles, a monthly allowance and per-person limits. No AI feature is visible
-  yet; the account summary comes first.
+  roles, a monthly allowance and per-person limits.
+- **Account summary:** Generate on a customer profile writes a short briefing
+  with one next step, what's not on record, and the records it used. It's
+  kept until the account changes; Refresh writes a new one. Needs the OpenAI
+  key, so it shows "AI isn't set up yet" until then.
 
 ### Core CRM
 - **Dashboard:** today's tasks, the week's visits, key figures, at-risk

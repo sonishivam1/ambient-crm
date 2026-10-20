@@ -61,6 +61,12 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
   ],
   // _id is `${tenantId}:${month}`, so the default _id index serves every lookup.
   aiUsage: [],
+  aiOutputs: [
+    // _id is `${tenantId}:${userId}:${feature}:${subjectId}`, so lookups use the _id index.
+    // TTL indexes take a single field, so this one is not tenant-prefixed.
+    { key: { expiresAt: 1 }, expireAfterSeconds: 0 },
+    { key: { tenantId: 1, feature: 1, subjectId: 1 } },
+  ],
   auditLog: [
     { key: { tenantId: 1, at: -1 } },
     { key: { tenantId: 1, entity: 1, entityId: 1, at: -1 } },

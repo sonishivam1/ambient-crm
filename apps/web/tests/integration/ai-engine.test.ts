@@ -156,7 +156,15 @@ describe("verify, then return", () => {
     });
     const r = await runAiFeature(summary, {});
     // This test feature's facts have no cards; ai-facts.test.ts covers cards.
-    expect(r).toEqual({ ok: true, outcome: "repaired", sources: ["A1"], cards: [], output: { points: [{ text: "Real", sources: ["A1"] }], nextStep: null } });
+    expect(r).toEqual({
+      ok: true,
+      outcome: "repaired",
+      sources: ["A1"],
+      cards: [],
+      notes: [],
+      generatedAt: expect.any(Date),
+      output: { points: [{ text: "Real", sources: ["A1"] }], nextStep: null },
+    });
   });
 
   it("rejects a reply where every claim is invented", async () => {

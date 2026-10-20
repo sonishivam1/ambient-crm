@@ -16,6 +16,7 @@ write it.
 | **Rollup** | `salesSnapshots` (later: open orders, stock, health) | Dated snapshots, append-only. The dashboard reads the latest per scope. |
 | **App-native** | `users`, `tasks`, `visits`, `interactions`, `contacts`, `notifications`, later `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
 | **Observability** | `auditLog`, `aiInvocations` (plus the `aiUsage` budget ledger), later `syncRuns` | Append-only; production credentials get insert but not update or delete. |
+| **Cache** | `aiOutputs` | Verified AI answers per user; replaced on regenerate, deleted after at most 7 days (TTL). |
 
 ## Entities
 
@@ -199,7 +200,12 @@ erDiagram
   `aiInvocations` has one row per AI request, refused or not, with metadata
   only: there is no field for prompt, facts or reply text. `aiUsage` is the
   monthly token ledger per tenant (`_id` = `tenantId:YYYY-MM` on the tenant's
-  calendar), updated atomically. See [AI layer](ai.md).
+  calendar), updated atomically. `aiOutputs` caches one verified answer per
+  user, feature and subject (`_id` = `tenantId:userId:feature:subjectId`),
+  with the facts fingerprint, prompt and policy versions and model it was
+  built from; it holds the answer's text, so it is per user and expires
+  (`expiresAt`, TTL). `aiInvocations.outcome` includes `cached`. See
+  [AI layer](ai.md).
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't
   deleted (checked in the write path, so deleted contacts can share one).
@@ -235,3 +241,4 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `auditLog` | `at`, `entity + entityId + at`, `actorUserId + at` | audit browser |
 | `aiInvocations` | `createdAt`, `userId + createdAt`, `feature + createdAt` | rate limits, usage and cost reporting |
 | `aiUsage` | `_id` only (`tenantId:month`) | budget reservations |
+| `aiOutputs` | `_id` (`tenantId:userId:feature:subjectId`), `expiresAt` (TTL, single field), `feature + subjectId` | cache lookups, expiry |

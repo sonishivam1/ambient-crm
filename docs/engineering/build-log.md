@@ -13,6 +13,25 @@ how it was verified, and any lesson worth keeping.
 
 ## 20 Oct 2026
 
+### AI step 3: account summary
+- **What:** the first AI feature: Generate on a profile's Wren summary card
+  writes a cited briefing (status, needs attention, recent activity, one next
+  step) with the records used as cards and "Not on record" gaps computed by
+  code. A per-user cache (`aiOutputs`) serves it again while the facts are
+  unchanged, for 7 days at most; stale answers are hidden. The engine gains
+  `peekAiFeature`, split gates (access before facts, limits only before a
+  call), and `limit`, `notes` and `cache` hooks.
+- **Why:** proves the whole engine on a real screen, and gives every later
+  feature caching for free.
+- **Verified:** 11 integration and 10 unit tests; 225 web tests; lint,
+  typecheck and build clean; three planted cache bugs (fingerprint ignored,
+  shared across users, cached hits rate-limited) each fail the suite; the
+  card checked in the browser without a key, the sample answer in both modes.
+  A real OpenAI answer waits for key day.
+- **Lessons:** 90 × 24 hours isn't 90 calendar days across a daylight-saving
+  change; Tailwind's base layer removes list markers.
+- **Plan:** [AI step 3](../plans/ai-step-3-account-summary.md).
+
 ### AI step 2: fact sources and cards
 - **What:** `factsBuilder()` (handles, allowed fields per kind, a card kept per
   handle, a fingerprint); `accountFacts` and `myDayFacts` on the pages' read
