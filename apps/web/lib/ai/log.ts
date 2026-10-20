@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { collection, type AiInvocation } from "@ambient/db";
+import { createLogger } from "@ambient/logger";
 
 import type { Scope } from "@/lib/data/scope";
 
@@ -23,7 +24,7 @@ export async function logInvocation(scope: Scope, record: InvocationRecord) {
       createdAt: new Date(),
       ...record,
     });
-  } catch {
-    console.error(`aiInvocations write failed (feature ${record.feature})`);
+  } catch (err) {
+    createLogger("ai", { tenantId: scope.tenantId, userId: scope.user._id }).error({ err, feature: record.feature }, "aiInvocations write failed");
   }
 }

@@ -39,6 +39,7 @@ Node 24 and pnpm 10. On Windows with fnm, prefix commands with
 | `pnpm typecheck` | `next typegen` and `tsc` for every package |
 | `pnpm test` | Web unit and integration tests (integration uses Atlas, in throwaway `ambient_test_*` databases) |
 | `pnpm --filter @ambient/db test` | db package tests (pure, no database) |
+| `pnpm --filter @ambient/logger test` | logger tests (redaction, levels, errors) |
 | `pnpm test:unit` | Web unit tests only, no database |
 | `pnpm build` | Production build; must never need a database |
 | `pnpm db:inspect` | Read-only: databases and collection counts |
@@ -66,12 +67,15 @@ apps/web/
   tests/integration/*.test.ts  integration suites (one per area)
   tests/support/               test database, cookie jar, signInAs()
   app/globals.css              every component class and design token
+packages/logger/src/           @ambient/logger: createLogger(), redaction (scrub.ts)
 packages/db/src/
   models.ts                    Zod schemas: the single source of truth
   indexes.ts                   indexes, all prefixed with tenantId
   fixtures.ts                  fictional demo data (seed and tests share it)
   time.ts                      tenant-calendar helpers (pure Intl)
 docs/                          product, architecture, design, engineering
+docs/plans/                    one plan per step; As built filled in when done
+docs/engineering/build-log.md  history of every change, newest first
 ```
 
 ## Rules every change follows
@@ -118,6 +122,19 @@ docs/                          product, architecture, design, engineering
 - Page state that should be shareable (filters, views, pages) lives in the URL
   and is parsed leniently with a Zod schema that `.catch()`es to defaults.
 
+**Logging**
+- `@ambient/logger`, never `console`, in server code, workers and scripts:
+  `createLogger(area, { tenantId, userId })`, errors as `{ err }`, codes and ids
+  as fields. Never log prompt, reply, note or email text, keys or connection
+  strings; redaction in the logger is a safety net, not a licence. See
+  [conventions](docs/engineering/conventions.md#logging).
+
+**HTTP APIs** ([ADR 0007](docs/architecture/decisions/0007-api-versioning.md))
+- Every route handler lives under `/api/v1/…` (`app/api/v1/<area>/<name>/route.ts`)
+  with Zod schemas beside it; only `/api/health` is unversioned. Within v1,
+  changes are additive; a breaking change is `/api/v2`. Errors are
+  `{ error: { code, message } }`. Server actions are not versioned.
+
 **UI**
 - Reuse the classes in `apps/web/app/globals.css` and the primitives in
   `components/ui` and `components/forms`. One palette (navy and coral) with
@@ -161,6 +178,8 @@ docs/                          product, architecture, design, engineering
 
 ## Definition of done for a feature
 
+0. Write the step's plan in `docs/plans/` (from the template) and agree it
+   before building.
 1. Model and indexes in `packages/db`, fixtures for both tenants, and a
    `fixtures.test.ts` check.
 2. Read model in `lib/data`, actions in `app/actions`, pure rules in `lib/<area>.ts`.
@@ -178,6 +197,9 @@ docs/                          product, architecture, design, engineering
    `docs/architecture/data-model.md`, `docs/technical/server-api.md`,
    `docs/engineering/testing.md`, the README progress table, and
    `docs/product/roadmap.md` (status table, gantt, "Last updated").
+9. Record it: an entry in `docs/engineering/build-log.md` (what, why, how
+   verified, lessons), the plan's **As built** section, and a line in
+   `CHANGELOG.md` if users would notice.
 
 ## Safety
 

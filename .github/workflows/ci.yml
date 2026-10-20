@@ -33,6 +33,8 @@ jobs:
       - run: pnpm typecheck
       - name: Unit tests (db package)
         run: pnpm --filter @ambient/db test
+      - name: Unit tests (logger package)
+        run: pnpm --filter @ambient/logger test
       - name: Unit tests (web)
         run: pnpm --filter web test:unit
       - name: Production build

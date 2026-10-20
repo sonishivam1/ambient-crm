@@ -11,6 +11,9 @@ logging activity.
 (with decision records), design system, engineering, technical and marketing.
 **Contributing** (people or coding agents): read [CLAUDE.md](CLAUDE.md) first.
 It lists the rules every change follows and the definition of done.
+**History:** the [build log](docs/engineering/build-log.md) (how and why each
+change was made), the [plans](docs/plans/) behind each step, and the
+[changelog](CHANGELOG.md).
 
 ## What's in it today
 
@@ -111,6 +114,7 @@ apps/web
   lib/*.ts              pure rules shared by server and client, with unit tests
   lib/auth/             session, roles, account visibility
   tests/integration/    integration suites, one per area
+packages/logger         structured, redacted logging (pino)
 packages/db
   src/models.ts         Zod schemas for every collection
   src/indexes.ts        index definitions (pnpm db:indexes)
@@ -163,6 +167,7 @@ packages/db
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |
 | AI engine core: OpenAI client, gates, tenant AI policy, budgets, rate limits, usage log (no visible feature yet) | Done |
+| Structured, redacted logging (`@ambient/logger`); API versioning rule (`/api/v1`) | Done |
 | AI features: account summary, morning brief, Wren chat, proposals; later email analysis and search | Not started |
 | Team overview, reports, CRM usage, admin tools | Placeholder pages |
 

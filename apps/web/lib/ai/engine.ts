@@ -4,6 +4,7 @@ import { APICallError, NoObjectGeneratedError, Output, generateText, type Langua
 import type { z } from "zod";
 
 import type { AI_ERROR_KINDS, RoleKey } from "@ambient/db";
+import { createLogger } from "@ambient/logger";
 
 import { getScope, type Scope } from "@/lib/data/scope";
 
@@ -173,6 +174,11 @@ export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unk
   const metrics = { ...base, model: modelId, inputTokens: usage.input, outputTokens: usage.output, latencyMs: Date.now() - started, attempts, refusal: null };
 
   if (output === undefined) {
+    // Codes only: a provider's error message can echo request data.
+    createLogger("ai", { tenantId: scope.tenantId, userId: scope.user._id }).warn(
+      { feature: feature.id, model: modelId, errorKind: failure ?? "unknown", attempts },
+      "AI call failed",
+    );
     await logInvocation(scope, { ...metrics, outcome: "failed", errorKind: failure ?? "unknown" });
     return { ok: false, reason: "failed", message: TRY_AGAIN };
   }

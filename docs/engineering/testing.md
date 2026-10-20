@@ -87,7 +87,7 @@ to `main` and every pull request, in two parallel jobs:
 
 | Job | Runs |
 | --- | --- |
-| Lint, typecheck, unit tests, build | `pnpm lint`, `pnpm typecheck`, the db package's tests, the web unit project, `pnpm build` |
+| Lint, typecheck, unit tests, build | `pnpm lint`, `pnpm typecheck`, the db and logger packages' tests, the web unit project, `pnpm build` |
 | Integration tests | the web integration project against a throwaway MongoDB |
 
 The integration job starts `mongodb/mongodb-atlas-local:8.0` (the same image as

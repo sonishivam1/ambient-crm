@@ -17,6 +17,7 @@
     "inspect": "tsx --env-file-if-exists=.env scripts/inspect.ts"
   },
   "dependencies": {
+    "@ambient/logger": "workspace:*",
     "mongodb": "7.7.0",
     "zod": "4.6.7"
   },

@@ -3,6 +3,15 @@
 How Ambient is watched and what to do when something goes wrong. Most of this
 is **planned** and lands with deployment and the background workers.
 
+## Logs
+
+Everything logs through `@ambient/logger` (pino): JSON lines on stdout in
+production, readable lines in development, silent in tests. Every line has
+`time`, `level`, `service`, `area` and, where known, `requestId`, `tenantId` and
+`userId`. Secrets, connection strings, emails and phone numbers are masked and
+free-text fields are removed inside the logger, so logs are safe to ship to the
+host's log service (with hosting, Phase 0). `LOG_LEVEL` sets the minimum level.
+
 ## What we watch
 
 | Signal | Source | Alert when |

@@ -12,6 +12,7 @@ environments they are set in the host's encrypted settings.
 | `MONGODB_URI` | web, db scripts | yes | `mongodb+srv://user:***@cluster0.example.mongodb.net/?retryWrites=true&w=majority&appName=ambient-crm` | Secret. Local Docker: `mongodb://localhost:27017/?directConnection=true` |
 | `MONGODB_DB` | web, db scripts | no (`ambient_crm`) | `ambient_crm` | Database name inside the cluster |
 | `AMBIENT_DEV_AUTH` | web | development only | `1` | Enables the development role switcher. Ignored when `NODE_ENV=production`. |
+| `LOG_LEVEL` | web, db scripts | no (`info`; `silent` in tests) | `debug` | Minimum log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `silent` |
 | `OPENAI_API_KEY` | web | for AI features | `sk-proj-…` | Secret, server-only, never logged. Without it AI features show "AI isn't set up yet". For demos use a separate OpenAI project key with a spending limit. |
 | `OPENAI_MODEL` | web | for AI features | a small OpenAI model | The `fast` tier every feature uses by default ([ADR 0006](../architecture/decisions/0006-ai-provider.md)) |
 | `OPENAI_MODEL_STRONG` | web | no | a larger OpenAI model | The `strong` tier, only for features the evaluation set moves there |

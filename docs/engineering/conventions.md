@@ -32,6 +32,28 @@ export async function doThing(raw: unknown) {
 }
 ```
 
+## Logging
+
+Use `@ambient/logger`, never `console`, in server code, workers and scripts:
+
+```ts
+import { createLogger } from "@ambient/logger";
+
+const log = createLogger("ai", { tenantId: scope.tenantId, userId: scope.user._id });
+log.warn({ feature: "account-summary", errorKind: "timeout" }, "AI call failed");
+```
+
+- One line per event, with codes and ids as fields and a short message.
+- Context (`area`, `requestId`, `tenantId`, `userId`) goes on a child logger.
+- Pass errors as `{ err }`. Errors you raise yourself use `AppError(code,
+  message)`, whose message is logged; any other error is logged by name and
+  code only, because its message can echo request data.
+- Never log prompt, reply, note, summary or email text, or any key or
+  connection string. The logger redacts them anyway (masks secrets, emails and
+  phone numbers; removes free-text fields), but that is a safety net.
+- The one exception to "never `console`" is a script's report written for a
+  person to read (`db:inspect`).
+
 ## Components
 
 - Server components by default. Add `"use client"` only for interaction, and keep

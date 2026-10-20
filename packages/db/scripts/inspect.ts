@@ -1,5 +1,13 @@
-/** Read-only look at the target cluster: databases, and what MONGODB_DB already holds. */
+/**
+ * Read-only look at the target cluster: databases, and what MONGODB_DB already
+ * holds. The report itself is plain console output for a person to read; errors
+ * go through the logger.
+ */
+import { createLogger, scrubString } from "@ambient/logger";
+
 import { closeClient, getClient, getDb } from "../src/index";
+
+const log = createLogger("inspect");
 
 async function main() {
   const client = await getClient();
@@ -17,7 +25,7 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error(error instanceof Error ? error.message : error);
+    log.error({ err: error, detail: error instanceof Error ? scrubString(error.message) : undefined }, "Inspecting the database failed.");
     process.exitCode = 1;
   })
   .finally(closeClient);
