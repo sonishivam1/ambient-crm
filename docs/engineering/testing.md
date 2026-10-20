@@ -80,9 +80,24 @@ fails. Removing `tenantId` from `getScope().filter()` fails four integration
 tests (cross-tenant profile, task create, task complete, scope filter); that
 check was run when the suite was added.
 
+## In CI
+
+[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) runs on every push
+to `main` and every pull request, in two parallel jobs:
+
+| Job | Runs |
+| --- | --- |
+| Lint, typecheck, unit tests, build | `pnpm lint`, `pnpm typecheck`, the db package's tests, the web unit project, `pnpm build` |
+| Integration tests | the web integration project against a throwaway MongoDB |
+
+The integration job starts `mongodb/mongodb-atlas-local:8.0` (the same image as
+`docker-compose.yml`: a single-node replica set, so transactions work) as a
+service container, points `TEST_MONGODB_URI` at it, and throws it away after
+the run. CI needs **no secrets** and never reaches the Atlas cluster; locally,
+tests keep using Atlas as described above. The build is given an unreachable
+`MONGODB_URI` on purpose: it must never need a database.
+
 ## Still to add
 
 - End-to-end tests (Playwright) for sign-in per role, completing a task and
-  logging an interaction through the real UI.
-- A CI job that runs `pnpm test` on every pull request, with the test cluster
-  URI stored as a repository secret.
+  logging an interaction through the real UI, added to CI.

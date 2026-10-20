@@ -1,0 +1,69 @@
+# Every push to main and every pull request: lint, typecheck, unit tests and a
+# production build, then the integration suite against a throwaway MongoDB
+# (Atlas Local: a single-node replica set, so transactions work). No secrets:
+# CI never touches the Atlas cluster.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version from package.json "packageManager"
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - name: Unit tests (db package)
+        run: pnpm --filter @ambient/db test
+      - name: Unit tests (web)
+        run: pnpm --filter web test:unit
+      - name: Production build
+        run: pnpm build
+        env:
+          # The build never connects; pages read the database at request time.
+          MONGODB_URI: mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=2000
+
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mongo:
+        image: mongodb/mongodb-atlas-local:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 18
+    env:
+      # Each test file still creates and drops its own ambient_test_* database.
+      TEST_MONGODB_URI: mongodb://localhost:27017/?directConnection=true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web test:integration

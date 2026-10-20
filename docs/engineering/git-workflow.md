@@ -18,8 +18,10 @@ gitGraph
   merge fix/palette-scope
 ```
 
-- `main` is always deployable. No direct pushes once CI exists; until then, keep
-  commits small and checked.
+- `main` is always deployable and always green: CI (lint, typecheck, unit and
+  integration tests, build) runs on every push and pull request. Requiring those
+  checks before merging is a GitHub branch-protection setting to turn on once
+  more than one person commits.
 - Branch names: `feat/…`, `fix/…`, `docs/…`, `chore/…`.
 
 ## Commits
@@ -33,11 +35,11 @@ what changed for the user; the body says why and anything a reviewer must know.
 Every PR:
 - describes the change and how it was verified (commands run, pages checked);
 - updates the docs it affects in the same PR;
-- passes type-check and lint (and tests, once they exist);
+- passes CI: lint, typecheck, unit and integration tests, and the build;
 - contains **no secrets**: no connection strings, keys or tokens. `.env*` files
   are gitignored; check `git diff --cached` before committing.
 
 ## Releases
 
-Planned with CI/CD: every merge to `main` deploys to staging; production deploys
+Planned with deployments (CD, after hosting is chosen): every merge to `main` deploys to staging; production deploys
 are tagged `vYYYY.MM.DD` with release notes generated from commit subjects.

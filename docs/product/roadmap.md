@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 20 Oct 2026 (contracts)._
+_Last updated: 20 Oct 2026 (CI)._
 
 ## Where we are
 
@@ -29,12 +29,13 @@ sign-in.
 | ✅ Done | Tasks: today and all views, create, edit, assign, cancel | 2 |
 | ✅ Done | Logged interactions (notes, calls, meetings) on the account timeline | 2 |
 | ✅ Done | Automated tests: unit + integration on throwaway Atlas databases | – |
+| ✅ Done | CI on every push and pull request: lint, typecheck, unit and integration tests (throwaway MongoDB), build | 0 |
 | ✅ Done | Tenant settings: each tenant's own divisions and lenses, and its time zone for "today", "overdue" and due dates | 1 |
 | ✅ Done | Contacts: directory, add, edit, deactivate, profile card, Ctrl K search | 2 |
 | ✅ Done | Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | 2 |
 | ✅ Done | Notifications page: history by day, filters, mark read / all read | 2 |
 | ✅ Done | Contracts: renewal bands, search, profile card (read-only) | 2 |
-| Later | Sign-in (Entra ID), hosting, CI/CD ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
+| Later | Sign-in (Entra ID), hosting, deployments ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
 | Later | Warehouse / ERP sync into the mirror collections | 1 |
 | Later | Passive capture, review queue, Outlook add-in | 3 |
 | Later | AI layer and Wren ([ADR 0006](../architecture/decisions/0006-ai-provider.md), proposed) | 4 |
@@ -56,8 +57,9 @@ gantt
   Call cycle                               :done,   b5, 2026-10-19, 1d
   Notifications                            :done,   b6, 2026-10-19, 1d
   Contracts                                :done,   b7, 2026-10-20, 1d
+  CI                                       :done,   b8, 2026-10-20, 1d
   section Foundations
-  Sign-in, hosting, CI/CD                  :        f1, 2026-10-21, 7d
+  Sign-in, hosting, deployments           :        f1, 2026-10-21, 7d
   section Data spine
   Warehouse sync with guardrails           :        d1, after f1, 12d
   section Passive capture
@@ -76,7 +78,7 @@ gantt
 
 | Phase | Scope | Gate to pass |
 | --- | --- | --- |
-| 0 Foundations | Shell and design system (**done**), multi-tenancy (**done**), sign-in, CI/CD, hosting | A user signs in to their tenant in a deployed environment |
+| 0 Foundations | Shell and design system (**done**), multi-tenancy (**done**), CI (**done**), sign-in, hosting, deployments | A user signs in to their tenant in a deployed environment |
 | 1 Data spine | Data model (**done** for current features), visibility rules (**done**), tenant settings (**done**), ERP/warehouse sync with guardrails | Each role sees exactly the right accounts on real-shaped data |
 | 2 Core CRM | Dashboard, accounts, profile, group page, tasks, contacts, call cycle, notifications, contracts (**done**) | Product demo sign-off on every core page |
 | 3 Passive capture | Email and meeting workers, matcher, review queue, backfill, Outlook add-in | Test mailboxes captured end to end with no manual step |

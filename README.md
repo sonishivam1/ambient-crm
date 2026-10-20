@@ -5,6 +5,8 @@ automatically, files them on each account's timeline, and puts an AI assistant
 (Wren) on top, so account managers spend their time with customers rather than
 logging activity.
 
+[![CI](https://github.com/sonishivam1/ambient-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/sonishivam1/ambient-crm/actions/workflows/ci.yml)
+
 **Documentation:** start at [docs/](docs/README.md) — product, architecture
 (with decision records), design system, engineering, technical and marketing.
 
@@ -106,7 +108,8 @@ packages/db
 | Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | Done |
 | Notifications: history by day, filters, mark read / all read | Done |
 | Contracts: renewal bands, search, profile card (read-only) | Done |
-| Sign-in, hosting, CI/CD | Not started |
+| CI: lint, typecheck, unit and integration tests, build on every push | Done |
+| Sign-in, hosting, deployments | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |
 | AI layer: analysis, vector search, Wren, morning brief, smart tasks | Not started |
