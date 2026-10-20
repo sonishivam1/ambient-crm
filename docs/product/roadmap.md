@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 20 Oct 2026 (AI engine design)._
+_Last updated: 20 Oct 2026 (AI step 1: engine core)._
 
 ## Where we are
 
@@ -41,8 +41,9 @@ sign-in.
 | Later | Sign-in (Entra ID), hosting, deployments ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
 | Later | Warehouse / ERP sync into the mirror collections | 1 |
 | Later | Passive capture, review queue, Outlook add-in | 3 |
-| ⏭ Next | AI step 1, engine core: `defineAiFeature` / `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, usage log, test-only stand-in | 4 |
-| Later | AI steps 2–7: fact sources and cards, account summary, morning brief, Wren read-only chat, proposals and follow-up suggestions, evaluation and feedback | 4 |
+| ✅ Done | AI step 1, engine core: `defineAiFeature` / `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, usage log, token budgets, rate limits, test-only stand-in | 4 |
+| ⏭ Next | AI step 2: fact sources and cards | 4 |
+| Later | AI steps 3–7: account summary, morning brief, Wren read-only chat, proposals and follow-up suggestions, evaluation and feedback | 4 |
 | Later | AI key day: configure the OpenAI key, run the evaluation set, tune prompts | 4 |
 | Later | Email and meeting analysis, embeddings, semantic search (after capture) | 4 |
 | Later | Team overview, reports, CRM usage, admin tools | 5 |
@@ -65,7 +66,8 @@ gantt
   Contracts                                :done,   b7, 2026-10-20, 1d
   CI                                       :done,   b8, 2026-10-20, 1d
   section AI layer (existing data)
-  Engine, fact sources, cards (steps 1–2)  :active, a0, 2026-10-21, 4d
+  AI engine core (step 1)                  :done,   a9, 2026-10-20, 1d
+  Fact sources and cards (step 2)          :active, a0, 2026-10-21, 3d
   Account summary, morning brief (3–4)     :        a1, after a0, 4d
   Wren chat, proposals, evaluation (5–7)   :        a2, after a1, 7d
   section Foundations

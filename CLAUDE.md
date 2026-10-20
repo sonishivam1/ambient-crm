@@ -18,8 +18,9 @@ must respect.
 - **Next: the AI layer, step by step** on OpenAI
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
   [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  Step 1 (engine core) first. The real model is tried only once the team's
-  OpenAI key arrives; until then tests use the test-only stand-in.
+  Step 1 (engine core) is built; step 2 (fact sources and cards) is next.
+  The real model is tried only once the team's OpenAI key arrives; until then
+  tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
 - **Not built:** real sign-in and hosting (waits on
   [ADR 0005](docs/architecture/decisions/0005-hosting-and-sign-in.md)),
   warehouse/ERP sync into the Mirror collections, email and meeting capture,
@@ -146,7 +147,10 @@ docs/                          product, architecture, design, engineering
 - Prompts are versioned modules matching
   [AI prompts](docs/architecture/ai-prompts.md); change both and bump the
   version together.
-- Tests use the test-only stand-in model; CI never calls OpenAI. Quality is
+- Output schemas use `.nullable()`, never `.optional()` or `.default()`
+  (OpenAI strict structured outputs need every field present).
+- Tests use the test-only stand-in model, swapped in with
+  `vi.mock("@/lib/ai/client")`; CI never calls OpenAI. Quality is
   measured with `pnpm ai:eval` on key day and on every prompt or model change.
 
 **Demo data**

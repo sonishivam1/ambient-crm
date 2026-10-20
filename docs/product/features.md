@@ -189,8 +189,11 @@ matcher the new address) or reject.
 passive capture misses. Creates contacts for unknown senders.
 
 ### Wren, the AI assistant
-Planned, built step by step on one AI engine with OpenAI
-([AI layer](../architecture/ai.md), [prompts](../architecture/ai-prompts.md)):
+Built step by step on one AI engine with OpenAI
+([AI layer](../architecture/ai.md), [prompts](../architecture/ai-prompts.md)).
+**Built so far (step 1):** the engine itself: gates (AI switch, features and
+roles per tenant), monthly token budgets, rate limits, verified output and a
+usage log. No AI feature is visible to users yet. Planned:
 - **Account summary** (step 3): "Generate" on the customer profile writes a
   short briefing; the records it used appear as cards.
 - **Morning brief** (step 4): see below.

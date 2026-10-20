@@ -9,6 +9,7 @@ import { z } from "zod";
  * - Mirror: copied from the customer's ERP or warehouse, read-only in the app (reps, groups, accounts, contracts).
  * - Rollup: dated warehouse snapshots, append-only (salesSnapshots).
  * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, interactions, contacts, notifications).
+ * - Observability: append-only (auditLog, aiInvocations); aiUsage is the AI budget ledger.
  *
  * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
  * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
@@ -58,6 +59,19 @@ export const tenantSchema = z.object({
    * of divisions. Empty means the tenant has no lens.
    */
   lenses: z.array(z.object({ key: divisionKey, label: z.string().min(1).max(60), divisions: z.array(divisionKey).min(1) })).default([]),
+  /**
+   * The tenant's AI policy. Off by default: an admin turns it on, chooses the
+   * roles and features that may use it, and sets a monthly token budget.
+   */
+  ai: z
+    .object({
+      enabled: z.boolean(),
+      roles: z.array(z.enum(ROLE_KEYS)),
+      /** AI feature ids that are switched on (for example "account-summary"). */
+      features: z.array(settingKey),
+      monthlyTokenBudget: z.number().int().min(0),
+    })
+    .default({ enabled: false, roles: [], features: [], monthlyTokenBudget: 0 }),
   /** The role tags a contact can carry (Buyer, Finance…), in display order. */
   contactRoles: z.array(z.object({ key: settingKey, label: z.string().min(1).max(60) })).default([]),
   /** The Entra tenant whose users sign in to this Ambient tenant. */
@@ -338,6 +352,54 @@ export const auditEntrySchema = z.object({
   after: z.record(z.string(), z.unknown()).nullable(),
 });
 export type AuditEntry = z.infer<typeof auditEntrySchema>;
+
+export const AI_TIERS = ["fast", "strong"] as const;
+export const AI_OUTCOMES = ["ok", "repaired", "rejected", "refused", "failed"] as const;
+export const AI_REFUSALS = ["not_configured", "ai_disabled", "feature_disabled", "role_not_allowed", "budget_exhausted", "rate_limited"] as const;
+export const AI_ERROR_KINDS = ["timeout", "provider", "schema", "unknown"] as const;
+
+/**
+ * One row per AI request, refused or not. Metadata only: there is deliberately
+ * no field that could hold prompt, facts or reply text.
+ */
+export const aiInvocationSchema = z.object({
+  _id: z.string(),
+  ...tenantScoped,
+  userId: z.string(),
+  feature: z.string(),
+  /** The feature prompt's version and the shared policy prompt's version. */
+  promptVersion: z.number().int(),
+  policyVersion: z.number().int(),
+  /** Null when no model was called (a refusal). */
+  model: z.string().nullable(),
+  tier: z.enum(AI_TIERS),
+  inputTokens: z.number().int().min(0),
+  outputTokens: z.number().int().min(0),
+  latencyMs: z.number().int().min(0),
+  /** How many model calls this request took (0 when refused, 2 after a retry). */
+  attempts: z.number().int().min(0),
+  outcome: z.enum(AI_OUTCOMES),
+  refusal: z.enum(AI_REFUSALS).nullable(),
+  errorKind: z.enum(AI_ERROR_KINDS).nullable(),
+  createdAt: z.date(),
+});
+export type AiInvocation = z.infer<typeof aiInvocationSchema>;
+
+/**
+ * The AI token ledger for one tenant and month (on the tenant's calendar).
+ * Calls reserve an estimate before they run and settle to real usage after,
+ * so concurrent calls can't overspend the budget.
+ */
+export const aiUsageSchema = z.object({
+  /** `${tenantId}:${YYYY-MM}` */
+  _id: z.string(),
+  ...tenantScoped,
+  month: z.string().regex(/^\d{4}-\d{2}$/),
+  reserved: z.number().int().min(0),
+  used: z.number().int().min(0),
+  updatedAt: z.date(),
+});
+export type AiUsage = z.infer<typeof aiUsageSchema>;
 
 /** One dated sales snapshot per scope (a rep, or "org" for the whole business). */
 export const salesSnapshotSchema = z.object({

@@ -1,6 +1,7 @@
 # AI layer
 
-**Status:** designed; built step by step (see [Build order](#build-order)).
+**Status:** step 1 (engine core) built; the rest designed and built step by
+step (see [Build order](#build-order)).
 Provider: OpenAI through the Vercel AI SDK
 ([ADR 0006](decisions/0006-ai-provider.md)). Prompts: [AI prompts](ai-prompts.md).
 
@@ -346,8 +347,8 @@ before the next.
 
 | Step | Builds | Status |
 | --- | --- | --- |
-| 1. Engine core | `defineAiFeature`, `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, `aiInvocations`, test-only stand-in, security tests | Next |
-| 2. Fact sources and cards | Account and "my day" fact sources with handles and allowed fields; task, visit, contract and account cards | Planned |
+| 1. Engine core | `defineAiFeature`, `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, `aiInvocations`, `aiUsage` budget ledger, test-only stand-in, security tests | ✅ Built |
+| 2. Fact sources and cards | Account and "my day" fact sources with handles and allowed fields; task, visit, contract and account cards | Next |
 | 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | Planned |
 | 4. Morning brief | Second feature, plus the 7am trigger | Planned |
 | 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | Planned |
@@ -358,21 +359,50 @@ before the next.
 Deliberately **not** built: agents that act without a click, fine-tuned
 models, anything that sends messages to customers.
 
-## Code layout (planned)
+## Code layout
 
 ```
 apps/web/lib/ai/
-  client.ts        the only file that imports the AI SDK provider: tiers, time limits, errors
-  engine.ts        defineAiFeature, runAiFeature, defineAiTool
-  gates.ts         key, tenant policy, role, budget, rate limit
-  facts/           fact sources: scoped, handles, allowed fields, fencing
-  prompts/         versioned prompt modules (see ai-prompts.md)
-  features/        one file per feature
-  tools/           one file per tool
-  verify.ts        schema, handles, limits
-  log.ts           aiInvocations (metadata only), aiOutputs cache, feedback
-  testing/         the test-only stand-in model
-apps/web/components/ai/   cards, proposal card, chat panel
+  config.ts        OPENAI_* settings read on use, tiers, rate limits, time limit      (built)
+  client.ts        the only file that imports @ai-sdk/openai: modelFor(tier)          (built)
+  engine.ts        defineAiFeature, runAiFeature (defineAiTool in step 5)             (built)
+  gates.ts         key, tenant policy, feature, role, rate limit, budget left         (built)
+  budget.ts        aiUsage ledger: atomic reserve, settle, tokens left                (built)
+  facts.ts         fact packets, handles, untrusted fencing, rendering                (built)
+  verify.ts        drop claims citing handles not in this call's facts                (built)
+  log.ts           aiInvocations rows, metadata only                                  (built)
+  prompts/         versioned prompt modules; policy.ts is v1                          (built)
+  facts/           fact sources on scoped read models                                 (step 2)
+  features/        one file per feature                                               (step 3 on)
+  tools/           one file per tool                                                  (step 5)
+apps/web/components/ai/          cards, proposal card, chat panel                    (step 2 on)
+apps/web/tests/support/ai-stand-in.ts   the test-only stand-in model                (built)
 ```
 
-Nothing outside `lib/ai/` imports the AI SDK or calls OpenAI.
+Nothing outside `lib/ai/` imports the AI SDK or calls OpenAI. The stand-in lives
+under `tests/` and is swapped in with `vi.mock("@/lib/ai/client")`, so app code
+has no test hook.
+
+## Engine details (built in step 1)
+
+- **Settings:** `OPENAI_API_KEY`, `OPENAI_MODEL` (`fast`), `OPENAI_MODEL_STRONG`
+  (`strong`, falls back to `fast`), read on every use; "AI isn't set up yet"
+  until the key and `OPENAI_MODEL` are set.
+- **Tenant policy:** `tenants.ai = { enabled, roles, features, monthlyTokenBudget }`,
+  off by default. Demo data: on for Northwind (roles user, manager, senior,
+  lead; 2,000,000 tokens a month), off for Harbor & Finch. Set in the seed for
+  now; the admin screen comes in Phase 5.
+- **Rate limits:** 10 requests a minute and 200 a day per user (rolling),
+  counting only requests that reached the model.
+- **Budget:** an estimate (prompt characters ÷ 4 + the feature's output cap) is
+  reserved atomically in `aiUsage` before the call and settled to real usage
+  after, including on failure. Concurrent calls can't reserve past the budget.
+- **Call:** `generateText` with `Output.object` (OpenAI strict structured
+  outputs), the feature's temperature and output cap, one SDK retry for network
+  errors, a 20-second time limit. Output schemas must use `.nullable()`, not
+  `.optional()` or `.default()`, for strict mode.
+- **Retry:** one more attempt only when the reply's shape is wrong.
+- **Result:** `{ ok: true, output, outcome, sources }` or
+  `{ ok: false, reason, message }`; reasons are the gate refusals plus
+  `invalid_input`, `rejected` (every claim invented) and `failed`. Messages
+  never include provider error text.

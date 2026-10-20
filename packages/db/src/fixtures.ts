@@ -86,6 +86,8 @@ export type TenantSpec = {
   divisions: Tenant["divisions"];
   lenses: Tenant["lenses"];
   contactRoles: Tenant["contactRoles"];
+  /** Omitted means AI is off, as for any new tenant. */
+  ai?: Tenant["ai"];
   sites: string[];
   reps: RepRow[];
   users: UserRow[];
@@ -105,6 +107,13 @@ export const NORTHWIND: TenantSpec = {
   name: "Northwind Supply Co.",
   domain: "northwind.example",
   timeZone: "Australia/Sydney",
+  // AI on for the demo tenant; Harbor & Finch keeps the default (off).
+  ai: {
+    enabled: true,
+    roles: ["user", "manager", "senior", "lead"],
+    features: ["account-summary", "morning-brief", "wren-chat", "followup-suggestions"],
+    monthlyTokenBudget: 2_000_000,
+  },
   divisions: [
     { key: "wholesale", label: "Wholesale" },
     { key: "uniforms", label: "Uniforms" },
@@ -506,6 +515,7 @@ export function build(spec: TenantSpec): Built {
     divisions: spec.divisions,
     lenses: spec.lenses,
     contactRoles: spec.contactRoles,
+    ai: spec.ai ?? { enabled: false, roles: [], features: [], monthlyTokenBudget: 0 },
     entraTenantId: null,
     active: true,
     createdAt: now,

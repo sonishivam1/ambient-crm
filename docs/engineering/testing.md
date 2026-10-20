@@ -23,8 +23,8 @@ flowchart TB
 
 | Layer | Where | What it covers |
 | --- | --- | --- |
-| Unit | `apps/web/lib/**/*.test.ts` | Pure functions: `format.ts`, `lens.ts`, `accounts-url.ts`, contact and visit input rules, renewal bands, the role matrix |
-| Integration | `apps/web/tests/integration/*.test.ts` | Visibility per role, tenant isolation, per-tenant divisions, lenses and time zones, contacts (directory, scope, create/edit/deactivate, duplicate emails, audit privacy), call cycle (weeks in the tenant zone, booking rules, reschedule, cancel, post-visit reports), notifications (own only, filters, day groups, mark read), contracts (bands in the tenant zone, counts, search, scope, profile card), accounts list and drill-down, customer and group pages, palette search, task create/edit/cancel/complete, interactions, audit-log privacy |
+| Unit | `apps/web/lib/**/*.test.ts` | Pure functions: `format.ts`, `lens.ts`, `accounts-url.ts`, contact and visit input rules, renewal bands, AI facts, verification, policy prompt and config, the role matrix |
+| Integration | `apps/web/tests/integration/*.test.ts` | Visibility per role, tenant isolation, per-tenant divisions, lenses and time zones, contacts (directory, scope, create/edit/deactivate, duplicate emails, audit privacy), call cycle (weeks in the tenant zone, booking rules, reschedule, cancel, post-visit reports), notifications (own only, filters, day groups, mark read), contracts (bands in the tenant zone, counts, search, scope, profile card), the AI engine (gates, scoped facts, verification, retries, time limits, budget races, rate limits, metadata-only logging), accounts list and drill-down, customer and group pages, palette search, task create/edit/cancel/complete, interactions, audit-log privacy |
 | End to end | — | Planned: Playwright against a seeded app |
 
 ## How integration tests work
@@ -96,6 +96,17 @@ service container, points `TEST_MONGODB_URI` at it, and throws it away after
 the run. CI needs **no secrets** and never reaches the Atlas cluster; locally,
 tests keep using Atlas as described above. The build is given an unreachable
 `MONGODB_URI` on purpose: it must never need a database.
+
+## AI tests
+
+AI features are tested against the **test-only stand-in**
+([`tests/support/ai-stand-in.ts`](../../apps/web/tests/support/ai-stand-in.ts)),
+built on the AI SDK's `MockLanguageModelV4`. A suite swaps it in with
+`vi.mock("@/lib/ai/client", …)`, queues replies (objects, raw text, errors or
+delayed replies) and reads `standIn.sent`: exactly what would have gone to
+OpenAI. So tests can prove what does and doesn't leave the server, and CI never
+needs a key or calls OpenAI. Answer quality is measured separately with the
+evaluation set against the real model.
 
 ## Still to add
 

@@ -162,7 +162,8 @@ packages/db
 | Sign-in, hosting, deployments | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |
-| AI layer: analysis, vector search, Wren, morning brief, smart tasks | Not started |
+| AI engine core: OpenAI client, gates, tenant AI policy, budgets, rate limits, usage log (no visible feature yet) | Done |
+| AI features: account summary, morning brief, Wren chat, proposals; later email analysis and search | Not started |
 | Team overview, reports, CRM usage, admin tools | Placeholder pages |
 
 Each placeholder page lists what it must do when built.

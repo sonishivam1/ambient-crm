@@ -15,7 +15,7 @@ write it.
 | **Mirror** | `reps`, `customerGroups`, `accounts`, `contracts` | Copied from the customer's systems nightly. Read-only in the app; deactivated, never deleted. |
 | **Rollup** | `salesSnapshots` (later: open orders, stock, health) | Dated snapshots, append-only. The dashboard reads the latest per scope. |
 | **App-native** | `users`, `tasks`, `visits`, `interactions`, `contacts`, `notifications`, later `messages`, `meetings`, `analyses`, `conversations` | Owned by Ambient. Soft-deleted with `deletedAt` / `deletedBy`. Synced back to the warehouse. |
-| **Observability** | `auditLog`, later `aiInvocations`, `syncRuns` | Append-only; production credentials get insert but not update or delete. |
+| **Observability** | `auditLog`, `aiInvocations` (plus the `aiUsage` budget ledger), later `syncRuns` | Append-only; production credentials get insert but not update or delete. |
 
 ## Entities
 
@@ -55,6 +55,7 @@ erDiagram
     array divisions
     array lenses
     array contactRoles
+    object ai
     string entraTenantId
   }
   REP {
@@ -193,6 +194,12 @@ erDiagram
 - **Contracts** are Mirror headers on a bill-to. Start and end dates are local
   midnights in the tenant's zone, so "days left" is a whole number of calendar
   days; renewal bands are worked out at read time, never stored.
+- **AI policy and usage.** `tenants.ai` holds the tenant's AI switch, allowed
+  roles, enabled features and monthly token budget (off by default).
+  `aiInvocations` has one row per AI request, refused or not, with metadata
+  only: there is no field for prompt, facts or reply text. `aiUsage` is the
+  monthly token ledger per tenant (`_id` = `tenantId:YYYY-MM` on the tenant's
+  calendar), updated atomically. See [AI layer](ai.md).
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't
   deleted (checked in the write path, so deleted contacts can share one).
@@ -226,3 +233,5 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `notifications` | `userId + createdAt` | dashboard feed, history page, unread counts |
 | `salesSnapshots` | `scope + asOf` | latest snapshot |
 | `auditLog` | `at`, `entity + entityId + at`, `actorUserId + at` | audit browser |
+| `aiInvocations` | `createdAt`, `userId + createdAt`, `feature + createdAt` | rate limits, usage and cost reporting |
+| `aiUsage` | `_id` only (`tenantId:month`) | budget reservations |

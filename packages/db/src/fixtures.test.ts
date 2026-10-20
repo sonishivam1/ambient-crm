@@ -91,6 +91,12 @@ describe.each([NORTHWIND, HARBOR])("demo tenant $id", (spec) => {
   });
 });
 
+it("turns AI on for the demo tenant only", () => {
+  expect(build(NORTHWIND).tenant.ai).toMatchObject({ enabled: true, monthlyTokenBudget: 2_000_000 });
+  expect(build(NORTHWIND).tenant.ai.roles).not.toContain("admin");
+  expect(build(HARBOR).tenant.ai).toEqual({ enabled: false, roles: [], features: [], monthlyTokenBudget: 0 });
+});
+
 it("gives the two tenants different divisions", () => {
   const keys = (spec: typeof NORTHWIND) => build(spec).tenant.divisions.map((d) => d.key);
   expect(keys(NORTHWIND)).toEqual(["wholesale", "uniforms", "icw", "other"]);

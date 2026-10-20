@@ -27,6 +27,16 @@ callers outside the web app.
 | `getContactOptions()` | `lib/data/contacts.ts` | accounts that have contacts in scope, the tenant's contact roles, the time zone |
 | `getAccountContacts(scope, account)` | `lib/data/contacts.ts` | active contacts for a profile: a bill-to's, or a sold-to's site plus its bill-to's account-wide ones |
 
+## AI engine (built)
+
+| Function | File | Does |
+| --- | --- | --- |
+| `defineAiFeature(def)` | `lib/ai/engine.ts` | Declares a feature: id, version, roles, tier, input and output schemas, facts builder, task prompt, temperature, output cap |
+| `runAiFeature(feature, input)` | `lib/ai/engine.ts` | Runs it for the signed-in user: input check, gates, facts, budget reservation, model call, verification, settlement and logging. Returns `{ ok: true, output, outcome, sources }` or `{ ok: false, reason, message }`; never throws for expected failures |
+
+No feature is exposed to users yet (step 3 adds the first). See
+[AI layer](../architecture/ai.md).
+
 ## Server actions (built)
 
 | Action | File | Input | Effect | Audit |

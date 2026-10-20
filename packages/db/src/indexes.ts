@@ -53,6 +53,14 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
   ],
   notifications: [{ key: { tenantId: 1, userId: 1, createdAt: -1 } }],
   salesSnapshots: [{ key: { tenantId: 1, scope: 1, asOf: -1 } }],
+  aiInvocations: [
+    { key: { tenantId: 1, createdAt: -1 } },
+    // Rate limits count a user's recent requests.
+    { key: { tenantId: 1, userId: 1, createdAt: -1 } },
+    { key: { tenantId: 1, feature: 1, createdAt: -1 } },
+  ],
+  // _id is `${tenantId}:${month}`, so the default _id index serves every lookup.
+  aiUsage: [],
   auditLog: [
     { key: { tenantId: 1, at: -1 } },
     { key: { tenantId: 1, entity: 1, entityId: 1, at: -1 } },
