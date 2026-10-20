@@ -41,8 +41,8 @@ Start the app:
 pnpm dev   # http://localhost:3000
 ```
 
-Use the gear icon in the top bar to sign in as any of the six seeded users (one
-per role).
+Use the gear icon in the top bar to sign in as any seeded user: six roles in
+Northwind and three in Harbor & Finch (see the README).
 
 ## Everyday commands
 
@@ -51,9 +51,10 @@ per role).
 | `pnpm dev` | Web app with hot reload |
 | `pnpm test` | Unit and integration tests (integration uses the Atlas cluster, in throwaway `ambient_test_*` databases) |
 | `pnpm test:unit` | Unit tests only, no database |
-| `pnpm --filter web typecheck` | Generate route types, then type-check the web app |
-| `pnpm --filter web exec eslint .` | Lint the web app |
-| `pnpm --filter @ambient/db exec tsc --noEmit` | Type-check the db package |
+| `pnpm typecheck` | Generate route types, then type-check every package |
+| `pnpm lint` | Lint |
+| `pnpm --filter @ambient/db test` | db package tests (no database) |
+| `pnpm build` | Production build (needs no database) |
 | `pnpm db:inspect` | List databases and collection counts |
 | `pnpm db:indexes` | Create or update indexes |
 | `pnpm db:seed` | Reseed a local database |
