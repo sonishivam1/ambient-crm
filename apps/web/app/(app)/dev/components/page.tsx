@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { Answer } from "@/components/ai/account-summary";
+import { Brief } from "@/components/ai/morning-brief";
 import { AiCards } from "@/components/ai/cards";
 import { Card, PageHead, Skeleton } from "@/components/ui/primitives";
+import type { BriefAnswerView } from "@/lib/ai/brief-view";
 import type { AiCardData } from "@/lib/ai/cards";
 import type { SummaryAnswerView } from "@/lib/ai/summary-view";
 import { myDayFacts } from "@/lib/ai/facts/my-day";
@@ -79,6 +81,20 @@ const SAMPLE_SUMMARY: SummaryAnswerView = {
   cached: false,
 };
 
+/** A made-up morning brief, with the record changed since it was written. */
+const SAMPLE_BRIEF: BriefAnswerView = {
+  headline: "1 overdue task · 1 visit today · 1 renewal within 30 days · 1 unread notification",
+  quiet: false,
+  items: [
+    { kind: "overdue_task", priority: "high", text: "The revised price list for Sample Logistics is overdue since 14 Oct.", sources: ["T1"] },
+    { kind: "visit_today", priority: "normal", text: "Site visit at Sample Logistics at 10:00 am to review the hi-vis range.", sources: ["V1"] },
+    { kind: "renewal", priority: "high", text: "The workwear supply agreement ends on 12 Nov, in 23 days.", sources: ["K1", "N1"] },
+  ],
+  cards: SAMPLE_CARDS.filter((c) => ["T1", "V1", "K1", "N1"].includes(c.handle)),
+  generatedAt: new Date("2026-10-19T20:02:00Z"),
+  changed: true,
+};
+
 export default function Page() {
   return (
     <>
@@ -94,6 +110,10 @@ export default function Page() {
       <Card title="Wren summary: a sample answer" className="mb-[18px] max-w-[420px]">
         <Answer answer={SAMPLE_SUMMARY} />
       </Card>
+
+      <div className="mb-[18px] max-w-[860px]">
+        <Brief answer={SAMPLE_BRIEF} timeZone="Australia/Sydney" />
+      </div>
 
       <Card title="AI cards: from your “my day” facts">
         <Suspense fallback={<Skeleton className="h-[120px] rounded-[14px]" />}>

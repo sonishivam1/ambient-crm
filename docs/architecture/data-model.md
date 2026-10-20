@@ -203,8 +203,10 @@ erDiagram
   calendar), updated atomically. `aiOutputs` caches one verified answer per
   user, feature and subject (`_id` = `tenantId:userId:feature:subjectId`),
   with the facts fingerprint, prompt and policy versions and model it was
-  built from; it holds the answer's text, so it is per user and expires
-  (`expiresAt`, TTL). `aiInvocations.outcome` includes `cached`. See
+  built from, and the `cards` and `notes` it was shown with (a `day` feature
+  such as the morning brief serves those as they were until local midnight);
+  it holds the answer's text, so it is per user and expires (`expiresAt`,
+  TTL). `aiInvocations.outcome` includes `cached`. See
   [AI layer](ai.md).
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't

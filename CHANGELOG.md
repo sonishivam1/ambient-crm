@@ -12,6 +12,10 @@ see the [build log](docs/engineering/build-log.md).
   with one next step, what's not on record, and the records it used. It's
   kept until the account changes; Refresh writes a new one. Needs the OpenAI
   key, so it shows "AI isn't set up yet" until then.
+- **Morning brief:** "Generate today's brief" on the Morning brief page lists
+  up to six things that need you today, with their records, under a headline
+  counted from your records. It's kept for the day and says when things have
+  changed since; the dashboard tile shows the headline. Needs the OpenAI key.
 
 ### Core CRM
 - **Dashboard:** today's tasks, the week's visits, key figures, at-risk

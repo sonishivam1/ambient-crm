@@ -4,6 +4,8 @@ import { z } from "zod";
 
 import { runAiFeature } from "@/lib/ai/engine";
 import { accountSummary, summaryView } from "@/lib/ai/features/account-summary";
+import { briefView, morningBrief } from "@/lib/ai/features/morning-brief";
+import type { BriefActionResult } from "@/lib/ai/brief-view";
 import type { SummaryActionResult } from "@/lib/ai/summary-view";
 import { loggedAction } from "@/lib/log";
 
@@ -25,3 +27,13 @@ export const generateAccountSummary = loggedAction(
     return result.ok ? { ok: true, answer: summaryView(result) } : result;
   },
 );
+
+const briefInput = z.object({ refresh: z.boolean().default(false) });
+
+/** Today's morning brief for the signed-in user: kept all day unless `refresh`. */
+export const generateMorningBrief = loggedAction("ai.morningBrief", async function generateMorningBrief(raw: { refresh?: boolean } = {}): Promise<BriefActionResult> {
+  const input = briefInput.safeParse(raw);
+  if (!input.success) return { ok: false, reason: "invalid_input", message: "That request isn't valid." };
+  const result = await runAiFeature(morningBrief, {}, { refresh: input.data.refresh });
+  return result.ok ? { ok: true, answer: briefView(result) } : result;
+});

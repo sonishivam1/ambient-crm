@@ -18,8 +18,9 @@ must respect.
 - **Next: the AI layer, step by step** on OpenAI
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
   [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  Steps 1 to 3 are built (engine core; fact sources and cards; the account
-  summary with its cache); step 4 (morning brief) is next.
+  Steps 1 to 4 are built (engine core; fact sources and cards; the account
+  summary with its cache; the morning brief, on request, kept for the day);
+  step 5 (Wren chat, read-only) is next. The 7am brief job waits for hosting.
   The real model is tried only once the team's OpenAI key arrives; until then
   tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
 - **Not built:** real sign-in and hosting (waits on
@@ -175,8 +176,10 @@ docs/engineering/build-log.md  history of every change, newest first
   (scope check, audit row), idempotent by proposal id.
 - `aiInvocations` holds metadata only, never prompt or reply text. Answer
   text lives only in `aiOutputs`: per user, served only for unchanged facts,
-  7 days at most. A page shows a cached answer with `peekAiFeature`, which
-  never calls the model.
+  7 days at most (`facts` mode), or until local midnight with its own cards
+  (`day` mode). A page shows a cached answer with `peekAiFeature`, which
+  never calls the model. Anything a user reads as a fact (headlines, gaps,
+  counts) is computed by code, not written by the model.
 - Prompts are versioned modules matching
   [AI prompts](docs/architecture/ai-prompts.md); change both and bump the
   version together.

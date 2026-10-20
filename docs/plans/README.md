@@ -12,7 +12,8 @@ how the product's history stays readable after the sessions that built it.
 | [Logger](logger.md) | Platform | ✅ Built |
 | [Observability and API foundation](observability-and-api-foundation.md) | Platform | ✅ Built |
 | [AI step 2: fact sources and cards](ai-step-2-fact-sources-and-cards.md) | AI | ✅ Built (`7c11a1d`) |
-| [AI step 3: account summary](ai-step-3-account-summary.md) | AI | ✅ Built |
+| [AI step 3: account summary](ai-step-3-account-summary.md) | AI | ✅ Built (`7ecf30d`) |
+| [AI step 4: morning brief](ai-step-4-morning-brief.md) | AI | ✅ Built |
 
 Earlier work (the core CRM screens, tenancy, CI) predates this folder; its
 history is in the [build log](../engineering/build-log.md).

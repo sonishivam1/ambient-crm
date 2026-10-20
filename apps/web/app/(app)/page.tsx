@@ -20,6 +20,7 @@ import { TaskCheck } from "@/components/dashboard/task-check";
 import { WeekCalendar } from "@/components/dashboard/week-calendar";
 import { NOTIFICATION_META } from "@/components/notifications/meta";
 import { Avatar, Badge, Card, Dot, Empty, HealthPill, ProgressBar, Ring } from "@/components/ui/primitives";
+import { morningBriefHeadline } from "@/lib/ai/features/morning-brief";
 import { getDashboard, type DashboardData } from "@/lib/data/dashboard";
 
 import DashboardLoading from "./loading";
@@ -74,7 +75,9 @@ async function Dashboard() {
           </div>
         </div>
         <QuickAddTile />
-        <Tile href="/morning-brief" icon={Sun} title="Morning brief" sub="Overnight digest of what changed" />
+        <Suspense fallback={<Tile href="/morning-brief" icon={Sun} title="Morning brief" sub={BRIEF_SUB} />}>
+          <BriefTile />
+        </Suspense>
         <Tile href="/assistant" icon={Sparkles} title="Ask Wren" sub="Cross-book AI assistant" />
         <Tile href="/reports" icon={FileChartColumn} title="Reports library" sub="Power BI, one click away" />
       </div>
@@ -274,6 +277,13 @@ async function Dashboard() {
       </div>
     </>
   );
+}
+
+const BRIEF_SUB = "What needs you today";
+
+/** Today's brief headline once it has been written; never generates one. */
+async function BriefTile() {
+  return <Tile href="/morning-brief" icon={Sun} title="Morning brief" sub={(await morningBriefHeadline()) ?? BRIEF_SUB} />;
 }
 
 function Tile({ href, icon: Icon, title, sub }: { href: string; icon: LucideIcon; title: string; sub: string }) {

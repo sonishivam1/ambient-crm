@@ -6,10 +6,13 @@ import { createLogger } from "@ambient/logger";
 import type { Scope } from "@/lib/data/scope";
 
 /**
- * The aiOutputs cache: one verified answer per user, feature and subject.
- * An answer is served only when it was built from the same facts (fingerprint),
- * prompt and policy versions and model, and hasn't expired. Per user, because
- * two users can see different facts about the same account.
+ * The aiOutputs cache: one verified answer per user, feature and subject. Per
+ * user, because two users can see different facts about the same account.
+ * Always tied to the prompt and policy versions and model it came from:
+ *
+ * - `facts` mode: served only when built from the same facts (fingerprint).
+ * - `day` mode: served until it expires (local midnight), with the cards it
+ *   was shown with, even after the records change.
  */
 
 export type CacheKey = {
@@ -30,17 +33,28 @@ export async function latestOutput(scope: Scope, feature: string, subject: strin
   return row && row.expiresAt > new Date() ? row : null;
 }
 
-/** The cached answer, only if everything it was built from still matches. */
+/** Built by the same prompt, policy and model. */
+export const sameMaker = (row: AiOutput, key: Pick<CacheKey, "promptVersion" | "policyVersion" | "model">) =>
+  row.promptVersion === key.promptVersion && row.policyVersion === key.policyVersion && row.model === key.model;
+
+/** `facts` mode: the cached answer, only if everything it was built from still matches. */
 export async function cachedOutput(scope: Scope, key: CacheKey): Promise<AiOutput | null> {
   const row = await latestOutput(scope, key.feature, key.subject);
-  if (!row) return null;
-  const same =
-    row.factsFingerprint === key.fingerprint && row.promptVersion === key.promptVersion && row.policyVersion === key.policyVersion && row.model === key.model;
-  return same ? row : null;
+  return row && sameMaker(row, key) && row.factsFingerprint === key.fingerprint ? row : null;
+}
+
+/** `day` mode: today's answer, whatever has changed since, if the same prompt, policy and model made it. */
+export async function dayOutput(scope: Scope, key: Omit<CacheKey, "fingerprint">): Promise<AiOutput | null> {
+  const row = await latestOutput(scope, key.feature, key.subject);
+  return row && sameMaker(row, key) ? row : null;
 }
 
 /** Keep a verified answer. A failure to cache never breaks the user's request. */
-export async function saveOutput(scope: Scope, key: CacheKey, output: unknown, ttlDays: number): Promise<Date> {
+export async function saveOutput(
+  scope: Scope,
+  key: CacheKey,
+  answer: { output: unknown; cards: unknown[]; notes: string[]; expiresAt: (createdAt: Date) => Date },
+): Promise<Date> {
   const createdAt = new Date();
   try {
     await (await collection("aiOutputs")).replaceOne(
@@ -54,9 +68,11 @@ export async function saveOutput(scope: Scope, key: CacheKey, output: unknown, t
         promptVersion: key.promptVersion,
         policyVersion: key.policyVersion,
         model: key.model,
-        output,
+        output: answer.output,
+        cards: answer.cards,
+        notes: answer.notes,
         createdAt,
-        expiresAt: new Date(createdAt.getTime() + ttlDays * 86_400_000),
+        expiresAt: answer.expiresAt(createdAt),
       },
       { upsert: true },
     );

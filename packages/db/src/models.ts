@@ -405,9 +405,11 @@ export type AiUsage = z.infer<typeof aiUsageSchema>;
 
 /**
  * A verified AI answer, cached for one user, feature and subject (such as an
- * account). Served only while the facts it was built from are unchanged
- * (same fingerprint), under the same prompt and policy versions and model.
- * Holds the answer text, so it is per user and expires (TTL on expiresAt).
+ * account). A `facts` feature serves it only while the facts it was built
+ * from are unchanged (same fingerprint); a `day` feature serves it until local
+ * midnight with the cards it was shown with. Always under the same prompt and
+ * policy versions and model. Holds the answer text, so it is per user and
+ * expires (TTL on expiresAt).
  */
 export const aiOutputSchema = z.object({
   /** `${tenantId}:${userId}:${feature}:${subjectId}` */
@@ -422,6 +424,9 @@ export const aiOutputSchema = z.object({
   model: z.string(),
   /** The verified, limited output, exactly as it was shown. */
   output: z.unknown(),
+  /** The cited records' cards and the feature's notes when it was generated (served as is by `day` features). */
+  cards: z.array(z.unknown()),
+  notes: z.array(z.string()),
   createdAt: z.date(),
   expiresAt: z.date(),
 });

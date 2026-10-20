@@ -9,7 +9,9 @@ import { createLogger } from "@ambient/logger";
 import { getScope, type Scope } from "@/lib/data/scope";
 
 import { estimateTokens, reserveTokens, settleTokens } from "./budget";
-import { cachedOutput, latestOutput, saveOutput, type CacheKey } from "./cache";
+import { addDays } from "@ambient/db/time";
+
+import { cachedOutput, dayOutput, latestOutput, saveOutput, type CacheKey } from "./cache";
 import type { AiCardData } from "./cards";
 import { modelFor } from "./client";
 import { CALL_TIMEOUT_MS, modelIdFor, type AiTier } from "./config";
@@ -57,8 +59,12 @@ export type AiFeature<I, O> = {
   limit?: (output: O) => O;
   /** Lines worked out by code from the facts, shown with the answer (never from the model). */
   notes?: (facts: FactPacket) => string[];
-  /** Keep the verified answer per user and subject until its facts change, `ttlDays` at most. */
-  cache?: { subject: (input: I) => string; ttlDays: number };
+  /**
+   * Keep the verified answer per user and subject. `facts` (the default): until
+   * its facts change, `ttlDays` at most. `day`: until local midnight, with the
+   * cards it was shown with, even after the records change.
+   */
+  cache?: { subject: (input: I) => string } & ({ mode?: "facts"; ttlDays: number } | { mode: "day" });
 };
 
 export function defineAiFeature<I, O>(feature: AiFeature<I, O>): AiFeature<I, O> {
@@ -79,6 +85,8 @@ export type AiAnswer<O> = {
   notes: string[];
   /** When the answer was generated (earlier than now when cached). */
   generatedAt: Date;
+  /** A `day` answer whose records have changed since it was generated. */
+  changed: boolean;
 };
 
 export type AiResult<O> = ({ ok: true } & AiAnswer<O>) | { ok: false; reason: AiFailure; message: string };
@@ -147,14 +155,30 @@ function present<I, O>(feature: AiFeature<I, O>, facts: FactPacket, output: O, o
     cards: sources.flatMap((h) => facts.cards.get(h) ?? []),
     notes: feature.notes?.(facts) ?? [],
     generatedAt,
+    changed: false,
   };
 }
 
 /**
- * A cached answer for these exact facts, checked again against them before it
- * is shown. Null when there is none, or it no longer verifies cleanly.
+ * A cached answer, or null. `facts` mode: only for these exact facts, checked
+ * again against them before it is shown. `day` mode: today's answer as it was
+ * shown, with its own cards and notes, flagged when the records have changed.
  */
 async function fromCache<I, O>(scope: Scope, feature: AiFeature<I, O>, key: CacheKey, facts: FactPacket): Promise<AiAnswer<O> | null> {
+  if (feature.cache?.mode === "day") {
+    const row = await dayOutput(scope, key);
+    const parsed = row && feature.output.safeParse(row.output);
+    if (!row || !parsed?.success) return null;
+    return {
+      output: parsed.data,
+      outcome: "cached",
+      sources: citedSources(parsed.data),
+      cards: row.cards as AiCardData[],
+      notes: row.notes,
+      generatedAt: row.createdAt,
+      changed: row.factsFingerprint !== key.fingerprint,
+    };
+  }
   const row = await cachedOutput(scope, key);
   if (!row) return null;
   const parsed = feature.output.safeParse(row.output);
@@ -162,6 +186,13 @@ async function fromCache<I, O>(scope: Scope, feature: AiFeature<I, O>, key: Cach
   const verified = verifySources(parsed.data, facts.handles);
   if (verified.removed > 0) return null;
   return present(feature, facts, verified.output, "cached", row.createdAt);
+}
+
+/** When a new cached answer expires: after `ttlDays`, or at the next local midnight for `day` features. */
+function expiryFor<I, O>(scope: Scope, feature: AiFeature<I, O>) {
+  const cache = feature.cache!;
+  if (cache.mode === "day") return () => addDays(scope.today, 1, scope.timeZone);
+  return (createdAt: Date) => new Date(createdAt.getTime() + cache.ttlDays * 86_400_000);
 }
 
 function cacheKeyFor<I, O>(feature: AiFeature<I, O>, input: I, facts: FactPacket, model: string): CacheKey | null {
@@ -280,9 +311,12 @@ export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unk
   }
   const shown = feature.limit ? feature.limit(verified.output) : verified.output;
   const outcome = verified.removed > 0 || attempts > 1 ? "repaired" : "ok";
-  const generatedAt = cacheKey ? await saveOutput(scope, cacheKey, shown, feature.cache!.ttlDays) : new Date();
+  const answer = present(feature, facts, shown, outcome, new Date());
+  if (cacheKey) {
+    answer.generatedAt = await saveOutput(scope, cacheKey, { output: shown, cards: answer.cards, notes: answer.notes, expiresAt: expiryFor(scope, feature) });
+  }
   await logInvocation(scope, { ...metrics, outcome, errorKind: null });
-  return { ok: true, ...present(feature, facts, shown, outcome, generatedAt) };
+  return { ok: true, ...answer };
 }
 
 /**
@@ -306,5 +340,27 @@ export async function peekAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: un
   const key = cacheKeyFor(feature, input, facts, modelIdFor(feature.tier) ?? "")!;
   const hit = await fromCache(scope, feature, key, facts);
   if (hit) return { state: "ready", answer: hit };
+  // A `day` answer is never stale: it is served until midnight or not at all.
+  if (feature.cache.mode === "day") return { state: "none" };
   return (await latestOutput(scope, feature.id, key.subject)) ? { state: "stale" } : { state: "none" };
+}
+
+/**
+ * The notes of today's cached answer for a `day` feature, without building
+ * facts: a cheap read for a line elsewhere (the dashboard's brief headline).
+ * Null when the user can't use the feature or there is no answer today.
+ * Writes nothing. (A `facts` feature's answer needs its facts checked first.)
+ */
+export async function latestNotes<I, O>(feature: AiFeature<I, O>, input: I): Promise<string[] | null> {
+  if (feature.cache?.mode !== "day") return null;
+  const scope = await getScope();
+  if (await checkAccess(scope, feature)) return null;
+  const row = await dayOutput(scope, {
+    feature: feature.id,
+    subject: feature.cache.subject(input),
+    promptVersion: feature.version,
+    policyVersion: POLICY_VERSION,
+    model: modelIdFor(feature.tier) ?? "",
+  });
+  return row ? row.notes : null;
 }

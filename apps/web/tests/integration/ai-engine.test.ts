@@ -163,6 +163,7 @@ describe("verify, then return", () => {
       cards: [],
       notes: [],
       generatedAt: expect.any(Date),
+      changed: false,
       output: { points: [{ text: "Real", sources: ["A1"] }], nextStep: null },
     });
   });

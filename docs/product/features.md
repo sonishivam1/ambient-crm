@@ -25,7 +25,7 @@ Planned (nothing yet).
 | Outlook add-in | Outlook task pane | Planned |
 | Wren assistant | `/assistant`, side panel | Placeholder |
 | Search (quick and semantic) | `/search` | Placeholder |
-| Morning brief | `/morning-brief` | Placeholder |
+| Morning brief | `/morning-brief` | Built (AI, needs the OpenAI key) |
 | Team overview, reports, CRM usage | `/team`, `/reports`, `/crm-usage` | Placeholder |
 | Admin: sync health, audit, view-as | `/admin/*` | Placeholder |
 | In-app help | `/how-it-works/*` | Placeholder |
@@ -191,7 +191,7 @@ passive capture misses. Creates contacts for unknown senders.
 ### Wren, the AI assistant
 Built step by step on one AI engine with OpenAI
 ([AI layer](../architecture/ai.md), [prompts](../architecture/ai-prompts.md)).
-**Built so far (steps 1 to 3):** the engine (gates per tenant, feature and
+**Built so far (steps 1 to 4):** the engine (gates per tenant, feature and
 role; monthly token budgets; rate limits; verified output; a usage log), fact
 sources and cards, and the first feature:
 - **Account summary** (built): "Generate" on the customer profile's Wren
@@ -202,7 +202,7 @@ sources and cards, and the first feature:
   new one. Works once the OpenAI key is set.
 
 Planned:
-- **Morning brief** (step 4): see below.
+- **Morning brief** (built): see below.
 - **Chat** (step 5): side panel and full page; answers questions about the
   user's own tasks, accounts, visits, renewals and contacts. Answers are checked
   before they're shown, with the records as cards. Conversations are kept per
@@ -221,10 +221,15 @@ Planned:
 Quick search across accounts and contacts (built in the Ctrl K palette for
 accounts) and semantic search over email and meeting analyses.
 
-### Morning brief
-Planned (AI step 4): a short cited digest of what needs attention today:
-overdue and due tasks, today's visits, renewals within 30 days, unread alerts,
-accounts that have gone quiet. Prepared at 7am in the tenant's zone.
+### Morning brief — Built (AI step 4)
+`/morning-brief`: "Generate today's brief" writes a short digest of what needs
+you today: up to six items from overdue and due tasks, today's visits,
+renewals within 30 days, unread notifications and accounts that have gone
+quiet, each with its records as cards. The headline counts them directly from
+the records. A manager's covers their team. It's kept for the rest of the day
+("As of 7:02 am"), saying when the records have changed since; Refresh writes
+a new one. The dashboard tile shows today's headline. Works once the OpenAI
+key is set. Planned: prepared automatically at 7am once hosting is set up.
 
 ### Manager surface
 Team overview (per-rep performance vs budget and trend), report library with

@@ -3,10 +3,11 @@ import "server-only";
 import { z } from "zod";
 
 import { defineAiFeature, peekAiFeature, type AiAnswer } from "../engine";
-import { cut } from "../facts";
 import { accountFacts } from "../facts/account";
 import { ACCOUNT_SUMMARY_TASK, ACCOUNT_SUMMARY_VERSION } from "../prompts/account-summary";
 import type { SummaryAnswerView, SummaryState } from "../summary-view";
+
+import { plainText } from "./text";
 
 /**
  * Account summary: a short, cited briefing on one account, generated on
@@ -26,16 +27,7 @@ export const AccountSummaryOutput = z.object({
 export type AccountSummary = z.infer<typeof AccountSummaryOutput>;
 
 /** Plain text only: no markup, no handles printed in brackets, at most 240 characters. */
-export function cleanText(text: string): string {
-  const plain = text
-    .replace(/<[^>]*>/g, " ")
-    // Only handle prefixes (A1, T3, …), so "(Q4)" in a title survives.
-    .replace(/\s*[([]\s*[ATVKCIN]\d{1,4}(\s*,\s*[ATVKCIN]\d{1,4})*\s*[)\]]/g, "")
-    .replace(/[*_`#]+/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  return cut(plain, SUMMARY_LIMITS.textChars);
-}
+export const cleanText = (text: string) => plainText(text, SUMMARY_LIMITS.textChars);
 
 /** At most 7 points, in section order (stable within a section), each cleaned. */
 export function limitSummary(s: AccountSummary): AccountSummary {

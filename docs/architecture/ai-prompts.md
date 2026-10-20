@@ -138,32 +138,55 @@ Output (strict structured output; limits applied by code after verification):
 Settings: tier `fast`, temperature 0.2, at most 700 output tokens. The answer
 is cached per user and account until the facts change (7 days at most).
 
-## Morning brief (`morning-brief` v1, step 4)
+## Morning brief (`morning-brief` v1, step 4, built)
+
+Code: `apps/web/lib/ai/prompts/morning-brief.ts` (a test checks the two match).
 
 ```text
 TASK
-Write {{userName}}'s morning brief for {{todayLong}}.
+Write the user's morning brief for today.
 
-From <facts>, pick at most 6 items that most need attention today, in this
-order of urgency: overdue tasks, today's visits, tasks due today, renewals
-within 30 days, unread alerts, accounts with no contact in 30 days.
-Each item is at most 20 words, has at least one source and gets a priority
-from 1 (highest) to 3.
-Write a headline of at most 15 words that sums up the day.
-If nothing needs attention, set quiet to true and keep the headline positive
-and factual.
+From <facts>, pick at most 6 items that most need attention today, most
+urgent first. Give each item one kind:
+- overdue_task: an overdue task
+- visit_today: a visit planned for today
+- task_due: a task due today
+- renewal: a contract renewing within 30 days
+- alert: an unread notification
+- quiet_account: an account with no contact in the last 30 days
+
+Each item: a priority (high, normal or low), at most 20 words, and at least
+one source. Prefer one item per record; group records only when they belong
+together, such as two overdue tasks on one account.
+counts gives the full totals; mention a total only as it appears there.
+If nothing in <facts> needs attention, return no items.
 ```
 
-Output:
+Facts: the `myDayFacts` source (step 2): `view`, `today`, `counts` (full
+totals) and up to 10 each of `overdueTasks`, `tasksDueToday`, `visitsToday`,
+`renewals` and `notifications`, plus up to 5 `quietAccounts`. A manager's are
+their team's; notifications are always the user's own.
+
+Output (strict structured output; limits applied by code after verification):
 
 ```ts
 {
-  headline: string,
-  items: Array<{ kind: "overdue_task" | "visit_today" | "task_due" | "renewal" | "alert" | "quiet_account";
-                 text: string; sources: string[]; priority: 1 | 2 | 3 }>, // at most 6
-  quiet: boolean,
+  items: Array<{
+    kind: "overdue_task" | "visit_today" | "task_due" | "renewal" | "alert" | "quiet_account";
+    priority: "high" | "normal" | "low";
+    text: string;
+    sources: string[];
+  }>,
 }
+// After verification: at most 6 items, by urgency of kind then priority; text
+// cut to 160 characters; markup and printed handles removed. The headline
+// ("1 overdue task · 2 visits today · …") and the quiet day are computed by
+// code from counts; the model writes neither.
 ```
+
+Settings: tier `fast`, temperature 0.2, at most 600 output tokens. Kept per
+user until local midnight with the cards it was written with (cache mode
+`day`); Refresh writes a new one.
 
 ## Wren chat (`wren-chat` v1, step 5)
 

@@ -350,8 +350,8 @@ before the next.
 | 1. Engine core | `defineAiFeature`, `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, `aiInvocations`, `aiUsage` budget ledger, test-only stand-in, security tests | ✅ Built |
 | 2. Fact sources and cards | Account and "my day" fact sources with handles and allowed fields; account, task, visit, contract, contact, interaction and notification cards | ✅ Built |
 | 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | ✅ Built |
-| 4. Morning brief | Second feature, plus the 7am trigger | Next |
-| 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | Planned |
+| 4. Morning brief | Second feature; on request, kept for the day (the 7am trigger comes with hosting) | ✅ Built |
+| 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | Next |
 | 6. Proposals | Propose tools, Confirm cards, existing actions, idempotent Accept; follow-up suggestions after visit reports | Planned |
 | 7. Evaluation and feedback | `pnpm ai:eval`, thumbs up/down; run on key day | Planned |
 | Later | Natural-language filters, meeting prep, next best action, report narratives; email and meeting analysis and semantic search after capture | — |
@@ -376,10 +376,12 @@ apps/web/lib/ai/
   log.ts           aiInvocations rows, metadata only                                  (built)
   prompts/         versioned prompt modules; policy.ts is v1                          (built)
   facts/           fact sources on scoped read models: account, my-day               (built)
-  features/        one file per feature: account-summary                             (built)
+  features/        one file per feature: account-summary, morning-brief; text.ts     (built)
+  brief-view.ts    what the brief page receives, safe in client components            (built)
   tools/           one file per tool                                                  (step 5)
 apps/web/components/ai/cards/    one card per record kind                            (built)
 apps/web/components/ai/account-summary.tsx   the profile's Wren summary card        (built)
+apps/web/components/ai/morning-brief.tsx     the morning brief page's body           (built)
 apps/web/components/ai/          proposal card, chat panel                           (step 5 on)
 apps/web/tests/support/ai-stand-in.ts   the test-only stand-in model                (built)
 ```
@@ -411,6 +413,25 @@ has no test hook.
   `{ ok: false, reason, message }`; reasons are the gate refusals plus
   `invalid_input`, `not_found` (step 2), `rejected` (every claim invented) and
   `failed`. Messages never include provider error text.
+
+## Morning brief and the day cache (built in step 4)
+
+- **Feature:** at most 6 items from `myDayFacts`, by urgency of kind
+  (overdue task, visit today, due today, renewal, notification, quiet
+  account) then priority, each with its records as cards.
+- **Computed by code:** the headline ("1 overdue task · 2 visits today · …")
+  from the facts' counts, and the quiet day ("Nothing needs you today.").
+  The model writes neither.
+- **Cache mode `day`:** served until local midnight in the tenant's zone, even
+  after the records change, with the cards and headline it was written with
+  (kept in the aiOutputs row). The answer carries `changed` when the facts
+  differ now, and the page says "As of 7:02 am · some items may have changed
+  since". Access is still checked on every view.
+- **Dashboard:** the Morning brief tile shows today's headline through
+  `latestNotes()`, one read with no facts and no model call.
+- **On request for now:** the 7am trigger needs a scheduler and a way to run
+  as a user without a browser session; it comes with hosting (ADR 0005) as a
+  secret-protected job route under `/api/v1/jobs/`.
 
 ## Account summary and the cache (built in step 3)
 

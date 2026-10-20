@@ -13,6 +13,20 @@ how it was verified, and any lesson worth keeping.
 
 ## 20 Oct 2026
 
+### AI step 4: morning brief
+- **What:** `/morning-brief`: up to six verified items from the user's day
+  (a manager's team), each with its records as cards, under a headline counted
+  by code. Kept until local midnight with the cards it was written with (cache
+  mode `day`), flagged when the records change; Refresh writes a new one. The
+  dashboard tile shows the headline with one cheap read (`latestNotes`).
+- **Why:** the second feature proves the engine generalises: a different fact
+  source, a second cache mode, and a headline that can't be wrong.
+- **Verified:** 8 integration and 7 unit tests; 240 web tests; lint,
+  typecheck and build clean; three planted day-cache bugs each fail the
+  suite; the page, tile and sample checked in the browser. A real OpenAI
+  answer waits for key day; the 7am job waits for hosting.
+- **Plan:** [AI step 4](../plans/ai-step-4-morning-brief.md).
+
 ### AI step 3: account summary
 - **What:** the first AI feature: Generate on a profile's Wren summary card
   writes a cited briefing (status, needs attention, recent activity, one next

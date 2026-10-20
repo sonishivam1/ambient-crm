@@ -46,7 +46,7 @@ describe("account summary limits", () => {
   it("is defined with the agreed settings", () => {
     expect(accountSummary).toMatchObject({ id: "account-summary", version: 1, tier: "fast", temperature: 0.2, maxOutputTokens: 700 });
     expect(accountSummary.roles).toEqual(["user", "manager", "senior", "lead"]);
-    expect(accountSummary.cache?.ttlDays).toBe(7);
+    expect(accountSummary.cache).toMatchObject({ ttlDays: 7 });
     expect(accountSummary.cache?.subject({ accountId: "x" })).toBe("x");
   });
 });
