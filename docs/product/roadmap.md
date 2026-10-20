@@ -7,13 +7,14 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 19 Oct 2026 (notifications)._
+_Last updated: 20 Oct 2026 (contracts)._
 
 ## Where we are
 
-We are building the core CRM screens first, on fictional demo data in Atlas,
-so the product can be seen and tested end to end. Real sign-in and hosting
-(Phase 0) and the warehouse sync (Phase 1) follow once the screens settle. The
+The core CRM screens (Phase 2) are built on fictional demo data in Atlas, so
+the product can be seen and tested end to end. Next are real sign-in and
+hosting (Phase 0, waiting on the hosting decision below) and the warehouse sync
+(Phase 1). The
 data model and every query are already tenant-scoped and permission-checked,
 so nothing built so far depends on demo-only shortcuts except development
 sign-in.
@@ -32,7 +33,7 @@ sign-in.
 | ✅ Done | Contacts: directory, add, edit, deactivate, profile card, Ctrl K search | 2 |
 | ✅ Done | Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | 2 |
 | ✅ Done | Notifications page: history by day, filters, mark read / all read | 2 |
-| ⏭ Next | Contracts list with renewal bands | 2 |
+| ✅ Done | Contracts: renewal bands, search, profile card (read-only) | 2 |
 | Later | Sign-in (Entra ID), hosting, CI/CD ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
 | Later | Warehouse / ERP sync into the mirror collections | 1 |
 | Later | Passive capture, review queue, Outlook add-in | 3 |
@@ -54,10 +55,9 @@ gantt
   Contacts                                 :done,   b4, 2026-10-19, 1d
   Call cycle                               :done,   b5, 2026-10-19, 1d
   Notifications                            :done,   b6, 2026-10-19, 1d
-  section Core CRM
-  Contracts                                :active, c2, 2026-10-20, 3d
+  Contracts                                :done,   b7, 2026-10-20, 1d
   section Foundations
-  Sign-in, hosting, CI/CD                  :        f1, after c2, 7d
+  Sign-in, hosting, CI/CD                  :        f1, 2026-10-21, 7d
   section Data spine
   Warehouse sync with guardrails           :        d1, after f1, 12d
   section Passive capture
@@ -78,7 +78,7 @@ gantt
 | --- | --- | --- |
 | 0 Foundations | Shell and design system (**done**), multi-tenancy (**done**), sign-in, CI/CD, hosting | A user signs in to their tenant in a deployed environment |
 | 1 Data spine | Data model (**done** for current features), visibility rules (**done**), tenant settings (**done**), ERP/warehouse sync with guardrails | Each role sees exactly the right accounts on real-shaped data |
-| 2 Core CRM | Dashboard, accounts, profile, group page, tasks, contacts, call cycle, notifications (**done**); contracts | Product demo sign-off on every core page |
+| 2 Core CRM | Dashboard, accounts, profile, group page, tasks, contacts, call cycle, notifications, contracts (**done**) | Product demo sign-off on every core page |
 | 3 Passive capture | Email and meeting workers, matcher, review queue, backfill, Outlook add-in | Test mailboxes captured end to end with no manual step |
 | 4 AI layer | Redaction, analysis, embeddings, semantic search, Wren, morning brief, smart tasks | AI outputs reviewed on real test mail; cost per user within budget |
 | 5 Manager and admin | Team overview, reports, CRM usage, sync health, audit, view-as | Manager and admin acceptance testing |

@@ -15,7 +15,7 @@ Planned (nothing yet).
 | Accounts list (groups, bill-to, sold-to) | `/accounts` | Built |
 | Customer group page | `/accounts/group/[key]` | Built (period figures wait for sync) |
 | Customer profile | `/accounts/[id]` | Built (overview, tasks; sales, orders, stock wait for sync) |
-| Contracts | `/contracts` | Placeholder |
+| Contracts | `/contracts` | Built (read-only until the sync; editing later) |
 | Contacts | `/contacts` | Built (sync to the warehouse and email backfill wait for those features) |
 | Tasks | `/tasks` | Built (Wren suggestions wait for the AI layer) |
 | Call cycle and visits | `/call-cycle` | Built (calendar sync waits for Microsoft 365) |
@@ -80,13 +80,25 @@ stock.
   touchpoint, details and related accounts (sold-tos of a bill-to, or the
   parent and siblings of a sold-to); a tasks tab with one-click completion.
   Accounts outside the user's scope or tenant show "not found".
+- **Built:** contacts and contracts cards (see those features).
 - **Waiting on other features:** monthly sales, orders and stock (warehouse
-  sync), contacts and contracts cards (their own features), Wren's account
+  sync), Wren's account
   summary (AI layer), captured email and meetings on the timeline (capture).
 
-### Contracts
-List with renewal bands (≤30, ≤60, ≤90 days) linked to accounts. Later:
-create and edit contracts in Ambient with document upload.
+### Contracts — Built
+Contract headers from the customer's systems, soonest renewal first.
+- **Built — renewal bands** worked out from each end date on the tenant's
+  calendar: ended (last 90 days), within 30 days, 31–60, 61–90, later. Cards on
+  top count the urgent bands and filter by them.
+- **Built — list:** search by contract name, number or account; filter by band
+  or account; sort by soonest end or largest value; owner column for managers;
+  25 per page. Respects tenant, visibility and the division lens.
+- **Built — profile card:** a bill-to's contracts with their renewal badge (a
+  sold-to shows its bill-to's), linking to the filtered list.
+- **Read-only:** contracts are Mirror data; the warehouse sync will keep them
+  current. Terminated contracts and ones that ended over 90 days ago are hidden.
+- **Next:** renewal tasks and notifications from the bands; create and edit
+  contracts in Ambient with document upload.
 
 ### Contacts — Built
 Ambient is the system of record for contacts: the people the team deals with at

@@ -105,7 +105,7 @@ packages/db
 | Contacts: directory, add, edit, deactivate, profile card, Ctrl K | Done |
 | Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | Done |
 | Notifications: history by day, filters, mark read / all read | Done |
-| Contracts | Placeholder page |
+| Contracts: renewal bands, search, profile card (read-only) | Done |
 | Sign-in, hosting, CI/CD | Not started |
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |

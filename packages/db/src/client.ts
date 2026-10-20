@@ -4,6 +4,7 @@ import type {
   Account,
   AuditEntry,
   Contact,
+  Contract,
   CustomerGroup,
   Interaction,
   Notification,
@@ -25,6 +26,7 @@ type CollectionMap = {
   visits: Visit;
   interactions: Interaction;
   contacts: Contact;
+  contracts: Contract;
   notifications: Notification;
   salesSnapshots: SalesSnapshot;
   auditLog: AuditEntry;

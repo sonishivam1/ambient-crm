@@ -4,6 +4,7 @@ import { HARBOR, NORTHWIND, build } from "./fixtures";
 import {
   accountSchema,
   contactSchema,
+  contractSchema,
   customerGroupSchema,
   interactionSchema,
   notificationSchema,
@@ -14,7 +15,7 @@ import {
   userSchema,
   visitSchema,
 } from "./models";
-import { isValidTimeZone } from "./time";
+import { isValidTimeZone, zonedParts } from "./time";
 
 describe.each([NORTHWIND, HARBOR])("demo tenant $id", (spec) => {
   const b = build(spec);
@@ -30,6 +31,7 @@ describe.each([NORTHWIND, HARBOR])("demo tenant $id", (spec) => {
       [visitSchema, b.visits],
       [interactionSchema, b.interactions],
       [contactSchema, b.contacts],
+      [contractSchema, b.contracts],
       [notificationSchema, b.notifications],
       [salesSnapshotSchema, b.salesSnapshots],
     ] as const) {
@@ -39,7 +41,7 @@ describe.each([NORTHWIND, HARBOR])("demo tenant $id", (spec) => {
 
   it("only uses divisions the tenant defines, and lenses point at real divisions", () => {
     const keys = new Set(b.tenant.divisions.map((d) => d.key));
-    for (const doc of [...b.groups, ...b.accounts, ...b.tasks, ...b.visits, ...b.interactions, ...b.contacts]) {
+    for (const doc of [...b.groups, ...b.accounts, ...b.tasks, ...b.visits, ...b.interactions, ...b.contacts, ...b.contracts]) {
       expect(keys.has(doc.division), `${doc._id} uses ${doc.division}`).toBe(true);
     }
     for (const lens of b.tenant.lenses) for (const d of lens.divisions) expect(keys.has(d)).toBe(true);
@@ -70,6 +72,17 @@ describe.each([NORTHWIND, HARBOR])("demo tenant $id", (spec) => {
       expect(completed.some((v) => v.report)).toBe(true);
       expect(completed.some((v) => !v.report)).toBe(true);
     }
+  });
+
+  it("puts contracts on bill-tos with the owner copied, unique numbers, and ends at local midnight", () => {
+    const byId = new Map(b.accounts.map((a) => [a._id, a]));
+    for (const k of b.contracts) {
+      expect(byId.get(k.accountId)?.type).toBe("bill_to");
+      expect(k.ownerRepId).toBe(byId.get(k.accountId)!.ownerRepId);
+      expect(k.startDate < k.endDate).toBe(true);
+      expect(zonedParts(k.endDate, b.tenant.timeZone)).toMatchObject({ hour: 0, minute: 0 });
+    }
+    expect(new Set(b.contracts.map((k) => k.number)).size).toBe(b.contracts.length);
   });
 
   it("has a real time zone and puts every record in this tenant", () => {

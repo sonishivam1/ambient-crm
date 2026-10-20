@@ -6,7 +6,7 @@ import { z } from "zod";
  * through them before they reach MongoDB.
  *
  * Ownership classes:
- * - Mirror: copied from the customer's ERP or warehouse, read-only in the app (reps, groups, accounts).
+ * - Mirror: copied from the customer's ERP or warehouse, read-only in the app (reps, groups, accounts, contracts).
  * - Rollup: dated warehouse snapshots, append-only (salesSnapshots).
  * - App-native: owned by Ambient, soft-deleted (users, tasks, visits, interactions, contacts, notifications).
  *
@@ -137,6 +137,34 @@ export const accountSchema = z.object({
   syncedAt: z.date(),
 });
 export type Account = z.infer<typeof accountSchema>;
+
+/**
+ * A contract header from the customer's systems (Mirror: read-only here). It
+ * belongs to a bill-to; renewal bands are worked out from `endDate` on the
+ * tenant's calendar.
+ */
+export const contractSchema = z.object({
+  _id: z.string(),
+  ...tenantScoped,
+  sourceKey: z.string(),
+  /** The contract number in the source system; unique per tenant. */
+  number: z.string(),
+  name: z.string(),
+  /** A bill-to account. */
+  accountId: z.string(),
+  /** Copied from the bill-to by the sync so visibility and the lens need no join. */
+  ownerRepId: z.string(),
+  division: divisionKey,
+  /** Contract value in the tenant's currency. */
+  value: z.number(),
+  /** Local midnight on the first and last day, in the tenant's zone. */
+  startDate: z.date(),
+  endDate: z.date(),
+  /** Terminated contracts are kept but never shown as up for renewal. */
+  status: z.enum(["active", "terminated"]),
+  syncedAt: z.date(),
+});
+export type Contract = z.infer<typeof contractSchema>;
 
 export const TASK_STATUSES = ["open", "in_progress", "completed", "cancelled"] as const;
 /** Statuses that still need doing. */

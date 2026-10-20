@@ -13,6 +13,7 @@ import { calendarDaysBetween, isoDayIn, startOfDay, zonedParts, zonedTime } from
 import type {
   Account,
   Contact,
+  Contract,
   CustomerGroup,
   Interaction,
   Notification,
@@ -71,6 +72,8 @@ type GroupRow = [key: string, name: string, code: string, level: CustomerGroup["
 type TaskRow = [acct: string, title: string, owner: string, dueIn: number, priority: Task["priority"], status: Task["status"], source: Task["source"], createdBy: string];
 type VisitRow = [dayOffset: number, acct: string, type: Visit["type"], purpose: string, status: Visit["status"], rep: string];
 type InteractionRow = [daysAgo: number, acct: string, type: Interaction["type"], summary: string, author: string];
+/** A contract on a bill-to, ending `endsIn` days from today (negative: already ended). */
+type ContractRow = [acct: string, name: string, value: number, endsIn: number];
 /** A contact at a bill-to; `site` picks its n-th sold-to (0 = the bill-to as a whole). */
 type ContactRow = [acct: string, first: string, last: string, title: string, roles: string[], site: number, active: boolean];
 type NotifRow = [type: Notification["type"], acct: string, title: string, body: string, minutes: number, unread: boolean];
@@ -91,6 +94,7 @@ export type TenantSpec = {
   visits: VisitRow[];
   interactions: InteractionRow[];
   contacts: ContactRow[];
+  contracts: ContractRow[];
   notifications: NotifRow[];
   orgSales: [mtd: [number, number], ytd: [number, number], gm: number];
   repSales: Record<string, [mtd: number, target: number, gm: number]>;
@@ -233,6 +237,25 @@ export const NORTHWIND: TenantSpec = {
     ["SA-SOUTHPORT-BT1", "Nina", "Alvarez", "Accounts Payable", ["finance"], 0, true],
     ["CO-METRO-BT1", "Will", "Barker", "Procurement Manager", ["buyer"], 1, true],
   ],
+  contracts: [
+    ["CO-NORTHERN-BT1", "Workwear Supply Agreement", 184e3, 9],
+    ["CO-ACME-BT1", "National Safety Program", 312e3, 21],
+    ["CG-MARLOWE-BT1", "Menswear Range Agreement", 96e3, 28],
+    ["CG-BRIGHTWELL-BT1", "Retail Uniform Program WA", 540e3, 34],
+    ["CO-METRO-BT1", "Uniform Services", 226e3, 47],
+    ["CO-WESTLINE-BT1", "Civil PPE Panel", 158e3, 58],
+    ["CG-CASTLEFORD-BT1", "Industrial Supply Deed", 420e3, 61],
+    ["CO-SKYBRIDGE-BT1", "Ground Crew Uniform Program", 780e3, 73],
+    ["SA-HARBOUR-BT1", "Council Workwear Panel", 132e3, 88],
+    ["CG-KIWISAFE-BT1", "NZ Safety Distribution", 205e3, 102],
+    ["CG-SENTINEL-BT1", "National Wholesale Terms", 610e3, 140],
+    ["CG-HARROW-BT1", "Hardware Retail Agreement", 470e3, 180],
+    ["SA-DELTA-BT1", "Mining Site Supply", 88e3, 233],
+    ["CG-TRADEPOINT-BT1", "Trade Counter Terms", 350e3, 300],
+    ["SA-SOUTHPORT-BT1", "Marine Services Supply", 64e3, -12],
+    // Long expired: kept as history, outside the default view.
+    ["CO-ACME-BT1", "Hi-Vis Supply 2024", 41e3, -140],
+  ],
   notifications: [
     ["at_risk_change", "CO-ACME-BT1", "ACME SAFETY moved to At risk", "Sentiment dropped after two delivery complaints in 48 hours.", 12, true],
     ["contract_renewal", "CO-NORTHERN-BT1", "Contract renews in 9 days", "Supply Agreement · $184K · no renewal task exists.", 55, true],
@@ -312,6 +335,11 @@ export const HARBOR: TenantSpec = {
     ["CO-PINECREST-BT1", "Grace", "Huang", "Procurement Lead", ["buyer", "finance"], 0, true],
     ["SA-LUMEN-BT1", "Mere", "Tane", "Facilities Manager", ["facilities"], 0, true],
   ],
+  contracts: [
+    ["CO-PINECREST-BT1", "Scrubs Supply Agreement", 210e3, 14],
+    ["CG-BLUEWATER-BT1", "Marine Trade Terms", 380e3, 66],
+    ["SA-LUMEN-BT1", "School Uniform Panel", 95e3, 190],
+  ],
   notifications: [
     ["at_risk_change", "CO-PINECREST-BT1", "PINECREST HEALTH moved to At risk", "Two complaints about scrubs sizing this week.", 40, true],
     ["task_assigned", "CG-BLUEWATER-BT1", "Owen Price assigned you a task", "Plan summer range launch · due in 4 days.", 180, false],
@@ -332,6 +360,7 @@ export type Built = {
   visits: Visit[];
   interactions: Interaction[];
   contacts: Contact[];
+  contracts: Contract[];
   notifications: Notification[];
   salesSnapshots: SalesSnapshot[];
 };
@@ -443,6 +472,16 @@ export function build(spec: TenantSpec): Built {
     };
   });
 
+  const contracts: Contract[] = spec.contracts.map(([acct, name, value, endsIn], i) => {
+    const account = accounts.find((a) => a._id === id(acct))!;
+    const key = `K${i + 1}`;
+    return {
+      _id: id(key), tenantId, sourceKey: key, number: `CT-${2401 + i}`, name, accountId: account._id,
+      ownerRepId: account.ownerRepId, division: account.division, value,
+      startDate: addDays(endsIn - 730, 0), endDate: addDays(endsIn, 0), status: "active", syncedAt: now,
+    };
+  });
+
   const notifications: Notification[] = users.flatMap((u) =>
     spec.notifications.map(([type, acct, title, body, minutes, unread], i) => ({
       _id: `${u._id}-n${i + 1}`, tenantId, userId: u._id, type, accountId: id(acct), title, body,
@@ -471,7 +510,7 @@ export function build(spec: TenantSpec): Built {
     active: true,
     createdAt: now,
   };
-  return { tenant, reps, users, groups, accounts, tasks, visits, interactions, contacts, notifications, salesSnapshots };
+  return { tenant, reps, users, groups, accounts, tasks, visits, interactions, contacts, contracts, notifications, salesSnapshots };
 }
 
 export type SeedSummary = { tenantId: string; counts: Record<string, number> };
@@ -496,6 +535,7 @@ export async function seedDemoData(db: Db): Promise<SeedSummary[]> {
       ["visits", b.visits],
       ["interactions", b.interactions],
       ["contacts", b.contacts],
+      ["contracts", b.contracts],
       ["notifications", b.notifications],
       ["salesSnapshots", b.salesSnapshots],
     ];

@@ -38,6 +38,12 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
     { key: { tenantId: 1, accountId: 1 } },
   ],
   interactions: [{ key: { tenantId: 1, accountId: 1, occurredAt: -1 } }],
+  contracts: [
+    { key: { tenantId: 1, number: 1 }, unique: true },
+    { key: { tenantId: 1, endDate: 1 } },
+    { key: { tenantId: 1, ownerRepId: 1, endDate: 1 } },
+    { key: { tenantId: 1, accountId: 1, endDate: 1 } },
+  ],
   contacts: [
     { key: { tenantId: 1, accountId: 1, active: 1 } },
     { key: { tenantId: 1, ownerRepId: 1, lastName: 1, firstName: 1 } },

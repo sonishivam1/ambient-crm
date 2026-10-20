@@ -13,6 +13,7 @@ import { AddTaskButton } from "@/components/tasks/task-controls";
 import { AddVisitButton } from "@/components/visits/visit-controls";
 import { Avatar, Badge, Card, Empty, HealthPill, Skeleton, type Tone } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
+import { BAND, daysLeftLabel } from "@/lib/contracts";
 import { getAccountProfile, type AccountProfile, type TimelineItem } from "@/lib/data/account-profile";
 import { getTaskOptions, type TaskOptions } from "@/lib/data/tasks";
 import { fmtDate, fmtDay, initials, money, relativeDay } from "@/lib/format";
@@ -283,8 +284,34 @@ function Overview({ profile, filter, base, options }: { profile: AccountProfile;
         <Related profile={profile} />
 
         <Contacts profile={profile} />
-        <Card title="Contracts">
-          <div className="text-[13.5px] text-muted">Contracts arrive with the warehouse sync.</div>
+        <Card
+          title="Contracts"
+          link={
+            billTo ? (
+              <Link className="lnk text-[12.5px]" href={`/contracts?account=${encodeURIComponent(billTo.id)}`}>
+                All →
+              </Link>
+            ) : undefined
+          }
+        >
+          {profile.contracts.length ? (
+            profile.contracts.map((k) => (
+              <div key={k.id} className="li">
+                <span className="ic">
+                  <NotebookText size={17} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <b>{k.name}</b>
+                  <p>
+                    {money(k.value)} · ends {fmtDate(k.endDate, profile.timeZone)}
+                  </p>
+                </div>
+                <Badge tone={BAND[k.band].tone}>{daysLeftLabel(k.daysLeft)}</Badge>
+              </div>
+            ))
+          ) : (
+            <div className="text-[13.5px] text-muted">No active contracts.</div>
+          )}
         </Card>
       </div>
     </div>

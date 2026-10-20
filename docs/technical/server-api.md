@@ -21,6 +21,8 @@ callers outside the web app.
 | `getAccountProfile(id)` | `lib/data/account-profile.ts` | the profile (account, group, related accounts, tasks, next visit, timeline, active contacts), or `null` when outside scope |
 | `getCallCycle(query)` | `lib/data/visits.ts` | six weeks of visits from this Monday (tenant calendar), four weeks of history, older planned visits needing closing, rep options and who the user may book |
 | `getNotifications(query)` | `lib/data/notifications.ts` | the user's own notifications grouped by tenant day, with unread count, types present and page count; account links only when in scope |
+| `getContractsPage(query)` | `lib/data/contracts.ts` | one page of contracts (search, band, account, sort) with days left and band per row, and a count per band |
+| `getAccountContracts(scope, billToId)` | `lib/data/contracts.ts` | a bill-to's current contracts for the profile card |
 | `getContactsPage(query)` | `lib/data/contacts.ts` | one page of contacts from validated URL filters (search, role, account, status), sorted by last name, with total and page count |
 | `getContactOptions()` | `lib/data/contacts.ts` | accounts that have contacts in scope, the tenant's contact roles, the time zone |
 | `getAccountContacts(scope, account)` | `lib/data/contacts.ts` | active contacts for a profile: a bill-to's, or a sold-to's site plus its bill-to's account-wide ones |

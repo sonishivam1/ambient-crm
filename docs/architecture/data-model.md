@@ -42,7 +42,7 @@ erDiagram
   REP ||--o{ SALES_SNAPSHOT : "scope"
   ACCOUNT ||--o{ CONTACT : "bill-to has (accountId)"
   ACCOUNT ||--o{ CONTACT : "sold-to site (soldToAccountId)"
-  ACCOUNT ||--o{ CONTRACT : "planned"
+  ACCOUNT ||--o{ CONTRACT : "bill-to has"
   ACCOUNT ||--o{ MESSAGE : "planned: captured email"
   ACCOUNT ||--o{ MEETING : "planned: captured meeting"
   MESSAGE ||--o| ANALYSIS : "planned"
@@ -119,6 +119,18 @@ erDiagram
     string authorUserId
     date occurredAt
   }
+  CONTRACT {
+    string _id
+    string tenantId
+    string number
+    string accountId
+    string ownerRepId
+    string division
+    number value
+    date startDate
+    date endDate
+    string status
+  }
   CONTACT {
     string _id
     string tenantId
@@ -178,6 +190,9 @@ erDiagram
   completed visit carries `completedAt` and, once captured, a `report`
   (sentiment, three 1–5 ratings, key points, follow-ups); seeded and legacy
   completed visits may have no report yet.
+- **Contracts** are Mirror headers on a bill-to. Start and end dates are local
+  midnights in the tenant's zone, so "days left" is a whole number of calendar
+  days; renewal bands are worked out at read time, never stored.
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't
   deleted (checked in the write path, so deleted contacts can share one).
@@ -206,6 +221,7 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `tasks` | `ownerRepId + status + dueAt`, `accountId + status` | dashboard, open-task counts |
 | `visits` | `repId + scheduledAt`, `scheduledAt`, `accountId` | call cycle, calendar, profile |
 | `interactions` | `accountId + occurredAt` | profile timeline |
+| `contracts` | `number` unique, `endDate`, `ownerRepId + endDate`, `accountId + endDate` | renewals list, band counts, profile card |
 | `contacts` | `accountId + active`, `ownerRepId + lastName + firstName`, `lastName + firstName`, `email` | directory, profile card, duplicate-email check |
 | `notifications` | `userId + createdAt` | dashboard feed, history page, unread counts |
 | `salesSnapshots` | `scope + asOf` | latest snapshot |

@@ -5,6 +5,7 @@ import { OPEN_TASK_STATUSES, collection, type HealthBand, type Interaction, type
 import { SENTIMENT_LABEL } from "@/lib/visits";
 
 import { getAccountContacts } from "./contacts";
+import { getAccountContracts } from "./contracts";
 import { getScope } from "./scope";
 
 export type TimelineItem =
@@ -43,7 +44,7 @@ export async function getAccountProfile(id: string) {
   const startOfToday = scope.today;
   const byAccount = { ...scope.tenant(), accountId: account._id };
 
-  const [group, parent, related, reps, users, tasks, visits, interactions, contacts] = await Promise.all([
+  const [group, parent, related, reps, users, tasks, visits, interactions, contacts, contracts] = await Promise.all([
     (await collection("customerGroups")).findOne({ ...scope.tenant(), _id: account.groupId }),
     account.parentId ? accounts.findOne({ ...scope.filter(), _id: account.parentId, active: true }) : null,
     account.type === "bill_to"
@@ -59,6 +60,8 @@ export async function getAccountProfile(id: string) {
     (await collection("visits")).find({ ...byAccount, deletedAt: null, status: { $ne: "cancelled" } }).sort({ scheduledAt: 1 }).toArray(),
     (await collection("interactions")).find({ ...byAccount, deletedAt: null }).sort({ occurredAt: -1 }).limit(100).toArray(),
     getAccountContacts(scope, account),
+    // Contracts sit on the bill-to: a sold-to shows its parent's.
+    getAccountContracts(scope, account.type === "bill_to" ? account._id : account.parentId),
   ]);
 
   const repName = new Map(reps.map((r) => [r._id, r.name]));
@@ -160,6 +163,7 @@ export async function getAccountProfile(id: string) {
       ),
     timeline,
     contacts,
+    contracts,
     contactRoles: scope.user.tenant.contactRoles,
   };
 }
