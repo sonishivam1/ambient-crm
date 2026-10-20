@@ -83,8 +83,16 @@ describe("tenant time zone", () => {
     signInAs(USERS.northwind.rep);
     const northwind = await getScope();
     expect(northwind.timeZone).toBe(SYD);
-    // Auckland's day always starts one or two hours before Sydney's.
-    expect(northwind.today.getTime() - harbor.today.getTime()).toBeGreaterThan(0);
+    expect(northwind.today).toEqual(startOfDay(new Date(), SYD));
+    expect(zonedParts(northwind.today, SYD)).toMatchObject({ hour: 0, minute: 0 });
+
+    // The same calendar day starts 1–3 hours earlier in Auckland than in Sydney.
+    // (Comparing each tenant's "today" would depend on the time the test runs:
+    // late in Sydney's evening, Auckland is already on the next day.)
+    const day = isoDayIn(new Date(), SYD);
+    const gap = fromIsoDay(day, SYD).getTime() - fromIsoDay(day, AKL).getTime();
+    expect(gap).toBeGreaterThanOrEqual(3_600_000);
+    expect(gap).toBeLessThanOrEqual(3 * 3_600_000);
   });
 
   it("splits overdue and due today on the tenant's calendar", async () => {
