@@ -11,6 +11,7 @@ import { fromIsoDay } from "@ambient/db/time";
 import { audit } from "@/lib/audit";
 import { getScope, type Scope } from "@/lib/data/scope";
 import { fmtDay } from "@/lib/format";
+import { loggedAction } from "@/lib/log";
 
 export type TaskActionResult = { ok: true; created?: number } | { ok: false; error: string };
 
@@ -86,7 +87,7 @@ async function notifyAssignees(scope: Scope, tasks: Task[], session: ClientSessi
  * to one or more reps in their scope (one task each); everyone else creates it
  * for themselves. A task can't be created already overdue.
  */
-export async function createTask(raw: unknown): Promise<TaskActionResult> {
+export const createTask = loggedAction("tasks.create", async function createTask(raw: unknown): Promise<TaskActionResult> {
   const parsed = createInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const input = parsed.data;
@@ -158,10 +159,10 @@ export async function createTask(raw: unknown): Promise<TaskActionResult> {
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /** Edit a task in scope. Reassigning needs the assign capability; description and notes text never reach the audit log. */
-export async function updateTask(raw: unknown): Promise<TaskActionResult> {
+export const updateTask = loggedAction("tasks.update", async function updateTask(raw: unknown): Promise<TaskActionResult> {
   const parsed = updateInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const input = parsed.data;
@@ -225,10 +226,10 @@ export async function updateTask(raw: unknown): Promise<TaskActionResult> {
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /** Cancel a task in scope with an optional short reason. */
-export async function cancelTask(raw: unknown): Promise<TaskActionResult> {
+export const cancelTask = loggedAction("tasks.cancel", async function cancelTask(raw: unknown): Promise<TaskActionResult> {
   const parsed = cancelInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const { id, reason } = parsed.data;
@@ -258,10 +259,10 @@ export async function cancelTask(raw: unknown): Promise<TaskActionResult> {
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /** Mark a visible task complete, writing the change and its audit row in one transaction. */
-export async function completeTask(rawId: string) {
+export const completeTask = loggedAction("tasks.complete", async function completeTask(rawId: string) {
   const id = taskId.parse(rawId);
   const scope = await getScope();
   const tasks = await collection("tasks");
@@ -282,4 +283,4 @@ export async function completeTask(rawId: string) {
     }),
   );
   refresh();
-}
+});

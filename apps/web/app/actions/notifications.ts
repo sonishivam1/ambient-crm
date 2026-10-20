@@ -6,6 +6,7 @@ import { z } from "zod";
 import { collection } from "@ambient/db";
 
 import { getScope } from "@/lib/data/scope";
+import { loggedAction } from "@/lib/log";
 
 /*
  * Read state is the user's own view of their inbox, not business data, so these
@@ -14,7 +15,7 @@ import { getScope } from "@/lib/data/scope";
  */
 
 /** Mark one of your notifications read. Returns false when it isn't yours (or doesn't exist). */
-export async function markNotificationRead(rawId: string): Promise<boolean> {
+export const markNotificationRead = loggedAction("notifications.markRead", async function markNotificationRead(rawId: string): Promise<boolean> {
   const id = z.string().min(1).max(200).parse(rawId);
   const scope = await getScope();
   const result = await (await collection("notifications")).updateOne(
@@ -23,10 +24,10 @@ export async function markNotificationRead(rawId: string): Promise<boolean> {
   );
   if (result.matchedCount) refresh();
   return result.matchedCount === 1;
-}
+});
 
 /** Mark all your unread notifications read; returns how many changed. */
-export async function markAllNotificationsRead(): Promise<number> {
+export const markAllNotificationsRead = loggedAction("notifications.markAllRead", async function markAllNotificationsRead(): Promise<number> {
   const scope = await getScope();
   const result = await (await collection("notifications")).updateMany(
     { ...scope.tenant(), userId: scope.user._id, readAt: null },
@@ -34,4 +35,4 @@ export async function markAllNotificationsRead(): Promise<number> {
   );
   if (result.modifiedCount) refresh();
   return result.modifiedCount;
-}
+});

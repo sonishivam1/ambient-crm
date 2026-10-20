@@ -65,17 +65,44 @@ No feature is exposed to users yet (step 3 adds the first). See
 Every action parses its input with Zod and checks scope itself: server actions
 are reachable over HTTP by anyone who can reach the app.
 
-## Route handlers (planned)
+## Route handlers
 
 Every route handler is versioned under `/api/v1`
-([ADR 0007](../architecture/decisions/0007-api-versioning.md)). None exist yet.
+([ADR 0007](../architecture/decisions/0007-api-versioning.md)) and written with
+`defineRoute()` (`lib/api/route.ts`); a guard test enforces both.
+
+### Built
+
+| Route | Returns | Auth |
+| --- | --- | --- |
+| `GET /api/health` | `{ "status": "ok" }`; unversioned, no data | none |
+| `GET /api/v1/me` | `{ user: { name, email, role, roleLabel }, tenant: { name, timeZone } }` | signed in |
+
+```ts
+// app/api/v1/<area>/<name>/route.ts (schemas in schema.ts beside it)
+export const GET = defineRoute({
+  name: "me",
+  version: 1,
+  auth: "user",          // getScope(); 401 { code: "unauthenticated" } otherwise
+  input: MeQuery,        // optional: query params (GET/DELETE) or JSON body
+  output: MeResponse,    // a result that doesn't match is a 500; undeclared fields are dropped
+  handler: async ({ input, scope, requestId, log }) => ({ … }),
+});
+```
+
+Handlers raise expected failures with `ApiError(status, code, message)`
+(400, 401, 403, 404, 409, 422, 429); anything else becomes a generic 500 and is
+logged with a code only. Every response carries `x-request-id`; v1 responses
+carry `X-API-Version: 1`; a route with `deprecation` adds `Deprecation`,
+`Sunset` and `Link` headers.
+
+### Planned
 
 | Route | Caller | Auth |
 | --- | --- | --- |
 | `POST /api/v1/ai/chat` | Wren (streaming, AI step 5) | web session |
 | `POST /api/v1/addin/messages`, `POST /api/v1/addin/meetings` | Outlook add-in | Office SSO bearer token |
 | `POST /api/v1/webhooks/graph` | Microsoft Graph change notifications (optional, alongside polling) | Graph validation token + client state |
-| `GET /api/health` | Hosting health check (unversioned) | none; returns no data |
 
 ### Conventions for every route
 
@@ -88,8 +115,8 @@ Every route handler is versioned under `/api/v1`
   audit row for writes, out of scope is 404.
 - Errors are `{ "error": { "code", "message" } }` with 400, 401, 404, 429 or
   500; never internal details or provider messages.
-- Each request gets a request id, carried into the logger's context and
-  returned as `X-Request-Id`.
+- Each request gets a request id (`proxy.ts`), carried into the logger's
+  context and returned as `x-request-id`.
 
 ## Errors
 

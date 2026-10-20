@@ -13,6 +13,21 @@ how it was verified, and any lesson worth keeping.
 
 ## 20 Oct 2026
 
+### Logging and versioned APIs across the whole app
+- **What:** request ids on every request (`proxy.ts`); every server action
+  wrapped in `loggedAction` (name, duration, outcome); every unhandled server
+  error logged once (`instrumentation.ts`); sign-in warnings; `defineRoute()`
+  as the only way to write a route (version, Zod input and output, sign-in,
+  one error shape, request id, deprecation headers, logging); `GET /api/health`
+  and `GET /api/v1/me`; guard tests for no `console`, versioned routes and
+  wrapped actions.
+- **Why:** the logger and ADR 0007 existed but only the AI engine logged and
+  nothing enforced versioning; both now apply everywhere and can't regress.
+- **Verified:** 21 new tests; 186 web tests in total; each guard fails on a
+  planted violation; live requests and a real server action seen in the log
+  with request id, tenant and user.
+- **Plan:** [observability and API foundation](../plans/observability-and-api-foundation.md).
+
 ### Build log, plans, API versioning, logger
 - **What:** this log (backfilled), [plans/](../plans/), `CHANGELOG.md`,
   [ADR 0007](../architecture/decisions/0007-api-versioning.md) (every route

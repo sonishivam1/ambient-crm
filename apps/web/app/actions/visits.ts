@@ -13,6 +13,7 @@ import { visibleReps } from "@/lib/data/visits";
 import { getScope, type Scope } from "@/lib/data/scope";
 import { fmtDay, fmtTime } from "@/lib/format";
 import { cancelVisitInput, completeVisitInput, createVisitInput, parseTime, updateVisitInput } from "@/lib/visits";
+import { loggedAction } from "@/lib/log";
 
 export type VisitActionResult = { ok: true; id: string } | { ok: false; error: string };
 
@@ -59,7 +60,7 @@ async function notifyRep(scope: Scope, visit: Visit, accountName: string, sessio
 }
 
 /** Plan a visit, call or meeting on a bill-to the user can see, for today or later. */
-export async function createVisit(raw: unknown): Promise<VisitActionResult> {
+export const createVisit = loggedAction("visits.create", async function createVisit(raw: unknown): Promise<VisitActionResult> {
   const parsed = createVisitInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const input = parsed.data;
@@ -110,10 +111,10 @@ export async function createVisit(raw: unknown): Promise<VisitActionResult> {
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /** Reschedule or edit a planned visit in scope. Managers may hand it to another rep in their scope. */
-export async function updateVisit(raw: unknown): Promise<VisitActionResult> {
+export const updateVisit = loggedAction("visits.update", async function updateVisit(raw: unknown): Promise<VisitActionResult> {
   const parsed = updateVisitInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const input = parsed.data;
@@ -168,10 +169,10 @@ export async function updateVisit(raw: unknown): Promise<VisitActionResult> {
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /** Cancel a planned visit in scope with an optional short reason. */
-export async function cancelVisit(raw: unknown): Promise<VisitActionResult> {
+export const cancelVisit = loggedAction("visits.cancel", async function cancelVisit(raw: unknown): Promise<VisitActionResult> {
   const parsed = cancelVisitInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const { id, reason } = parsed.data;
@@ -195,13 +196,13 @@ export async function cancelVisit(raw: unknown): Promise<VisitActionResult> {
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /**
  * Complete a visit with its scorecard, or add the scorecard to a completed
  * visit that has none. A visit can't be completed before its day.
  */
-export async function completeVisit(raw: unknown): Promise<VisitActionResult> {
+export const completeVisit = loggedAction("visits.complete", async function completeVisit(raw: unknown): Promise<VisitActionResult> {
   const parsed = completeVisitInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const { id, ...card } = parsed.data;
@@ -254,4 +255,4 @@ export async function completeVisit(raw: unknown): Promise<VisitActionResult> {
   );
   if (result.ok) refresh();
   return result;
-}
+});

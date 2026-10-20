@@ -9,6 +9,7 @@ import { INTERACTION_TYPES, collection, getClient } from "@ambient/db";
 
 import { audit } from "@/lib/audit";
 import { getScope } from "@/lib/data/scope";
+import { loggedAction } from "@/lib/log";
 
 const input = z.object({
   accountId: z.string().min(1).max(200),
@@ -23,7 +24,7 @@ export type LogInteractionResult = { ok: true } | { ok: false; error: string };
  * and its audit row are written in one transaction; the audit row records that
  * something was logged, never what it said.
  */
-export async function logInteraction(raw: unknown): Promise<LogInteractionResult> {
+export const logInteraction = loggedAction("interactions.log", async function logInteraction(raw: unknown): Promise<LogInteractionResult> {
   const parsed = input.safeParse(raw);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
   const { accountId, type, summary } = parsed.data;
@@ -71,4 +72,4 @@ export async function logInteraction(raw: unknown): Promise<LogInteractionResult
   if (!found) return { ok: false, error: "Account not found." };
   refresh();
   return { ok: true };
-}
+});

@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 20 Oct 2026 (AI step 1: engine core)._
+_Last updated: 20 Oct 2026 (observability and API foundation)._
 
 ## Where we are
 
@@ -33,6 +33,7 @@ sign-in.
 | ✅ Done | Logged interactions (notes, calls, meetings) on the account timeline | 2 |
 | ✅ Done | Automated tests: unit + integration on throwaway Atlas databases | – |
 | ✅ Done | CI on every push and pull request: lint, typecheck, unit and integration tests (throwaway MongoDB), build | 0 |
+| ✅ Done | Observability and API foundation: request ids, logging on every server action, API request and server error; `defineRoute` with `/api/health` and `/api/v1/me`; guard tests ([ADR 0007](../architecture/decisions/0007-api-versioning.md)) | 0 |
 | ✅ Done | Tenant settings: each tenant's own divisions and lenses, and its time zone for "today", "overdue" and due dates | 1 |
 | ✅ Done | Contacts: directory, add, edit, deactivate, profile card, Ctrl K search | 2 |
 | ✅ Done | Call cycle: six weeks, week grid, plan, reschedule, cancel, post-visit report | 2 |
@@ -67,6 +68,7 @@ gantt
   CI                                       :done,   b8, 2026-10-20, 1d
   section AI layer (existing data)
   AI engine core (step 1)                  :done,   a9, 2026-10-20, 1d
+  Logging and API foundation               :done,   b9, 2026-10-20, 1d
   Fact sources and cards (step 2)          :active, a0, 2026-10-21, 3d
   Account summary, morning brief (3–4)     :        a1, after a0, 4d
   Wren chat, proposals, evaluation (5–7)   :        a2, after a1, 7d

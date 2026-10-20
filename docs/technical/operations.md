@@ -12,6 +12,18 @@ production, readable lines in development, silent in tests. Every line has
 free-text fields are removed inside the logger, so logs are safe to ship to the
 host's log service (with hosting, Phase 0). `LOG_LEVEL` sets the minimum level.
 
+| What is logged | Where | Fields |
+| --- | --- | --- |
+| Every server action | `loggedAction` | `action`, `outcome`, `reason` (for `rejected`), `ms` |
+| Every API request | `defineRoute` | `route`, `method`, `path`, `status`, `code`, `ms` |
+| Every unhandled server error | `instrumentation.ts` (`onRequestError`) | `route`, `routeType`, `method`, `path` (no query), `digest`, `err` (name and code) |
+| Sign-in problems | `lib/auth/session.ts` | `reason`, `requestedUserId` |
+| Failed AI calls | the AI engine | `feature`, `model`, `errorKind`, `attempts` |
+
+**Tracing one request:** every page, server action and API call gets an
+`x-request-id` (from `proxy.ts`), returned on the response and present on every
+log line for that request. Search the logs for it.
+
 ## What we watch
 
 | Signal | Source | Alert when |

@@ -110,6 +110,7 @@ apps/web
   components/<area>/    dialogs and controls per area (tasks, contacts, visits, …)
   components/shell/     sidebar, top bar, Ctrl K palette, Wren tab
   components/ui/, forms/ design-system primitives and shared form fields
+  app/api/v1/           versioned HTTP routes (defineRoute); app/api/health
   lib/data/             server-only read models, always through getScope()
   lib/*.ts              pure rules shared by server and client, with unit tests
   lib/auth/             session, roles, account visibility
@@ -167,7 +168,7 @@ packages/db
 | Warehouse sync into the mirror collections | Not started |
 | Email and meeting capture, review queue, Outlook add-in | Not started |
 | AI engine core: OpenAI client, gates, tenant AI policy, budgets, rate limits, usage log (no visible feature yet) | Done |
-| Structured, redacted logging (`@ambient/logger`); API versioning rule (`/api/v1`) | Done |
+| Logging across the app (request ids, every server action, API request and server error) and versioned APIs (`defineRoute`, `/api/health`, `/api/v1/me`), enforced by guard tests | Done |
 | AI features: account summary, morning brief, Wren chat, proposals; later email analysis and search | Not started |
 | Team overview, reports, CRM usage, admin tools | Placeholder pages |
 

@@ -10,6 +10,7 @@ how the product's history stays readable after the sessions that built it.
 | --- | --- | --- |
 | [AI step 1: engine core](ai-step-1-engine-core.md) | AI | ✅ Built (`c36a1b7`) |
 | [Logger](logger.md) | Platform | ✅ Built |
+| [Observability and API foundation](observability-and-api-foundation.md) | Platform | ✅ Built |
 | [AI step 2: fact sources and cards](ai-step-2-fact-sources-and-cards.md) | AI | Agreed, next |
 
 Earlier work (the core CRM screens, tenancy, CI) predates this folder; its

@@ -26,6 +26,16 @@ Ambient, so a change to a route can break them silently.
 | **Same rules as server actions** | Parse input with Zod, `getScope()`, scope re-check, audit row for writes; out of scope is 404, never 403 |
 | **`GET /api/health` stays unversioned** | Hosting platforms expect a fixed path; it returns no data |
 
+## Enforcement (built)
+
+- `defineRoute()` in `apps/web/lib/api/route.ts` is the only way to write a
+  route handler; it applies every rule above (version header, Zod input and
+  output, sign-in, error shape, request id, deprecation headers, logging).
+- A guard test (`apps/web/tests/unit/guards.test.ts`) fails if a `route.ts`
+  lives outside `app/api/v1/…` (other than `app/api/health`) or doesn't use
+  `defineRoute`.
+- First routes: `GET /api/health` and `GET /api/v1/me`.
+
 ## Consequences
 
 - Moving a route to v2 means keeping v1's handler (often a thin adapter onto

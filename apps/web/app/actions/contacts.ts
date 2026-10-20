@@ -10,6 +10,7 @@ import { collection, getClient, type ClientSession, type Contact } from "@ambien
 import { audit } from "@/lib/audit";
 import { PERSONAL_FIELDS, createContactInput, setContactActiveInput, updateContactInput, type ContactInput } from "@/lib/contacts";
 import { getScope, type Scope } from "@/lib/data/scope";
+import { loggedAction } from "@/lib/log";
 
 export type ContactActionResult = { ok: true; id: string } | { ok: false; error: string };
 
@@ -48,7 +49,7 @@ async function emailTaken(scope: Scope, email: string | null, exceptId: string |
 }
 
 /** Add a contact to a bill-to the user can see. */
-export async function createContact(raw: unknown): Promise<ContactActionResult> {
+export const createContact = loggedAction("contacts.create", async function createContact(raw: unknown): Promise<ContactActionResult> {
   const parsed = createContactInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const input = parsed.data;
@@ -110,10 +111,10 @@ export async function createContact(raw: unknown): Promise<ContactActionResult> 
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /** Edit a contact the user can see, including moving it to another bill-to they can see. */
-export async function updateContact(raw: unknown): Promise<ContactActionResult> {
+export const updateContact = loggedAction("contacts.update", async function updateContact(raw: unknown): Promise<ContactActionResult> {
   const parsed = updateContactInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const { id, ...input } = parsed.data;
@@ -181,10 +182,10 @@ export async function updateContact(raw: unknown): Promise<ContactActionResult> 
   );
   if (result.ok) refresh();
   return result;
-}
+});
 
 /** Deactivate (kept on history, dropped from pickers) or reactivate a contact. */
-export async function setContactActive(raw: unknown): Promise<ContactActionResult> {
+export const setContactActive = loggedAction("contacts.setActive", async function setContactActive(raw: unknown): Promise<ContactActionResult> {
   const parsed = setContactActiveInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const { id, active } = parsed.data;
@@ -209,4 +210,4 @@ export async function setContactActive(raw: unknown): Promise<ContactActionResul
   );
   if (result.ok) refresh();
   return result;
-}
+});

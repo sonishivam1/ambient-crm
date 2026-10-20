@@ -34,7 +34,20 @@ export async function doThing(raw: unknown) {
 
 ## Logging
 
-Use `@ambient/logger`, never `console`, in server code, workers and scripts:
+Use `@ambient/logger`, never `console`, in server code, workers and scripts
+(a guard test fails on `console`). In the web app:
+
+- **Server actions** are wrapped, so each call is logged with its name,
+  duration and outcome (`ok`, `rejected` with its reason, or `error`):
+  `export const createTask = loggedAction("tasks.create", async function createTask(raw: unknown) { … });`
+  A guard test fails on an unwrapped action.
+- **Elsewhere in server code**, `await requestLogger(area)` (`lib/log.ts`)
+  gives a logger already carrying the request id, tenant and user.
+- **Unhandled server errors** (pages, actions, routes) are logged once by
+  `instrumentation.ts`; don't catch and log them again.
+- **Route handlers** log each request through `defineRoute`.
+
+Outside a request (scripts, workers):
 
 ```ts
 import { createLogger } from "@ambient/logger";

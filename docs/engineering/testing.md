@@ -23,7 +23,7 @@ flowchart TB
 
 | Layer | Where | What it covers |
 | --- | --- | --- |
-| Unit | `apps/web/lib/**/*.test.ts` | Pure functions: `format.ts`, `lens.ts`, `accounts-url.ts`, contact and visit input rules, renewal bands, AI facts, verification, policy prompt and config, the role matrix |
+| Unit | `apps/web/lib/**/*.test.ts`, `apps/web/tests/unit/*.test.ts` | Pure functions: `format.ts`, `lens.ts`, `accounts-url.ts`, contact and visit input rules, renewal bands, AI facts, verification, policy prompt and config, the role matrix, request ids and the proxy; **architecture guards** |
 | Integration | `apps/web/tests/integration/*.test.ts` | Visibility per role, tenant isolation, per-tenant divisions, lenses and time zones, contacts (directory, scope, create/edit/deactivate, duplicate emails, audit privacy), call cycle (weeks in the tenant zone, booking rules, reschedule, cancel, post-visit reports), notifications (own only, filters, day groups, mark read), contracts (bands in the tenant zone, counts, search, scope, profile card), the AI engine (gates, scoped facts, verification, retries, time limits, budget races, rate limits, metadata-only logging), accounts list and drill-down, customer and group pages, palette search, task create/edit/cancel/complete, interactions, audit-log privacy |
 | End to end | — | Planned: Playwright against a seeded app |
 
@@ -96,6 +96,27 @@ service container, points `TEST_MONGODB_URI` at it, and throws it away after
 the run. CI needs **no secrets** and never reaches the Atlas cluster; locally,
 tests keep using Atlas as described above. The build is given an unreachable
 `MONGODB_URI` on purpose: it must never need a database.
+
+## Architecture guards
+
+`apps/web/tests/unit/guards.test.ts` reads the source and fails when a rule
+that must hold everywhere is broken:
+
+- no `console` in app, lib, components or package code (use `@ambient/logger`);
+- every `route.ts` under `app/api/v1/…` (only `app/api/health` is unversioned),
+  built with `defineRoute`;
+- every exported server action wrapped in `loggedAction`.
+
+Each guard was checked by adding a violation and seeing it fail.
+
+## Logging and API tests
+
+`tests/integration/observability.test.ts` swaps the logger for a recorder
+(`tests/support/log-recorder.ts`) and checks what server actions, sign-in and
+`onRequestError` log. `tests/integration/api.test.ts` calls route handlers
+directly with `Request` objects: success, headers, 400, 401, `ApiError`
+statuses, generic 500s that don't leak, output-schema enforcement and
+deprecation headers.
 
 ## AI tests
 

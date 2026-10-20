@@ -6,6 +6,7 @@ import { collection } from "@ambient/db";
 
 import { fullName } from "@/lib/contacts";
 import { getScope } from "@/lib/data/scope";
+import { loggedAction } from "@/lib/log";
 
 export type PaletteResult = { id: string; href: string; title: string; subtitle: string; kind: "account" | "contact" };
 
@@ -16,7 +17,7 @@ const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
  * Quick jump for the Ctrl K palette: accounts the user can see, by name or
  * code, and active contacts on them, by name or email.
  */
-export async function paletteSearch(raw: string): Promise<PaletteResult[]> {
+export const paletteSearch = loggedAction("search.palette", async function paletteSearch(raw: string): Promise<PaletteResult[]> {
   const q = query.parse(raw);
   if (q.length < 2) return [];
   const scope = await getScope();
@@ -65,4 +66,4 @@ export async function paletteSearch(raw: string): Promise<PaletteResult[]> {
       }),
     ),
   ];
-}
+});

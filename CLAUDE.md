@@ -55,7 +55,12 @@ Keep it green.
 ```
 apps/web/
   app/(app)/<route>/page.tsx   pages; per-user content inside <Suspense>
-  app/actions/*.ts             server actions ("use server"), one file per area
+  app/actions/*.ts             server actions ("use server"), each wrapped in loggedAction
+  app/api/v1/<area>/<name>/    route.ts (defineRoute) + schema.ts; app/api/health is unversioned
+  proxy.ts                     request id on every request (Next 16 middleware)
+  instrumentation.ts           onRequestError: logs every unhandled server error
+  lib/log.ts                   requestLogger(area), loggedAction(name, fn)
+  lib/api/route.ts             defineRoute(), ApiError
   components/<area>/           client components for an area (dialogs, controls)
   components/ui/, forms/       design-system primitives, shared form fields
   components/shell/            sidebar, top bar, Ctrl K palette
@@ -123,15 +128,20 @@ docs/engineering/build-log.md  history of every change, newest first
   and is parsed leniently with a Zod schema that `.catch()`es to defaults.
 
 **Logging**
-- `@ambient/logger`, never `console`, in server code, workers and scripts:
-  `createLogger(area, { tenantId, userId })`, errors as `{ err }`, codes and ids
-  as fields. Never log prompt, reply, note or email text, keys or connection
+- `@ambient/logger`, never `console`, in server code, workers and scripts
+  (a guard test fails on `console`). Wrap every server action in
+  `loggedAction("<area>.<verb>", fn)` (a guard test fails otherwise); in other
+  server code use `await requestLogger(area)`; outside a request,
+  `createLogger(area, context)`. Errors as `{ err }`, codes and ids as fields;
+  unhandled errors are already logged by `instrumentation.ts`. Never log prompt, reply, note or email text, keys or connection
   strings; redaction in the logger is a safety net, not a licence. See
   [conventions](docs/engineering/conventions.md#logging).
 
 **HTTP APIs** ([ADR 0007](docs/architecture/decisions/0007-api-versioning.md))
 - Every route handler lives under `/api/v1/…` (`app/api/v1/<area>/<name>/route.ts`)
-  with Zod schemas beside it; only `/api/health` is unversioned. Within v1,
+  with Zod schemas beside it, built with `defineRoute()` (a guard test fails
+  otherwise); only `/api/health` is unversioned. Raise expected failures with
+  `ApiError(status, code, message)`. Within v1,
   changes are additive; a breaking change is `/api/v2`. Errors are
   `{ error: { code, message } }`. Server actions are not versioned.
 
