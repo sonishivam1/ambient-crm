@@ -42,6 +42,15 @@ Every write is a server action that:
 [`app/actions/tasks.ts`](../../apps/web/app/actions/tasks.ts) is the reference
 implementation.
 
+## AI (planned)
+
+The model is outside our trust boundary and code enforces every rule; the full
+design and its threat table live in [AI layer](ai.md#security-guarantees). In
+short: the model never reaches the database (facts come only from scoped fact
+sources); nothing changes without the user's confirmation, through the existing
+server actions; every call is gated (tenant policy, role, budget, rate limit);
+logs hold metadata only; demos use fictional data.
+
 ## Audit
 
 `auditLog` records actor, optional impersonated user, action, entity, id, and
@@ -71,6 +80,9 @@ users can insert into it but not update or delete.
 | A rep reads another team's accounts | Scope filter on every query; actions re-check scope |
 | A manager reads a rep's private email | Participant fence applies to every role, no override |
 | Cross-tenant data leak | `tenantId` on every document and index; every query takes it from `getScope()` (built; verified with two seeded tenants) |
-| Prompt injection via captured email | Model sees summaries, not raw bodies, in interactive features; tools re-check scope and need user confirmation to write |
+| Prompt injection via captured email or notes | Customer text fenced as untrusted; tools run as the user through `getScope()`; writes need the user's confirmation; output verified |
+| The AI reveals data the user can't see | Facts built only from scoped read models; citations verified against this call's facts; tests inspect what would be sent |
+| The AI makes facts up | Numbers and dates come from our queries; every claim cites a verified record; evaluation set before release |
+| A runaway AI bill | Per-tenant token budget, per-user rate limit, AI off by default, demo key with a spending limit |
 | Leaked credentials | No secrets in git; rotate on exposure; per-environment users |
 | Tampering with history | Append-only audit log; soft delete only |

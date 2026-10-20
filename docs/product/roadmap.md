@@ -7,14 +7,17 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 20 Oct 2026 (CI)._
+_Last updated: 20 Oct 2026 (AI engine design)._
 
 ## Where we are
 
 The core CRM screens (Phase 2) are built on fictional demo data in Atlas, so
-the product can be seen and tested end to end. Next are real sign-in and
-hosting (Phase 0, waiting on the hosting decision below) and the warehouse sync
-(Phase 1). The
+the product can be seen and tested end to end. Next is the **AI layer, built
+step by step on the data we already have** (OpenAI, [ADR 0006](../architecture/decisions/0006-ai-provider.md)
+accepted; see [AI layer](../architecture/ai.md)). Each step is built against a
+test-only stand-in; the real model is tried once the team's OpenAI key arrives.
+Real sign-in and hosting (Phase 0) wait on the hosting decision below, and the
+warehouse sync (Phase 1) on a data source. The
 data model and every query are already tenant-scoped and permission-checked,
 so nothing built so far depends on demo-only shortcuts except development
 sign-in.
@@ -38,7 +41,10 @@ sign-in.
 | Later | Sign-in (Entra ID), hosting, deployments ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
 | Later | Warehouse / ERP sync into the mirror collections | 1 |
 | Later | Passive capture, review queue, Outlook add-in | 3 |
-| Later | AI layer and Wren ([ADR 0006](../architecture/decisions/0006-ai-provider.md), proposed) | 4 |
+| ⏭ Next | AI step 1, engine core: `defineAiFeature` / `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, usage log, test-only stand-in | 4 |
+| Later | AI steps 2–7: fact sources and cards, account summary, morning brief, Wren read-only chat, proposals and follow-up suggestions, evaluation and feedback | 4 |
+| Later | AI key day: configure the OpenAI key, run the evaluation set, tune prompts | 4 |
+| Later | Email and meeting analysis, embeddings, semantic search (after capture) | 4 |
 | Later | Team overview, reports, CRM usage, admin tools | 5 |
 | Later | Hardening, security review, pilot | 6 |
 
@@ -54,22 +60,25 @@ gantt
   Tenancy, accounts, profile, tasks, tests :done,   b2, 2026-10-19, 1d
   Tenant settings (divisions, time zone)   :done,   b3, 2026-10-19, 1d
   Contacts                                 :done,   b4, 2026-10-19, 1d
-  Call cycle                               :done,   b5, 2026-10-19, 1d
+  Visits and call cycle                    :done,   b5, 2026-10-19, 1d
   Notifications                            :done,   b6, 2026-10-19, 1d
   Contracts                                :done,   b7, 2026-10-20, 1d
   CI                                       :done,   b8, 2026-10-20, 1d
+  section AI layer (existing data)
+  Engine, fact sources, cards (steps 1–2)  :active, a0, 2026-10-21, 4d
+  Account summary, morning brief (3–4)     :        a1, after a0, 4d
+  Wren chat, proposals, evaluation (5–7)   :        a2, after a1, 7d
   section Foundations
-  Sign-in, hosting, deployments           :        f1, 2026-10-21, 7d
+  Sign-in, hosting, deployments           :        f1, after a2, 7d
   section Data spine
   Warehouse sync with guardrails           :        d1, after f1, 12d
   section Passive capture
   Email and meeting workers, matcher       :        p1, after d1, 10d
   Review queue, Outlook add-in, backfill   :        p2, after p1, 5d
-  section AI layer
-  Analysis, embeddings, semantic search    :        a1, after p2, 8d
-  Wren, morning brief, smart tasks         :        a2, after a1, 7d
+  section AI on captured mail
+  Analysis, embeddings, semantic search    :        a3, after p2, 8d
   section Manager and admin
-  Team, reports, usage, admin tools        :        m1, after a2, 10d
+  Team, reports, usage, admin tools        :        m1, after a3, 10d
   section Launch
   Hardening, security review, pilot        :        l1, after m1, 15d
 ```
@@ -82,7 +91,7 @@ gantt
 | 1 Data spine | Data model (**done** for current features), visibility rules (**done**), tenant settings (**done**), ERP/warehouse sync with guardrails | Each role sees exactly the right accounts on real-shaped data |
 | 2 Core CRM | Dashboard, accounts, profile, group page, tasks, contacts, call cycle, notifications, contracts (**done**) | Product demo sign-off on every core page |
 | 3 Passive capture | Email and meeting workers, matcher, review queue, backfill, Outlook add-in | Test mailboxes captured end to end with no manual step |
-| 4 AI layer | Redaction, analysis, embeddings, semantic search, Wren, morning brief, smart tasks | AI outputs reviewed on real test mail; cost per user within budget |
+| 4 AI layer | Steps 1–7 on existing data (engine core, fact sources and cards, account summary, morning brief, Wren chat, proposals and follow-up suggestions, evaluation and feedback); then email and meeting analysis, embeddings and semantic search after capture | Evaluation set passes on the real model (key day); AI outputs reviewed on test mail; cost per user within budget |
 | 5 Manager and admin | Team overview, reports, CRM usage, sync health, audit, view-as | Manager and admin acceptance testing |
 | 6 Launch | Security review, load test, monitoring, pilot customer, onboarding | Go-live approval for the pilot tenant |
 
@@ -91,7 +100,6 @@ gantt
 | Decision | Needed before |
 | --- | --- |
 | Hosting and sign-in ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md)) | Phase 0 sign-in work |
-| AI provider ([ADR 0006](../architecture/decisions/0006-ai-provider.md)) | Phase 4 |
 
 ## After v1
 

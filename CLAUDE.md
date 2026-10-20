@@ -15,10 +15,14 @@ must respect.
   customer profile and group page, tasks, contacts, call cycle with post-visit
   reports, notifications, contracts with renewal bands. Also multi-tenancy, role
   visibility, per-tenant divisions, lenses and time zones, and CI.
+- **Next: the AI layer, step by step** on OpenAI
+  ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
+  [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
+  Step 1 (engine core) first. The real model is tried only once the team's
+  OpenAI key arrives; until then tests use the test-only stand-in.
 - **Not built:** real sign-in and hosting (waits on
   [ADR 0005](docs/architecture/decisions/0005-hosting-and-sign-in.md)),
-  warehouse/ERP sync into the Mirror collections, email and meeting capture, the
-  AI layer (waits on [ADR 0006](docs/architecture/decisions/0006-ai-provider.md)),
+  warehouse/ERP sync into the Mirror collections, email and meeting capture,
   manager and admin pages (placeholders).
 - The live plan is [`docs/product/roadmap.md`](docs/product/roadmap.md).
 
@@ -122,6 +126,28 @@ docs/                          product, architecture, design, engineering
   use `.tbl` inside `.tbl-wrap`; cells don't wrap unless you add
   `whitespace-normal`. Check a new table at 1400px wide without scrolling.
 - Icons from `lucide-react` (v1 names, e.g. `Building`, `CircleQuestionMark`).
+
+**AI** (the design and its rules: [AI layer](docs/architecture/ai.md))
+- One engine: every AI capability is a definition in `apps/web/lib/ai/`
+  (`defineAiFeature`, `defineAiTool`, fact sources, cards, triggers) run by
+  `runAiFeature`. Nothing outside `lib/ai/` imports the AI SDK or calls OpenAI.
+- OpenAI only. `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_MODEL_STRONG` are
+  server-only; never log the key or send it to the client. No free or local
+  models.
+- Facts come only from fact sources on scoped read models (`getScope()`), with
+  handles instead of ids, allowed fields only, and customer text fenced as
+  `<untrusted>`. The model never reaches the database.
+- Verify, then show: schema and handles are checked before anything is
+  displayed; figures appear on cards rendered from records.
+- Tools return `{ ok: true, facts, cards }` or `{ ok: false, reason, ask }`;
+  propose tools never write. Accept runs the existing server action
+  (scope check, audit row), idempotent by proposal id.
+- `aiInvocations` holds metadata only, never prompt or reply text.
+- Prompts are versioned modules matching
+  [AI prompts](docs/architecture/ai-prompts.md); change both and bump the
+  version together.
+- Tests use the test-only stand-in model; CI never calls OpenAI. Quality is
+  measured with `pnpm ai:eval` on key day and on every prompt or model change.
 
 **Demo data**
 - `packages/db/src/fixtures.ts` holds two fictional tenants: Northwind

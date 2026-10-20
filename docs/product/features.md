@@ -189,18 +189,33 @@ matcher the new address) or reject.
 passive capture misses. Creates contacts for unknown senders.
 
 ### Wren, the AI assistant
-Side panel and full page. Streams answers with citations. Tools: create a
-follow-up task, log a note, find similar emails, summarise an account, list
-overdue follow-ups. Every tool re-checks visibility and records what it did.
-Conversations are stored server-side. See [AI layer](../architecture/ai.md).
+Planned, built step by step on one AI engine with OpenAI
+([AI layer](../architecture/ai.md), [prompts](../architecture/ai-prompts.md)):
+- **Account summary** (step 3): "Generate" on the customer profile writes a
+  short briefing; the records it used appear as cards.
+- **Morning brief** (step 4): see below.
+- **Chat** (step 5): side panel and full page; answers questions about the
+  user's own tasks, accounts, visits, renewals and contacts. Answers are checked
+  before they're shown, with the records as cards. Conversations are kept per
+  user.
+- **Proposals** (step 6): Wren proposes a task, a note or a visit; nothing
+  changes until the user accepts, through the same action as the normal form.
+  After a post-visit report, suggested follow-up tasks to accept or dismiss.
+- **Later:** natural-language filters, meeting prep, next best action; with
+  capture, analysed email on the timeline and search by meaning.
+- **Controls:** off by default per tenant; an admin turns it on, picks the
+  roles and features; monthly token budget and per-user rate limit; thumbs up or
+  down on every answer.
+- Until the OpenAI key is configured, these features show "AI isn't set up yet".
 
 ### Search
 Quick search across accounts and contacts (built in the Ctrl K palette for
 accounts) and semantic search over email and meeting analyses.
 
 ### Morning brief
-A short generated digest: what changed overnight, what to do first, accounts
-that have gone quiet.
+Planned (AI step 4): a short cited digest of what needs attention today:
+overdue and due tasks, today's visits, renewals within 30 days, unread alerts,
+accounts that have gone quiet. Prepared at 7am in the tenant's zone.
 
 ### Manager surface
 Team overview (per-rep performance vs budget and trend), report library with
