@@ -150,8 +150,11 @@ html[data-dark="1"] {
     padding: 22px 16px 16px;
     overflow-y: auto;
     overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    /* Still scrolls on short screens; the bar itself stays hidden. */
+    scrollbar-width: none;
+  }
+  .side-body::-webkit-scrollbar {
+    display: none;
   }
   .side-wave {
     position: absolute;
