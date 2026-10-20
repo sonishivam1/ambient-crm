@@ -67,12 +67,29 @@ are reachable over HTTP by anyone who can reach the app.
 
 ## Route handlers (planned)
 
+Every route handler is versioned under `/api/v1`
+([ADR 0007](../architecture/decisions/0007-api-versioning.md)). None exist yet.
+
 | Route | Caller | Auth |
 | --- | --- | --- |
-| `POST /api/chat` | Wren (streaming) | web session |
-| `POST /api/addin/messages`, `POST /api/addin/meetings` | Outlook add-in | Office SSO bearer token |
-| `POST /api/webhooks/graph` | Microsoft Graph change notifications (optional, alongside polling) | Graph validation token + client state |
-| `GET /api/health` | Hosting health check | none; returns no data |
+| `POST /api/v1/ai/chat` | Wren (streaming, AI step 5) | web session |
+| `POST /api/v1/addin/messages`, `POST /api/v1/addin/meetings` | Outlook add-in | Office SSO bearer token |
+| `POST /api/v1/webhooks/graph` | Microsoft Graph change notifications (optional, alongside polling) | Graph validation token + client state |
+| `GET /api/health` | Hosting health check (unversioned) | none; returns no data |
+
+### Conventions for every route
+
+- Lives at `app/api/v1/<area>/<name>/route.ts`, with its request and response
+  Zod schemas in a `schema.ts` beside it.
+- Within v1, changes are additive only (new endpoints, new optional fields).
+  A breaking change becomes `/api/v2/…`; v1 keeps working until its sunset
+  date and answers with `Deprecation`, `Sunset` and `Link` headers.
+- Same rules as server actions: Zod input, `getScope()`, scope re-check,
+  audit row for writes, out of scope is 404.
+- Errors are `{ "error": { "code", "message" } }` with 400, 401, 404, 429 or
+  500; never internal details or provider messages.
+- Each request gets a request id, carried into the logger's context and
+  returned as `X-Request-Id`.
 
 ## Errors
 

@@ -15,7 +15,8 @@ code and a document disagree, the code is right and the document needs fixing.
 | [product/](product/) | what we are building, for whom, and in what order | [Vision](product/vision.md) · [Personas](product/personas.md) · [Features](product/features.md) · [Roadmap](product/roadmap.md) · [Glossary](product/glossary.md) |
 | [architecture/](architecture/) | how the system fits together and why | [Overview](architecture/overview.md) · [Data model](architecture/data-model.md) · [Security and access](architecture/security.md) · [Integrations](architecture/integrations.md) · [AI layer](architecture/ai.md) · [AI prompts](architecture/ai-prompts.md) · [Decisions](architecture/decisions/) |
 | [design/](design/) | how the product looks and behaves | [Design system](design/design-system.md) |
-| [engineering/](engineering/) | how to work in the codebase | [Getting started](engineering/getting-started.md) · [Conventions](engineering/conventions.md) · [Testing](engineering/testing.md) · [Git workflow](engineering/git-workflow.md) |
+| [engineering/](engineering/) | how to work in the codebase | [Getting started](engineering/getting-started.md) · [Conventions](engineering/conventions.md) · [Testing](engineering/testing.md) · [Git workflow](engineering/git-workflow.md) · [Build log](engineering/build-log.md) |
+| [plans/](plans/) | what each step set out to build, and what was built | [Plans](plans/README.md) |
 | [technical/](technical/) | how it is configured, deployed and run | [Configuration](technical/configuration.md) · [Server API](technical/server-api.md) · [Deployment](technical/deployment.md) · [Operations](technical/operations.md) |
 | [marketing/](marketing/) | how we describe and sell it | [Positioning](marketing/positioning.md) · [Go to market](marketing/go-to-market.md) |
 

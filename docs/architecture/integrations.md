@@ -94,7 +94,7 @@ Guardrails:
 sequenceDiagram
   participant O as Outlook
   participant A as Add-in task pane
-  participant API as Ambient /api/addin
+  participant API as Ambient /api/v1/addin
   participant DB as MongoDB
   O->>A: user opens "Send to Ambient"
   A->>O: getAccessToken() (Office SSO)
