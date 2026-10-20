@@ -32,7 +32,10 @@ callers outside the web app.
 | Function | File | Does |
 | --- | --- | --- |
 | `defineAiFeature(def)` | `lib/ai/engine.ts` | Declares a feature: id, version, roles, tier, input and output schemas, facts builder, task prompt, temperature, output cap |
-| `runAiFeature(feature, input)` | `lib/ai/engine.ts` | Runs it for the signed-in user: input check, gates, facts, budget reservation, model call, verification, settlement and logging. Returns `{ ok: true, output, outcome, sources }` or `{ ok: false, reason, message }`; never throws for expected failures |
+| `runAiFeature(feature, input)` | `lib/ai/engine.ts` | Runs it for the signed-in user: input check, gates, facts, budget reservation, model call, verification, settlement and logging. Returns `{ ok: true, output, outcome, sources, cards }` or `{ ok: false, reason, message }` (`not_found` when the fact source returns null); never throws for expected failures |
+| `accountFacts(scope, { accountId })` | `lib/ai/facts/account.ts` | One account's facts and cards, on `getAccountProfile()`; null when not visible |
+| `myDayFacts(scope)` | `lib/ai/facts/my-day.ts` | What needs the user today (the team's for managers), with full counts |
+| `factsBuilder()` | `lib/ai/facts.ts` | Handles, allowed fields and cards for a fact source; `build()` adds the fingerprint |
 
 No feature is exposed to users yet (step 3 adds the first). See
 [AI layer](../architecture/ai.md).

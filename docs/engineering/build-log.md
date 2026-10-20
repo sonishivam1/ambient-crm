@@ -13,6 +13,23 @@ how it was verified, and any lesson worth keeping.
 
 ## 20 Oct 2026
 
+### AI step 2: fact sources and cards
+- **What:** `factsBuilder()` (handles, allowed fields per kind, a card kept per
+  handle, a fingerprint); `accountFacts` and `myDayFacts` on the pages' read
+  models; staff text fenced and cut to 300 characters; cards for accounts,
+  tasks, visits, contracts, contacts, interactions and notifications
+  (`components/ai/cards/`), previewed on `/dev/components`. The engine returns
+  the cited records as `cards` and answers `not_found` for an account the user
+  can't see, without calling the model.
+- **Why:** every AI feature needs the same two things: facts that can only
+  hold what the user may see, and real records to show beside the text.
+- **Verified:** 12 integration and 7 unit tests; 205 web tests; lint,
+  typecheck and build clean; three planted leaks (contact email, unscoped
+  visits, uncited cards) each fail the suite; checked in light and dark mode.
+- **Lessons:** a "no space found" index of -1 passed a nearby-word-break
+  check; card titles need two lines for bill-tos named "GROUP – SITE".
+- **Plan:** [AI step 2](../plans/ai-step-2-fact-sources-and-cards.md).
+
 ### Logging and versioned APIs across the whole app
 - **What:** request ids on every request (`proxy.ts`); every server action
   wrapped in `loggedAction` (name, duration, outcome); every unhandled server

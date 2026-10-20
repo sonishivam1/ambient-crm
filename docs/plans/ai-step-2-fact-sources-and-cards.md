@@ -1,7 +1,7 @@
 # AI step 2: fact sources and cards
 
-**Status:** Agreed
-**Agreed:** 20 Oct 2026
+**Status:** Built
+**Agreed:** 20 Oct 2026 · **Built:** 20 Oct 2026
 
 ## Goal
 Build the two shared pieces every AI feature stands on: **fact sources**, which
@@ -72,4 +72,39 @@ AI layer (status, code layout), server API, testing, roadmap, build log,
 CLAUDE.md.
 
 ## As built
-_To be filled in when built._
+- Built as planned: `lib/ai/facts.ts` gains `factsBuilder()` (handles per
+  kind, a card kept per handle, server-side only), `ALLOWED_FIELDS` per kind,
+  `cut()`, a 300-character cap inside `untrusted()`, and a SHA-256
+  `fingerprint`. Fact sources in `lib/ai/facts/`: `accountFacts` (on
+  `getAccountProfile()`) and `myDayFacts` (on `getTodayTasks()`,
+  `getContractsPage()`, `getNotifications()` and the call cycle's
+  `decorateVisits()`), with shared row-to-fact-and-card functions in
+  `records.ts` and ready-made values in `format.ts`. Card data types in
+  `lib/ai/cards.ts`; cards in `components/ai/cards/`; preview on
+  `/dev/components`.
+- **Engine:** `facts` may return null, which gives `not_found` (no model call,
+  no budget, no invocation row; an info log line). A successful result adds
+  `cards`, the cited records in citation order.
+- **Changed from the plan:**
+  - A **notification** card and `N` handle, because "my day" cites unread
+    notifications.
+  - Planned visits include ones whose day has passed without being closed
+    (oldest first), flagged as such; a summary should mention them.
+  - Task titles and visit purposes are fenced too, not only summaries and
+    report text: they are staff-written.
+  - Each packet has `counts` with the full totals, so a capped list never
+    reads as the whole picture.
+  - Quiet accounts are the user's 200 largest bill-tos by revenue, checked for
+    an interaction or completed visit on them or their sold-tos in 30 days;
+    the 5 largest quiet ones are listed.
+- **Caps:** account: 10 tasks, 3 planned and 3 recent visits, 5 interactions,
+  10 contracts, 8 contacts. My day: 10 each of overdue tasks, tasks due today,
+  visits today, renewals and notifications; 5 quiet accounts.
+- **Verified:** 12 integration tests (`ai-facts.test.ts`) and 7 new unit
+  tests; 205 web tests in total; lint, typecheck and build clean. Leaking a
+  contact's email, unscoping today's visits, or returning every card instead
+  of the cited ones each fails the suite. Checked on `/dev/components` in
+  light and dark mode, including live "my day" cards for a manager.
+- **Lessons:** `cut()` treated "no space found" (-1) as a nearby word break
+  for short limits; the unit test caught it. Card titles need two lines:
+  bill-tos often differ only after the dash.

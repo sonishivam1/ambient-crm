@@ -11,6 +11,7 @@ import { getScope, type Scope } from "@/lib/data/scope";
 import { estimateTokens, reserveTokens, settleTokens } from "./budget";
 import { modelFor } from "./client";
 import { CALL_TIMEOUT_MS, type AiTier } from "./config";
+import type { AiCardData } from "./cards";
 import { renderFacts, type FactPacket } from "./facts";
 import { REFUSAL_MESSAGE, checkGates, type AiRefusal } from "./gates";
 import { logInvocation } from "./log";
@@ -40,8 +41,11 @@ export type AiFeature<I, O> = {
    * present: use `.nullable()`, not `.optional()` or `.default()`.
    */
   output: z.ZodType<O>;
-  /** Build this user's facts from scoped read models. The model sees nothing else. */
-  facts: (scope: Scope, input: I) => Promise<FactPacket>;
+  /**
+   * Build this user's facts from scoped read models. The model sees nothing
+   * else. Null when the record asked about isn't there for this user.
+   */
+  facts: (scope: Scope, input: I) => Promise<FactPacket | null>;
   /** The feature prompt: the task, after the shared policy prompt. */
   task: (input: I) => string;
   temperature: number;
@@ -53,7 +57,7 @@ export function defineAiFeature<I, O>(feature: AiFeature<I, O>): AiFeature<I, O>
   return feature;
 }
 
-export type AiFailure = AiRefusal | "invalid_input" | "rejected" | "failed";
+export type AiFailure = AiRefusal | "invalid_input" | "not_found" | "rejected" | "failed";
 
 export type AiResult<O> =
   | {
@@ -61,12 +65,15 @@ export type AiResult<O> =
       output: O;
       /** "repaired" when invented sources were dropped or a retry was needed. */
       outcome: "ok" | "repaired";
-      /** Handles the verified output cites, in order: the records to show as cards. */
+      /** Handles the verified output cites, in order. */
       sources: string[];
+      /** The cited records as cards, in the same order: what the user sees beside the text. */
+      cards: AiCardData[];
     }
   | { ok: false; reason: AiFailure; message: string };
 
 const TRY_AGAIN = "Couldn't generate this right now. Try again in a moment.";
+const NOT_FOUND = "That record isn't available.";
 const ROLE_LABEL: Record<RoleKey, string> = {
   user: "Account manager",
   manager: "Manager",
@@ -126,6 +133,11 @@ export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unk
   if (refusal) return refuse(refusal);
 
   const facts = await feature.facts(scope, input);
+  // Out of scope, another tenant's or missing: the same answer, and no model call.
+  if (!facts) {
+    createLogger("ai", { tenantId: scope.tenantId, userId: scope.user._id }).info({ feature: feature.id, reason: "not_found" }, "AI request for a record that isn't visible");
+    return { ok: false, reason: "not_found", message: NOT_FOUND };
+  }
   const instructions = `${policyPrompt(
     promptContext({ tenantName: scope.user.tenant.name, userName: scope.user.name, roleLabel: ROLE_LABEL[scope.user.role], timeZone: scope.timeZone }),
   )}\n\n${feature.task(input)}`;
@@ -190,5 +202,7 @@ export async function runAiFeature<I, O>(feature: AiFeature<I, O>, rawInput: unk
   }
   const outcome = verified.removed > 0 || attempts > 1 ? "repaired" : "ok";
   await logInvocation(scope, { ...metrics, outcome, errorKind: null });
-  return { ok: true, output: verified.output, outcome, sources: citedSources(verified.output) };
+  const sources = citedSources(verified.output);
+  const cards = sources.flatMap((h) => facts.cards.get(h) ?? []);
+  return { ok: true, output: verified.output, outcome, sources, cards };
 }

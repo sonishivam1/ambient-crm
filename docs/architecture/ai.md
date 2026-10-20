@@ -348,8 +348,8 @@ before the next.
 | Step | Builds | Status |
 | --- | --- | --- |
 | 1. Engine core | `defineAiFeature`, `runAiFeature`, OpenAI client and tiers, gates and tenant AI policy, `aiInvocations`, `aiUsage` budget ledger, test-only stand-in, security tests | ✅ Built |
-| 2. Fact sources and cards | Account and "my day" fact sources with handles and allowed fields; task, visit, contract and account cards | Next |
-| 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | Planned |
+| 2. Fact sources and cards | Account and "my day" fact sources with handles and allowed fields; account, task, visit, contract, contact, interaction and notification cards | ✅ Built |
+| 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | Next |
 | 4. Morning brief | Second feature, plus the 7am trigger | Planned |
 | 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | Planned |
 | 6. Proposals | Propose tools, Confirm cards, existing actions, idempotent Accept; follow-up suggestions after visit reports | Planned |
@@ -368,14 +368,16 @@ apps/web/lib/ai/
   engine.ts        defineAiFeature, runAiFeature (defineAiTool in step 5)             (built)
   gates.ts         key, tenant policy, feature, role, rate limit, budget left         (built)
   budget.ts        aiUsage ledger: atomic reserve, settle, tokens left                (built)
-  facts.ts         fact packets, handles, untrusted fencing, rendering                (built)
+  facts.ts         fact packets, factsBuilder, allowed fields, fencing, fingerprint   (built)
+  cards.ts         card data types, safe in client components                         (built)
   verify.ts        drop claims citing handles not in this call's facts                (built)
   log.ts           aiInvocations rows, metadata only                                  (built)
   prompts/         versioned prompt modules; policy.ts is v1                          (built)
-  facts/           fact sources on scoped read models                                 (step 2)
+  facts/           fact sources on scoped read models: account, my-day               (built)
   features/        one file per feature                                               (step 3 on)
   tools/           one file per tool                                                  (step 5)
-apps/web/components/ai/          cards, proposal card, chat panel                    (step 2 on)
+apps/web/components/ai/cards/    one card per record kind                            (built)
+apps/web/components/ai/          proposal card, chat panel                           (step 5 on)
 apps/web/tests/support/ai-stand-in.ts   the test-only stand-in model                (built)
 ```
 
@@ -402,7 +404,37 @@ has no test hook.
   errors, a 20-second time limit. Output schemas must use `.nullable()`, not
   `.optional()` or `.default()`, for strict mode.
 - **Retry:** one more attempt only when the reply's shape is wrong.
-- **Result:** `{ ok: true, output, outcome, sources }` or
+- **Result:** `{ ok: true, output, outcome, sources, cards }` or
   `{ ok: false, reason, message }`; reasons are the gate refusals plus
-  `invalid_input`, `rejected` (every claim invented) and `failed`. Messages
-  never include provider error text.
+  `invalid_input`, `not_found` (step 2), `rejected` (every claim invented) and
+  `failed`. Messages never include provider error text.
+
+## Fact sources and cards (built in step 2)
+
+- **Builder:** a fact source calls `factsBuilder().add(kind, fact, card)` for
+  each record. It hands out the handle (`A1`, `T1`, `V1`, `K1`, `C1`, `I1`,
+  `N1`), keeps only that kind's `ALLOWED_FIELDS`, and keeps the card on the
+  server. `build(data)` returns the packet: data, handles, cards (only for
+  handles in the data) and a SHA-256 fingerprint of the data.
+- **Values arrive ready:** dates as "Tue 21 Oct 2026" on the tenant's
+  calendar, money as on the pages ("$312K"), days left, band and health
+  labels, ratings as "Relationship 4/5, …". `counts` give full totals.
+- **Staff-written text** (task titles, visit purposes, report key points and
+  follow-ups, interaction summaries, notification bodies) is fenced as
+  `<untrusted>` and cut to 300 characters. Contacts carry names, titles and
+  roles only: never email or phone. No real id is ever in the facts.
+- **`accountFacts(scope, { accountId })`** on `getAccountProfile()`: the
+  account; up to 10 tasks (open soonest first, then completed); 3 planned
+  visits (oldest first, so an unclosed one shows) and the 3 latest completed,
+  with scorecards; 5 latest interactions; up to 10 contracts (a sold-to gets
+  its bill-to's); up to 8 active contacts. Null when the account is missing,
+  inactive, out of scope or another tenant's: the engine answers `not_found`
+  without calling the model.
+- **`myDayFacts(scope)`**: overdue tasks and tasks due today, today's planned
+  visits, renewals within 30 days, unread notifications (10 each), and up to 5
+  quiet accounts (no interaction or completed visit in 30 days). A manager's
+  is their team's, as on the dashboard; notifications are always the user's.
+- **Cards** (`components/ai/cards/`): `<AiCards cards>` renders the records an
+  answer cites, in citation order, each linking to where it lives (profile,
+  tasks, call cycle, contracts, contacts, notifications). Card data is built
+  from the same rows as the facts, never from model text.

@@ -18,7 +18,8 @@ must respect.
 - **Next: the AI layer, step by step** on OpenAI
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
   [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  Step 1 (engine core) is built; step 2 (fact sources and cards) is next.
+  Steps 1 (engine core) and 2 (fact sources and cards) are built; step 3
+  (account summary) is next.
   The real model is tried only once the team's OpenAI key arrives; until then
   tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
 - **Not built:** real sign-in and hosting (waits on
@@ -164,7 +165,9 @@ docs/engineering/build-log.md  history of every change, newest first
   models.
 - Facts come only from fact sources on scoped read models (`getScope()`), with
   handles instead of ids, allowed fields only, and customer text fenced as
-  `<untrusted>`. The model never reaches the database.
+  `<untrusted>`. The model never reaches the database. Build them with
+  `factsBuilder()` and the shared functions in `lib/ai/facts/records.ts`;
+  never put an email, phone number or real id in a fact.
 - Verify, then show: schema and handles are checked before anything is
   displayed; figures appear on cards rendered from records.
 - Tools return `{ ok: true, facts, cards }` or `{ ok: false, reason, ask }`;

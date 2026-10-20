@@ -72,6 +72,7 @@ flowchart LR
 | `theme-switch`, `<ThemeSwitch>` | Light/dark pill switch: sun or moon icon, sliding knob |
 | `pop`, `mi`, `mh` | Menus (Radix dropdown) |
 | `li`, `tk`, `evt` | List row, task row, event row |
+| `ai-cards`, `ai-card`, `<AiCards>`, `<AiCard>` | The records behind an AI answer: icon chip, two-line title, meta, badge; links to the record (`components/ai/cards/`) |
 | `bar`, `<ProgressBar>`; `<Ring>` | Progress bar; donut |
 | `cal` | Week day picker |
 | `sb-track` | Sales vs target bar with target marker |
