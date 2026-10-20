@@ -7,6 +7,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { setLens, switchDevUser } from "@/app/actions/session";
+import { ThemeSwitch } from "@/components/theme/theme-switch";
 import { useColorMode } from "@/components/theme/use-theme";
 import { Avatar } from "@/components/ui/primitives";
 import type { RoleCapabilities } from "@/lib/auth/roles";
@@ -73,16 +74,7 @@ export function Topbar({
         </div>
       )}
 
-      <div className="seg tb-hide" role="radiogroup" aria-label="Colour mode">
-        <button role="radio" aria-checked={!dark} className={cn(!dark && "on")} onClick={() => setDark(false)}>
-          <Sun size={15} />
-          Light
-        </button>
-        <button role="radio" aria-checked={dark} className={cn(dark && "on")} onClick={() => setDark(true)}>
-          <Moon size={15} />
-          Dark
-        </button>
-      </div>
+      <ThemeSwitch className="tb-hide" />
 
       <Link href="/notifications" className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>
         <Bell size={18} />

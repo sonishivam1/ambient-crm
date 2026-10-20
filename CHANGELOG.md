@@ -24,4 +24,5 @@ see the [build log](docs/engineering/build-log.md).
 - **Contracts:** renewals by band with search; contracts on each profile.
 - **Organisation settings:** each organisation's own divisions, lenses and
   time zone; every date shows on the organisation's calendar.
-- Light and dark mode; Ctrl K search for accounts and contacts.
+- Light and dark mode, switched with one toggle in the top bar; Ctrl K search
+  for accounts and contacts.

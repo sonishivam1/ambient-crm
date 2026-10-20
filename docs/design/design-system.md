@@ -68,7 +68,8 @@ flowchart LR
 | `btn` + `primary` `dark` `soft` `ghost` `danger`, sizes `sm` `xs` `icon` | Buttons |
 | `bdg` + tone, `<Badge>` | Status pill |
 | `hp g/a/r`, `<HealthPill>` | Health label |
-| `seg` | Segmented control (lens, light/dark) |
+| `seg` | Segmented control (lens) |
+| `theme-switch`, `<ThemeSwitch>` | Light/dark pill switch: sun or moon icon, sliding knob |
 | `pop`, `mi`, `mh` | Menus (Radix dropdown) |
 | `li`, `tk`, `evt` | List row, task row, event row |
 | `bar`, `<ProgressBar>`; `<Ring>` | Progress bar; donut |
@@ -81,7 +82,8 @@ flowchart LR
 
 `html[data-dark="1"]` switches every token. An inline script in
 `app/layout.tsx` reads the `amb_dark` cookie before first paint, so there is no
-flash; the top-bar toggle and user menu update it.
+flash; the top-bar switch (`<ThemeSwitch>`, one button with `role="switch"`)
+and the user menu update it.
 
 ## Accessibility
 
