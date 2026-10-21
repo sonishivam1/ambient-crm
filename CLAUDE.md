@@ -18,9 +18,10 @@ must respect.
 - **Next: the AI layer, step by step** on OpenAI
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
   [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  Steps 1 to 5 are built (engine core; fact sources and cards; the account
-  summary with its cache; the morning brief, kept for the day; Wren chat,
-  read-only, on `/assistant`); step 6 (proposals, and the side panel) is next.
+  Steps 1 to 6 are built (engine core; fact sources and cards; the account
+  summary with its cache; the morning brief, kept for the day; Wren chat on
+  `/assistant` and the side panel; proposals with Accept through the forms'
+  code, and follow-up suggestions); step 7 (evaluation and feedback) is next.
   The 7am brief job waits for hosting.
   The real model is tried only once the team's OpenAI key arrives; until then
   tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
@@ -175,7 +176,9 @@ docs/engineering/build-log.md  history of every change, newest first
 - Tools (`defineAiTool`) return `{ ok: true, …facts }` or
   `{ ok: false, reason, ask }`; every tool in one question shares one facts
   builder; account names resolve only among the user's own accounts
-  (`resolveAccount`). Propose tools never write. Accept runs the existing server action
+  (`resolveAccount`). Propose tools write only a proposal (`aiProposals`);
+  Accept runs the form's own code (`lib/writes/*`, existing actions), atomic
+  and single-use. Never add a tool or action that writes CRM data directly. Accept runs the existing server action
   (scope check, audit row), idempotent by proposal id.
 - `aiInvocations` holds metadata only, never prompt or reply text. Answer
   text lives only in `aiOutputs`: per user, served only for unchanged facts,

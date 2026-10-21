@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { AiCardData } from "./cards";
+import type { ProposalView } from "./proposal-view";
 
 /**
  * What the assistant page receives: turns as they were shown, and the events
@@ -16,6 +17,8 @@ export type ChatTurnView = {
   cards: AiCardData[];
   /** An answer that cited no records. */
   uncited: boolean;
+  /** Records this answer prepared for the user to accept, with their live status. */
+  proposals: ProposalView[];
   createdAt: string;
 };
 
@@ -32,6 +35,7 @@ const TurnSchema = z.object({
   followUpQuestion: z.string().nullable(),
   cards: z.array(z.object({ kind: z.string(), handle: z.string(), href: z.string() }).passthrough()),
   uncited: z.boolean(),
+  proposals: z.array(z.object({ id: z.string(), kind: z.enum(["task", "visit", "note"]), status: z.string() }).passthrough()),
   createdAt: z.string(),
 });
 

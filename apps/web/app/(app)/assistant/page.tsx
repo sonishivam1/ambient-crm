@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { WrenChat } from "@/components/ai/wren-chat";
 import { PageHead, Skeleton } from "@/components/ui/primitives";
 import { WREN_CHAT } from "@/lib/ai/chat";
-import { getConversation, listConversations, toTurnView } from "@/lib/ai/conversations";
+import { getConversation, listConversations, turnViews } from "@/lib/ai/conversations";
 import { REFUSAL_MESSAGE, checkAccess } from "@/lib/ai/gates";
 import { chatSuggestions } from "@/lib/ai/suggestions";
 import { getScope } from "@/lib/data/scope";
@@ -34,9 +34,10 @@ async function AssistantContent({ searchParams }: { searchParams: PageProps<"/as
         key={conversation?._id ?? "new"}
         conversations={conversations}
         conversationId={conversation?._id ?? null}
-        turns={(conversation?.turns ?? []).map(toTurnView)}
+        turns={await turnViews(scope, conversation)}
         unavailable={denied ? REFUSAL_MESSAGE[denied] : null}
         suggestions={suggestions}
+        proposalCtx={{ ownRepId: scope.user.repId, timeZone: scope.timeZone }}
       />
     </>
   );

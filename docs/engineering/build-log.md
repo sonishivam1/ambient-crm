@@ -11,6 +11,22 @@ how it was verified, and any lesson worth keeping.
 
 ---
 
+## 21 Oct 2026
+
+### AI step 6: proposals, follow-ups and the side panel
+- **What:** propose tools in chat (task, visit, note) that write only a
+  proposal; proposal cards with Accept (the form's own code, atomic and
+  single-use; tasks marked from Wren), Edit (the normal form, filled in) and
+  Dismiss; follow-up suggestions from the user's own visit reports, as
+  proposals; the Wren side panel on every page, continuing the latest chat
+  and aware of the account on a profile. `createTask`'s rules moved to
+  `lib/writes/tasks.ts` so the form and Accept share them.
+- **Why:** Wren can now help do the work, without ever writing on its own.
+- **Verified:** 10 integration and 4 unit tests; 275 web tests; lint,
+  typecheck and build clean; four planted bugs fail the suite; the card, Edit
+  and the panel checked in the browser. Real answers wait for key day.
+- **Plan:** [AI step 6](../plans/ai-step-6-proposals.md).
+
 ## 20 Oct 2026
 
 ### AI step 5: Wren chat (read-only)

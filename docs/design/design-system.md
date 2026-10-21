@@ -75,6 +75,8 @@ flowchart LR
 | `ai-cards`, `ai-card`, `<AiCards>`, `<AiCard>` | The records behind an AI answer: icon chip, two-line title, meta, badge; links to the record (`components/ai/cards/`); `ai-cards one-col` for narrow columns |
 | `ai-summary`, `ai-next`, `ai-gaps`, `<AccountSummaryPanel>` | The Wren summary: uppercase section labels, coral bullets, the next step on accent-soft, muted gaps, a disclaimer |
 | `wren`, `wren-list`, `wren-log`, `wren-foot`, `wren-msg user/assistant`, `wren-progress`, `wren-follow`, `wren-input`, `<WrenChat>` | Wren chat: one full-height card; the conversation list in a shaded panel on the left (stacked above on narrow screens); the messages scroll, the question box stays at the bottom; questions on navy (raised surface in dark mode), answers on surface-2 with their cards, progress lines with a spinner (`spin`); `wren-chip` coral outline pills for suggested and follow-up questions (one sideways-scrolling row on phones); a pill field with a separate coral Ask button |
+| `proposal`, `proposal-actions`, `proposal-state`, `<ProposalCard>`, `<ProposalCards>` | A record Wren prepared: dashed coral border and "ready to accept" while pending (solid and muted once decided); Accept, Edit, Dismiss; the result with a link |
+| `wren-drawer`, `wren-drawer-head`, `wren panel`, `wren-panel-head` | The Wren side panel: 460px slide-out on the right over a light scrim; the chat in one column with a compact header (New chat, open full page) |
 | `brief-head`, `brief-items`, `brief-kind`, `<MorningBriefPanel>`, `<Brief>` | The morning brief: sun chip and headline, "As of" line, items with kind label, priority badge and their cards |
 | `bar`, `<ProgressBar>`; `<Ring>` | Progress bar; donut |
 | `cal` | Week day picker |

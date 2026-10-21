@@ -38,7 +38,9 @@ callers outside the web app.
 | `morningBrief`, `morningBriefState()`, `morningBriefHeadline()` | `lib/ai/features/morning-brief.ts` | The morning brief feature, the page's starting state, and today's headline for the dashboard tile (no facts, no call) |
 | `latestNotes(feature, input)` | `lib/ai/engine.ts` | Today's cached notes for a `day` feature, without building facts; writes nothing |
 | `runChatTurn(input, onProgress)` | `lib/ai/chat.ts` | One Wren question: access, limits, tools as the user, verification, saving; never throws for expected failures |
-| `defineAiTool(def)`, `resolveAccount(scope, name)` | `lib/ai/tools/define.ts` | Declares a read tool; matches an account name among the user's own accounts only |
+| `defineAiTool(def)`, `resolveAccount(scope, name)` | `lib/ai/tools/define.ts` | Declares a tool; matches an account name among the user's own accounts only |
+| `createTasks(scope, input, { fromWren })` | `lib/writes/tasks.ts` | createTask's rules (scope, past dates, assignment, audit, notifications), shared by the form action and Accept |
+| `createProposal`, `acceptProposal`, `dismissProposal`, `proposalViews` | `lib/ai/proposals.ts` | The user's own proposals only; Accept is atomic and single-use |
 | `listConversations`, `getConversation`, `deleteConversation` | `lib/ai/conversations.ts` | The user's own conversations only |
 | `accountFacts(scope, { accountId })` | `lib/ai/facts/account.ts` | One account's facts and cards, on `getAccountProfile()`; null when not visible |
 | `myDayFacts(scope)` | `lib/ai/facts/my-day.ts` | What needs the user today (the team's for managers), with full counts |
@@ -66,6 +68,10 @@ The account summary is the first feature users see (step 3). See
 | `markAllNotificationsRead()` | `app/actions/notifications.ts` | — | marks all your unread notifications read; returns how many | — |
 | `generateAccountSummary({ accountId, refresh })` | `app/actions/ai.ts` | account id; `refresh` skips the cache | runs the account summary; returns the verified answer (points, next step, cards, notes, generated time) or a refusal message; writes no CRM data | — (logged in `aiInvocations`) |
 | `deleteWrenConversation(id)` | `app/actions/ai.ts` | conversation id | deletes one of your own Wren conversations; false when it isn't yours | — |
+| `acceptWrenProposal(id)` | `app/actions/ai.ts` | proposal id | runs the form's own code for one of your pending proposals (task, visit or note); a second click gets the first result | the action's own (`task.create` with source `ai`, `visit.create`, `interaction.log`) |
+| `dismissWrenProposal(id)`, `markWrenProposalSaved(id)` | `app/actions/ai.ts` | proposal id | dismiss a pending proposal, or mark it done after saving it through the normal form | — |
+| `suggestVisitFollowUps(visitId)` | `app/actions/ai.ts` | visit id | up to 3 task proposals from one of your own visit reports; the same ones again if asked twice | — (logged in `aiInvocations`) |
+| `loadWrenPanel(pathname)` | `app/actions/ai.ts` | the page's path | what the side panel opens with: conversations, the latest one, page-aware suggestions; never calls the model | — |
 | `generateMorningBrief({ refresh })` | `app/actions/ai.ts` | `refresh` writes a new brief | runs today's brief; returns the headline, items, cards, time written and whether the records changed since, or a refusal message; writes no CRM data | — (logged in `aiInvocations`) |
 | `searchBillToAccounts(q)` | `app/actions/accounts.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task and contact dialogs | — (read) |
 | `listSoldTos(billToId)` | `app/actions/accounts.ts` | bill-to id | its sold-to sites, empty when the bill-to isn't in scope | — (read) |

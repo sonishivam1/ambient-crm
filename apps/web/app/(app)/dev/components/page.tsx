@@ -103,6 +103,7 @@ const turn = (t: Partial<ChatTurnView> & Pick<ChatTurnView, "id" | "role" | "tex
   followUpQuestion: null,
   cards: [],
   uncited: false,
+  proposals: [],
   createdAt: "2026-10-20T22:00:00.000Z",
   ...t,
 });
@@ -116,8 +117,26 @@ const SAMPLE_CHAT: ChatTurnView[] = [
     followUpQuestion: "Want the account summary?",
     cards: SAMPLE_CARDS.filter((c) => ["T1", "K1"].includes(c.handle)),
   }),
-  turn({ id: "q2", role: "user", text: "Mark it done" }),
-  turn({ id: "a2", role: "assistant", text: "I can't change tasks yet. Open Tasks to complete it.", uncited: true }),
+  turn({ id: "q2", role: "user", text: "Remind me to send the winter samples by Friday" }),
+  turn({
+    id: "a2",
+    role: "assistant",
+    text: "I've prepared a task for you to accept.",
+    uncited: true,
+    proposals: [
+      {
+        id: "sample-proposal",
+        kind: "task",
+        title: "Send the winter samples",
+        account: "Sample Logistics Pty Ltd",
+        lines: ["Due Fri 24 Oct 2026", "Medium priority"],
+        status: "pending",
+        resultHref: null,
+        lastError: null,
+        draft: { kind: "task", accountId: "sample", accountName: "Sample Logistics Pty Ltd", title: "Send the winter samples", dueDate: "2026-10-24", priority: "normal" },
+      },
+    ],
+  }),
 ];
 
 export default function Page() {
@@ -146,6 +165,7 @@ export default function Page() {
           conversationId="sample"
           turns={SAMPLE_CHAT}
           unavailable="A sample conversation: questions are off here."
+          proposalCtx={{ ownRepId: null, timeZone: "Australia/Sydney" }}
         />
       </div>
 

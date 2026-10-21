@@ -24,19 +24,23 @@ type Props = VisitContext & {
   /** Present when rescheduling or editing. */
   visit?: VisitRow;
   lockedAccount?: AccountOption;
+  /** Starting values for a new visit (a Wren proposal being edited). */
+  draft?: { date: string; time: string; type: VisitRow["type"]; purpose: string };
+  /** Called after a successful save. */
+  onSaved?: () => void;
 };
 
 /** Plan or reschedule a visit. Scope, dates and who may be booked are checked again on the server. */
-export function VisitDialog({ open, onOpenChange, visit, lockedAccount, assignable, ownRepId, timeZone }: Props) {
+export function VisitDialog({ open, onOpenChange, visit, lockedAccount, assignable, ownRepId, timeZone, draft, onSaved }: Props) {
   const editing = !!visit;
   const today = isoDay(new Date(), timeZone);
   const [account, setAccount] = useState<AccountOption | null>(
     visit ? { id: visit.accountId, name: visit.account, code: visit.accountCode } : (lockedAccount ?? null),
   );
-  const [date, setDate] = useState(visit ? isoDay(visit.at, timeZone) : "");
-  const [time, setTime] = useState(visit ? isoTime(visit.at, timeZone) : "09:00");
-  const [type, setType] = useState<VisitRow["type"] | "">(visit?.type ?? "");
-  const [purpose, setPurpose] = useState(visit?.purpose ?? "");
+  const [date, setDate] = useState(visit ? isoDay(visit.at, timeZone) : (draft?.date ?? ""));
+  const [time, setTime] = useState(visit ? isoTime(visit.at, timeZone) : (draft?.time ?? "09:00"));
+  const [type, setType] = useState<VisitRow["type"] | "">(visit?.type ?? draft?.type ?? "");
+  const [purpose, setPurpose] = useState(visit?.purpose ?? draft?.purpose ?? "");
   const [repId, setRepId] = useState(visit?.repId ?? ownRepId ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -50,6 +54,7 @@ export function VisitDialog({ open, onOpenChange, visit, lockedAccount, assignab
       const result = editing ? await updateVisit({ id: visit.id, ...fields }) : await createVisit({ accountId: account.id, ...fields });
       if (!result.ok) return setError(result.error);
       toast(editing ? "Visit updated" : "Visit planned");
+      onSaved?.();
       onOpenChange(false);
     });
 

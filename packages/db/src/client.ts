@@ -5,6 +5,7 @@ import type {
   AiConversation,
   AiInvocation,
   AiOutput,
+  AiProposal,
   AiUsage,
   AuditEntry,
   Contact,
@@ -38,6 +39,7 @@ type CollectionMap = {
   aiUsage: AiUsage;
   aiOutputs: AiOutput;
   aiConversations: AiConversation;
+  aiProposals: AiProposal;
 };
 
 export type CollectionName = keyof CollectionMap;

@@ -352,8 +352,8 @@ before the next.
 | 3. Account summary | First feature on the engine, with caching, on the profile's Wren summary card | ✅ Built |
 | 4. Morning brief | Second feature; on request, kept for the day (the 7am trigger comes with hosting) | ✅ Built |
 | 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | ✅ Built |
-| 6. Proposals | Propose tools, Confirm cards, existing actions, idempotent Accept; follow-up suggestions after visit reports; the side panel | Next |
-| 7. Evaluation and feedback | `pnpm ai:eval`, thumbs up/down; run on key day | Planned |
+| 6. Proposals | Propose tools, proposal cards, existing actions, idempotent Accept; follow-up suggestions after visit reports; the side panel | ✅ Built |
+| 7. Evaluation and feedback | `pnpm ai:eval`, thumbs up/down; run on key day | Next |
 | Later | Natural-language filters, meeting prep, next best action, report narratives; email and meeting analysis and semantic search after capture | — |
 
 Deliberately **not** built: agents that act without a click, fine-tuned
@@ -378,7 +378,9 @@ apps/web/lib/ai/
   facts/           fact sources on scoped read models: account, my-day               (built)
   features/        one file per feature: account-summary, morning-brief; text.ts     (built)
   brief-view.ts    what the brief page receives, safe in client components            (built)
-  tools/           define.ts (defineAiTool, account matching), read.ts (five tools)   (built)
+  tools/           define.ts (defineAiTool, account matching), read.ts, propose.ts    (built)
+  proposals.ts     aiProposals: create, atomic Accept through the forms' code, Dismiss (built)
+  panel.ts         what the side panel opens with on a page                           (built)
   chat.ts          runChatTurn: one question, tools, verification, saving             (built)
   conversations.ts aiConversations: per user, 90 days                                (built)
   chat-view.ts     turns, the chat route's events and request, safe in clients        (built)
@@ -386,7 +388,10 @@ apps/web/components/ai/cards/    one card per record kind                       
 apps/web/components/ai/account-summary.tsx   the profile's Wren summary card        (built)
 apps/web/components/ai/morning-brief.tsx     the morning brief page's body           (built)
 apps/web/components/ai/wren-chat.tsx         the /assistant page's chat              (built)
-apps/web/components/ai/          proposal card, side panel                          (step 6)
+apps/web/components/ai/proposal-card.tsx     proposals: Accept, Edit, Dismiss        (built)
+apps/web/components/ai/follow-ups.tsx        follow-ups on a visit report             (built)
+apps/web/components/shell/assistant-tab.tsx  the Wren side panel                     (built)
+apps/web/lib/writes/tasks.ts                 createTask's rules, shared with Accept  (built)
 apps/web/tests/support/ai-stand-in.ts   the test-only stand-in model                (built)
 ```
 
@@ -417,6 +422,27 @@ has no test hook.
   `{ ok: false, reason, message }`; reasons are the gate refusals plus
   `invalid_input`, `not_found` (step 2), `rejected` (every claim invented) and
   `failed`. Messages never include provider error text.
+
+## Proposals, follow-ups and the side panel (built in step 6)
+
+- **Propose tools** (`propose_task`, `propose_visit`, `propose_note`) write
+  only an `aiProposals` row: the exact input the form would send, what the
+  card shows, and an expiry 7 days out. They refuse a generic title, a missing
+  or past date, an account the user can't see, or a fourth proposal in one
+  question, with the question to ask.
+- **Accept** claims the proposal atomically (pending → accepting), runs the
+  form's own code (`createTasks` from `lib/writes/tasks.ts`, `createVisit`,
+  `logInteraction`), then records what it created. A double click gets the
+  first result; a refusal (a date that has passed) puts it back to pending
+  with the reason. Tasks from proposals carry source `ai` and the user as
+  creator. **Edit** opens the normal form filled in; saving marks it done.
+  **Dismiss** writes nothing. Only the proposal's own user can do any of it.
+- **Follow-up suggestions** (`followup-suggestions`): on request, from one of
+  the user's own completed visits with a report and the account's open tasks;
+  up to 3 tasks, each a proposal. Asking again shows the same ones.
+- **Side panel:** the Wren tab opens the chat as a slide-out on any page,
+  continuing the latest conversation (active in the last 24 hours), with
+  suggestions about the account on a customer profile.
 
 ## Wren chat (built in step 5)
 

@@ -20,6 +20,8 @@ import { REFUSAL_MESSAGE, checkAccess, checkLimits, type AiRefusal } from "./gat
 import { logInvocation } from "./log";
 import { POLICY_VERSION, policyPrompt, promptContext } from "./prompts/policy";
 import { WREN_CHAT_TASK, WREN_CHAT_VERSION } from "./prompts/wren-chat";
+import { proposalViews } from "./proposals";
+import { PROPOSE_TOOLS } from "./tools/propose";
 import { READ_TOOLS } from "./tools/read";
 import type { ToolResult } from "./tools/define";
 import { verifySources } from "./verify";
@@ -87,10 +89,10 @@ export async function runChatTurn(rawInput: unknown, onProgress: (text: string) 
   // Every tool in this turn shares one builder, so handles never collide.
   const f = factsBuilder();
   const results: ToolResult[] = [];
-  const ctx = { scope, f, team: scope.user.capabilities.manager || scope.reps.all };
+  const ctx = { scope, f, team: scope.user.capabilities.manager || scope.reps.all, proposals: [] as string[] };
   let calls = 0;
   const tools: ToolSet = Object.fromEntries(
-    READ_TOOLS.map((t) => [
+    [...READ_TOOLS, ...PROPOSE_TOOLS].map((t) => [
       t.name,
       tool({
         description: t.description,
@@ -186,10 +188,11 @@ export async function runChatTurn(rawInput: unknown, onProgress: (text: string) 
   const followUp = shown.followUpQuestion ? plainText(shown.followUpQuestion, CHAT_LIMITS.followUpChars) || null : null;
   const cards = citedSources({ answer: shown.answer, bullets }).flatMap((h) => packet.cards.get(h) ?? []);
 
-  const question = newTurn({ role: "user", text: message, bullets: [], followUpQuestion: null, cards: [], uncited: false });
-  const answer = newTurn({ role: "assistant", text, bullets: bullets.map((b) => b.text), followUpQuestion: followUp, cards, uncited });
+  const question = newTurn({ role: "user", text: message, bullets: [], followUpQuestion: null, cards: [], uncited: false, proposalIds: [] });
+  const answer = newTurn({ role: "assistant", text, bullets: bullets.map((b) => b.text), followUpQuestion: followUp, cards, uncited, proposalIds: ctx.proposals });
   const savedId = await saveExchange(scope, conversation?._id ?? null, question, answer);
   await logInvocation(scope, { ...metrics, outcome: repaired ? "repaired" : "ok", errorKind: null });
   if (!savedId) return { ok: false, reason: "not_found", message: "That conversation isn't available. Start a new chat." };
-  return { ok: true, conversationId: savedId, question: toTurnView(question), answer: toTurnView(answer) };
+  const views = new Map((await proposalViews(scope, ctx.proposals)).map((v) => [v.id, v]));
+  return { ok: true, conversationId: savedId, question: toTurnView(question), answer: toTurnView(answer, views) };
 }

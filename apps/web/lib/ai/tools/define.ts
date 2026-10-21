@@ -20,10 +20,15 @@ export type ToolContext = {
   f: FactsBuilder;
   /** A manager or org-wide user, whose results include whose each record is. */
   team: boolean;
+  /** Proposals prepared in this question (propose tools add to it). */
+  proposals: string[];
 };
 
 /** What the model gets back: facts, or a refusal with the question to ask the user. */
 export type ToolResult = ({ ok: true } & Record<string, unknown>) | { ok: false; reason: "not_found" | "ambiguous" | "invalid" | "limit"; ask: string };
+
+/** At most this many proposals per question. */
+export const PROPOSALS_PER_QUESTION = 3;
 
 export type AiTool<I> = {
   name: string;

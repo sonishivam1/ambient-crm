@@ -18,6 +18,7 @@ write it.
 | **Observability** | `auditLog`, `aiInvocations` (plus the `aiUsage` budget ledger), later `syncRuns` | Append-only; production credentials get insert but not update or delete. |
 | **Cache** | `aiOutputs` | Verified AI answers per user; replaced on regenerate, deleted after at most 7 days (TTL). |
 | **Conversations** | `aiConversations` | A user's Wren chats; private, deletable, deleted 90 days after the last turn (TTL). |
+| **Proposals** | `aiProposals` | Records Wren prepared for one user to accept; single use, deleted 7 days after creation (TTL). |
 
 ## Entities
 
@@ -211,7 +212,12 @@ erDiagram
   `aiConversations` holds one user's Wren chat: a title, and turns (the
   question, or the verified answer with its bullets, follow-up question and
   the cards it was shown with). Only that user can read, continue or delete
-  it; it is deleted 90 days after the last turn. See [AI layer](ai.md).
+  it; it is deleted 90 days after the last turn. Each answer lists the
+  `proposalIds` it prepared. `aiProposals` holds one prepared task, visit or
+  note for one user: the form's input, what the card shows, its status
+  (`pending`, `accepting`, `accepted`, `dismissed`), what it created, where it
+  came from (`chat`, or `followups` with the visit as `sourceId`); deleted 7
+  days after creation. See [AI layer](ai.md).
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't
   deleted (checked in the write path, so deleted contacts can share one).
@@ -249,3 +255,4 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `aiUsage` | `_id` only (`tenantId:month`) | budget reservations |
 | `aiOutputs` | `_id` (`tenantId:userId:feature:subjectId`), `expiresAt` (TTL, single field), `feature + subjectId` | cache lookups, expiry |
 | `aiConversations` | `userId + updatedAt`, `expiresAt` (TTL, single field) | the user's list, expiry |
+| `aiProposals` | `userId + createdAt`, `expiresAt` (TTL, single field) | the user's proposals, expiry |

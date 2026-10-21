@@ -37,18 +37,22 @@ type Props = {
   ownRepId: string | null;
   /** The tenant's zone: due dates are calendar days there. */
   timeZone: string;
+  /** Starting values for a new task (a Wren proposal being edited). */
+  draft?: { title: string; dueDate: string; priority: EditableTask["priority"] };
+  /** Called after a successful save. */
+  onSaved?: () => void;
 };
 
 /** Create or edit a task. All rules (scope, past due dates, who can be assigned) are enforced again on the server. */
-export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign, assignable, ownRepId, timeZone }: Props) {
+export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign, assignable, ownRepId, timeZone, draft, onSaved }: Props) {
   const editing = !!task;
   const today = isoDay(new Date(), timeZone);
   const [account, setAccount] = useState<AccountOption | null>(
     task ? { id: task.accountId, name: task.account, code: "" } : (lockedAccount ?? null),
   );
-  const [title, setTitle] = useState(task?.title ?? "");
-  const [dueDate, setDueDate] = useState(task ? isoDay(task.dueAt, timeZone) : "");
-  const [priority, setPriority] = useState<EditableTask["priority"]>(task?.priority ?? "normal");
+  const [title, setTitle] = useState(task?.title ?? draft?.title ?? "");
+  const [dueDate, setDueDate] = useState(task ? isoDay(task.dueAt, timeZone) : (draft?.dueDate ?? ""));
+  const [priority, setPriority] = useState<EditableTask["priority"]>(task?.priority ?? draft?.priority ?? "normal");
   const [description, setDescription] = useState(task?.description ?? "");
   const [notes, setNotes] = useState(task?.notes ?? "");
   const [status, setStatus] = useState<"open" | "in_progress" | "completed">(
@@ -70,6 +74,7 @@ export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign,
         : await createTask({ accountId: account.id, title, dueDate, priority, description, notes, assigneeRepIds: canAssign ? assignees : [] });
       if (!result.ok) return setError(result.error);
       toast(editing ? "Task updated" : result.created && result.created > 1 ? `${result.created} tasks created` : "Task created");
+      onSaved?.();
       onOpenChange(false);
     });
 

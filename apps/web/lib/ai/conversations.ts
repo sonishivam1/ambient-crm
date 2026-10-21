@@ -8,7 +8,9 @@ import type { Scope } from "@/lib/data/scope";
 
 import type { AiCardData } from "./cards";
 import type { ChatTurnView, ConversationSummary } from "./chat-view";
+import type { ProposalView } from "./proposal-view";
 import { cut } from "./facts";
+import { proposalViews } from "./proposals";
 
 /**
  * Wren conversations: private to their user, in their tenant. Every read and
@@ -24,7 +26,8 @@ const mine = (scope: Scope) => ({ ...scope.tenant(), userId: scope.user._id });
 const notExpired = () => ({ expiresAt: { $gt: new Date() } });
 const expiry = (from: Date) => new Date(from.getTime() + CONVERSATION_DAYS * 86_400_000);
 
-export const toTurnView = (t: AiTurn): ChatTurnView => ({
+/** A turn as shown; `proposals` holds the live views of the ones it prepared. */
+export const toTurnView = (t: AiTurn, proposals: ReadonlyMap<string, ProposalView> = new Map()): ChatTurnView => ({
   id: t._id,
   role: t.role,
   text: t.text,
@@ -32,8 +35,17 @@ export const toTurnView = (t: AiTurn): ChatTurnView => ({
   followUpQuestion: t.followUpQuestion,
   cards: t.cards as AiCardData[],
   uncited: t.uncited,
+  proposals: (t.proposalIds ?? []).flatMap((id) => proposals.get(id) ?? []),
   createdAt: t.createdAt.toISOString(),
 });
+
+/** A conversation's turns as shown, with the live status of every proposal they prepared. */
+export async function turnViews(scope: Scope, conversation: AiConversation | null): Promise<ChatTurnView[]> {
+  const turns = conversation?.turns ?? [];
+  const views = await proposalViews(scope, turns.flatMap((t) => t.proposalIds ?? []));
+  const byId = new Map(views.map((v) => [v.id, v]));
+  return turns.map((t) => toTurnView(t, byId));
+}
 
 /** The user's conversations, most recent first. */
 export async function listConversations(scope: Scope, limit = 50): Promise<ConversationSummary[]> {

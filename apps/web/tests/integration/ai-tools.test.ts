@@ -14,7 +14,7 @@ type Fact = Record<string, unknown> & { handle: string };
 async function ctxFor(user: string): Promise<ToolContext> {
   signInAs(user);
   const scope = await getScope();
-  return { scope, f: factsBuilder(), team: scope.user.capabilities.manager || scope.reps.all };
+  return { scope, f: factsBuilder(), team: scope.user.capabilities.manager || scope.reps.all, proposals: [] };
 }
 const ok = (r: ToolResult) => {
   if (!r.ok) throw new Error(`expected ok, got ${r.reason}: ${r.ask}`);

@@ -12,6 +12,7 @@ import { z } from "zod";
  * - Observability: append-only (auditLog, aiInvocations); aiUsage is the AI budget ledger.
  * - Cache: aiOutputs, verified AI answers per user, deleted after at most 7 days.
  * - Conversations: aiConversations, a user's Wren chats, deleted 90 days after the last turn.
+ * - Proposals: aiProposals, records Wren prepared for a user to accept, deleted 7 days after creation.
  *
  * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
  * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
@@ -445,6 +446,8 @@ export const aiTurnSchema = z.object({
   cards: z.array(z.unknown()),
   /** An answer that cited no records (nothing found, a question back, out of scope). */
   uncited: z.boolean(),
+  /** Proposals this answer prepared (aiProposals ids); their status is read live. */
+  proposalIds: z.array(z.string()).default([]),
   createdAt: z.date(),
 });
 export type AiTurn = z.infer<typeof aiTurnSchema>;
@@ -465,6 +468,38 @@ export const aiConversationSchema = z.object({
   expiresAt: z.date(),
 });
 export type AiConversation = z.infer<typeof aiConversationSchema>;
+
+export const AI_PROPOSAL_KINDS = ["task", "visit", "note"] as const;
+export const AI_PROPOSAL_STATUSES = ["pending", "accepting", "accepted", "dismissed"] as const;
+
+/**
+ * Something Wren prepared for one user to accept: the exact input the normal
+ * form would send. Nothing is written until the user accepts, which runs the
+ * same code as the form. Single use; deleted 7 days after creation (TTL).
+ */
+export const aiProposalSchema = z.object({
+  _id: z.string(),
+  ...tenantScoped,
+  userId: z.string(),
+  kind: z.enum(AI_PROPOSAL_KINDS),
+  /** The form's input: task {accountId, title, dueDate, priority}, visit {accountId, date, time, type, purpose}, note {accountId, type, summary}. */
+  input: z.record(z.string(), z.unknown()),
+  /** What the card shows: the account's name and ready-made lines. */
+  display: z.object({ title: z.string(), account: z.string(), lines: z.array(z.string()) }),
+  origin: z.enum(["chat", "followups"]),
+  /** What it was suggested from: the visit, for follow-ups; null from chat. */
+  sourceId: z.string().nullable(),
+  status: z.enum(AI_PROPOSAL_STATUSES),
+  /** What accepting created, and where it lives; null until then (or when saved from the form). */
+  resultId: z.string().nullable(),
+  resultHref: z.string().nullable(),
+  /** The last refusal from the action, shown on the card. */
+  lastError: z.string().nullable(),
+  createdAt: z.date(),
+  decidedAt: z.date().nullable(),
+  expiresAt: z.date(),
+});
+export type AiProposal = z.infer<typeof aiProposalSchema>;
 
 /** One dated sales snapshot per scope (a rep, or "org" for the whole business). */
 export const salesSnapshotSchema = z.object({

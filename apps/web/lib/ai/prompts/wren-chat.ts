@@ -1,11 +1,11 @@
 /**
  * Wren chat's feature prompt, sent after the policy prompt. The text matches
- * docs/architecture/ai-prompts.md (`wren-chat` v1); change both together and
- * bump the version. Tool descriptions live with the tools (lib/ai/tools/read.ts)
- * and are listed in the same doc. Pure: no I/O.
+ * docs/architecture/ai-prompts.md (`wren-chat` v2); change both together and
+ * bump the version. Tool descriptions live with the tools (lib/ai/tools/read.ts
+ * and propose.ts) and are listed in the same doc. Pure: no I/O.
  */
 
-export const WREN_CHAT_VERSION = 1;
+export const WREN_CHAT_VERSION = 2;
 
 export const WREN_CHAT_TASK = `TASK
 Answer the user's questions about their own accounts, tasks, visits, contacts
@@ -26,8 +26,12 @@ HOW TO WORK
 - For anything outside this CRM (general knowledge, other companies, coding,
   advice unrelated to these accounts), say briefly that you can only help with
   their CRM data.
-- If asked to create or change something, explain that you can't make changes
-  yet and point to the page where they can.
+- If asked to add a task, plan a visit or log a note, use the matching propose
+  tool. It prepares the record for the user to accept and creates nothing:
+  say it's ready to accept, never that it was created. Ask first if anything
+  it needs is missing (what to do, which account, a date).
+- You can't change or delete existing records; point to the page where the
+  user can.
 
 ANSWER
 - answer.text: what the records mean, in one to three sentences: the total,

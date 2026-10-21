@@ -188,10 +188,12 @@ Settings: tier `fast`, temperature 0.2, at most 600 output tokens. Kept per
 user until local midnight with the cards it was written with (cache mode
 `day`); Refresh writes a new one.
 
-## Wren chat (`wren-chat` v1, step 5, built)
+## Wren chat (`wren-chat` v2, steps 5 and 6, built)
 
 Code: `apps/web/lib/ai/prompts/wren-chat.ts`; tool descriptions in
-`apps/web/lib/ai/tools/read.ts` (a test checks both match this page).
+`apps/web/lib/ai/tools/read.ts` and `propose.ts` (a test checks both match
+this page). v2 (step 6) replaced "you can't make changes" with the propose
+tools.
 
 ```text
 TASK
@@ -213,8 +215,12 @@ HOW TO WORK
 - For anything outside this CRM (general knowledge, other companies, coding,
   advice unrelated to these accounts), say briefly that you can only help with
   their CRM data.
-- If asked to create or change something, explain that you can't make changes
-  yet and point to the page where they can.
+- If asked to add a task, plan a visit or log a note, use the matching propose
+  tool. It prepares the record for the user to accept and creates nothing:
+  say it's ready to accept, never that it was created. Ask first if anything
+  it needs is missing (what to do, which account, a date).
+- You can't change or delete existing records; point to the page where the
+  user can.
 
 ANSWER
 - answer.text: what the records mean, in one to three sentences: the total,
@@ -240,7 +246,8 @@ Output (strict structured output; checked and limited by code):
 }
 // When the tools returned records, answer must cite at least one or the reply
 // is rejected. When none came back, the answer is shown without cards and
-// marked "No records were used"; bullets are dropped.
+// marked "No records were used" (unless it prepared proposals); bullets are
+// dropped. Proposals the answer prepared are shown as cards under it.
 ```
 
 Settings: tier `fast`, temperature 0.2, at most 800 output tokens, at most 4
@@ -258,19 +265,24 @@ optional ones are `null` (strict function calling).
 | `list_visits` | read | Visits, calls and meetings, past or planned. Use for the schedule and for "when did we last see" questions. | `range`: past_30_days, this_week, next_14_days; `accountName` or null |
 | `list_renewals` | read | Contracts ending soon, or ended in the last 90 days. Use for renewals and contract end dates. | `withinDays`: 30, 60, 90 |
 | `find_contacts` | read | People at the user's customer accounts, with their job titles and roles. Use to find who to talk to. | `accountName`, `role`, `query`, each or null |
-| `propose_task` | propose (step 6) | Prepare a task for the user to accept. Does not create it. Needs what to do, in the user's words, and a due date; ask if either is missing. | `accountName?`, `title`, `dueDate`, `priority` |
-| `propose_visit` | propose (step 6) | Prepare a visit for the user to accept. | `accountName?`, `date`, `time?`, `type`, `purpose?` |
-| `propose_note` | propose (step 6) | Prepare a note or call log for the user to accept. | `accountName?`, `type`, `summary` |
+| `propose_task` | propose | Prepare a task for the user to accept. Does not create it. Needs what to do, in the user's words, and a due date; ask if either is missing. | `accountName`, `title`, `dueDate` (YYYY-MM-DD), `priority` |
+| `propose_visit` | propose | Prepare a visit, call or meeting for the user to accept. Does not book it. Needs a date; ask if it's missing. | `accountName`, `date`, `time` or null, `type`, `purpose` or null |
+| `propose_note` | propose | Prepare a note, call log or meeting log for the user to accept. Does not save it. Needs a summary in the user's words. | `accountName`, `type` (note, call, meeting), `summary` |
 
 Every tool runs as the signed-in user on scoped read models and returns
 `{ ok: true, …facts }` (at most 15 records, with the total) or
 `{ ok: false, reason, ask }`: an account name that matches none of the user's
 accounts, or several ("Which one do you mean: …?"), a role the tenant doesn't
-have, or a fifth tool call. A propose tool (step 6) will refuse a generic
-title, a missing or past due date, or an account the user can't see, with the
-question to ask instead.
+have, or a fifth tool call. A propose tool writes only the proposal (never the
+record) and refuses a generic title ("Follow up", "Call"), a missing or past
+date, an account the user can't see, or a fourth proposal in one question,
+with the question to ask instead.
 
-## Follow-up suggestions (`followup-suggestions` v1, step 6)
+## Follow-up suggestions (`followup-suggestions` v1, step 6, built)
+
+Code: `apps/web/lib/ai/prompts/followup-suggestions.ts` (a test checks the two
+match). Run on request ("Follow-ups" on one of the user's own completed visits
+with a report).
 
 ```text
 TASK
@@ -279,30 +291,36 @@ Suggest follow-up tasks from one post-visit report.
 - Suggest a task only for an explicit commitment or request in the report's
   key points or follow-ups (for example "send the updated quote by Friday").
   Skip vague statements.
-- Do not suggest anything already covered by the account's open tasks in
+- Don't suggest anything already covered by the account's openTasks in
   <facts>. Compare by meaning, not exact words.
-- Title: an action starting with a verb, in the report's own words, at most
+- title: an action starting with a verb, in the report's own words, at most
   80 characters. Never a generic title such as "Follow up".
-- Due: if the report states a date or day, give the matching dueInDays counted
-  from the visit date in <facts>; otherwise use 7. Between 0 and 30, on a
-  working day.
-- At most 3 suggestions. If none qualify, return an empty list with none set
-  to true.
-- Every suggestion is for {{userName}} only.
+- dueInDays: if the report states a date or day, the matching number of days
+  counted from visitDate; otherwise 7. Between 0 and 30.
+- reason: one short sentence on what in the report it comes from.
+- sources: the visit's handle, and any task it relates to.
+- At most 3 suggestions. If none qualify, return an empty list.
+- Every suggestion is for the user only.
 ```
 
-Output:
+Facts: `today`, `visitDate`, the visit (type, account, purpose, sentiment,
+ratings, key points and follow-ups, the last three fenced) and up to 15 of the
+account's open tasks.
+
+Output (strict structured output; limited by code):
 
 ```ts
 {
   suggestions: Array<{ title: string; dueInDays: number; priority: "high" | "normal" | "low";
-                       reason: string; sources: string[] }>, // at most 3
-  none: boolean,
+                       reason: string; sources: string[] }>,
 }
+// After verification: at most 3; titles cut to 80 characters and generic ones
+// dropped; dueInDays whole, 0 to 30, counted from the visit's day but never
+// before today; reason cut to 160 characters.
 ```
 
-Each suggestion is a proposal card; Accept runs the existing `createTask`
-action.
+Each suggestion becomes a task proposal; Accept runs createTask's rules. Asking
+again for the same visit shows the same proposals.
 
 ## Evaluation set (step 7, run on key day)
 

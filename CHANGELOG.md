@@ -19,8 +19,13 @@ see the [build log](docs/engineering/build-log.md).
 - **Wren chat:** ask about your tasks, visits, renewals, contacts and accounts
   on the Assistant page. You see what Wren is checking, then a checked answer
   with the records it used; it asks when a name could mean several accounts.
-  Conversations are kept for 90 days and can be deleted. Read-only for now.
-  Needs the OpenAI key.
+  Conversations are kept for 90 days and can be deleted. Also a side panel
+  from the Wren tab on any page. Needs the OpenAI key.
+- **Proposals:** ask Wren to add a task, plan a visit or log a note, and accept
+  it with one click (or edit it in the normal form first). Nothing is created
+  until you accept.
+- **Follow-ups:** on your visit reports, Wren suggests follow-up tasks to
+  accept.
 
 ### Core CRM
 - **Dashboard:** today's tasks, the week's visits, key figures, at-risk

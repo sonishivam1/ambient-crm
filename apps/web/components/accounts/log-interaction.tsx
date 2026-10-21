@@ -17,8 +17,35 @@ type InteractionType = (typeof TYPES)[number][0];
 
 export function LogInteractionButton({ accountId, accountName }: { accountId: string; accountName: string }) {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<InteractionType>("note");
-  const [summary, setSummary] = useState("");
+  return (
+    <>
+      <button type="button" className="btn primary" onClick={() => setOpen(true)}>
+        <Plus size={16} />
+        Log interaction
+      </button>
+      {open && <InteractionDialog open onOpenChange={setOpen} accountId={accountId} accountName={accountName} />}
+    </>
+  );
+}
+
+/** Log a note, call or meeting. `draft` fills it in (a Wren proposal being edited); `onSaved` runs after a save. */
+export function InteractionDialog({
+  open,
+  onOpenChange,
+  accountId,
+  accountName,
+  draft,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  accountId: string;
+  accountName: string;
+  draft?: { type: InteractionType; summary: string };
+  onSaved?: () => void;
+}) {
+  const [type, setType] = useState<InteractionType>(draft?.type ?? "note");
+  const [summary, setSummary] = useState(draft?.summary ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -30,18 +57,13 @@ export function LogInteractionButton({ accountId, accountName }: { accountId: st
         return;
       }
       toast("Interaction logged");
-      setSummary("");
-      setType("note");
       setError(null);
-      setOpen(false);
+      onSaved?.();
+      onOpenChange(false);
     });
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger className="btn primary">
-        <Plus size={16} />
-        Log interaction
-      </Dialog.Trigger>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="ov" />
         <Dialog.Content className="modal form">

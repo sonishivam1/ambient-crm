@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import type { AccountOption } from "@/app/actions/accounts";
 import { cancelVisit } from "@/app/actions/visits";
+import { FollowUpsButton } from "@/components/ai/follow-ups";
 import { cn } from "@/lib/cn";
 import type { VisitRow } from "@/lib/visits";
 
@@ -127,8 +128,12 @@ export function VisitActions({ visit, ...ctx }: VisitContext & { visit: VisitRow
     );
   }
 
+  // Follow-up tasks are for the user, so only on their own visits with a report.
+  const followUps = visit.status === "completed" && visit.report && visit.repId === ctx.ownRepId;
+
   return (
     <div className="flex items-center justify-end gap-1.5">
+      {followUps && <FollowUpsButton visitId={visit.id} accountName={visit.account} ctx={{ ownRepId: ctx.ownRepId, timeZone: ctx.timeZone }} />}
       {primary}
       {planned && (
         <DropdownMenu.Root>

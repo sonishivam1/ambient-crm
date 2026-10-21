@@ -1,12 +1,13 @@
 "use client";
 
-import { Loader2, MessageSquarePlus, SendHorizontal, Sparkles, Trash2 } from "lucide-react";
+import { Expand, Loader2, MessageSquarePlus, SendHorizontal, Sparkles, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { deleteWrenConversation } from "@/app/actions/ai";
 import { AiCards } from "@/components/ai/cards";
+import { ProposalCards, type ProposalContext } from "@/components/ai/proposal-card";
 import type { ChatEvent, ChatTurnView, ConversationSummary } from "@/lib/ai/chat-view";
 import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/format";
@@ -29,6 +30,10 @@ type Props = {
   unavailable: string | null;
   /** Questions offered above the box; one click asks them. */
   suggestions?: string[];
+  /** For editing proposals in the normal forms. */
+  proposalCtx: ProposalContext;
+  /** "panel": the slide-out from the Wren tab, without the conversation list. */
+  mode?: "page" | "panel";
 };
 
 /** Read newline-delimited JSON events from the chat route. */
@@ -54,7 +59,16 @@ const ago = (iso: string) => {
   return t === "just now" ? t : `${t} ago`;
 };
 
-export function WrenChat({ conversations: initialList, conversationId: initialId, turns: initialTurns, unavailable, suggestions = DEFAULT_SUGGESTIONS }: Props) {
+export function WrenChat({
+  conversations: initialList,
+  conversationId: initialId,
+  turns: initialTurns,
+  unavailable,
+  suggestions = DEFAULT_SUGGESTIONS,
+  proposalCtx,
+  mode = "page",
+}: Props) {
+  const panel = mode === "panel";
   const router = useRouter();
   const [list, setList] = useState(initialList);
   const [conversationId, setConversationId] = useState(initialId);
@@ -93,7 +107,8 @@ export function WrenChat({ conversations: initialList, conversationId: initialId
           setTurns((t) => [...t, event.question, event.answer]);
           if (event.conversationId !== conversationId) {
             setConversationId(event.conversationId);
-            router.replace(`/assistant?c=${encodeURIComponent(event.conversationId)}`, { scroll: false });
+            // The panel sits over another page; only the full page keeps the conversation in its URL.
+            if (!panel) router.replace(`/assistant?c=${encodeURIComponent(event.conversationId)}`, { scroll: false });
           }
           const now = new Date().toISOString();
           setList((l) => [
@@ -121,8 +136,30 @@ export function WrenChat({ conversations: initialList, conversationId: initialId
   }
 
   const empty = !turns.length && !pending;
+  const current = list.find((c) => c.id === conversationId);
   return (
-    <div className="wren">
+    <div className={cn("wren", panel && "panel")}>
+      {panel ? (
+        <div className="wren-panel-head">
+          <b title={current?.title}>{current?.title ?? "New chat"}</b>
+          <button
+            type="button"
+            className="btn sm"
+            onClick={() => {
+              setConversationId(null);
+              setTurns([]);
+              setError(null);
+            }}
+            disabled={!!pending}
+          >
+            <MessageSquarePlus size={15} />
+            New chat
+          </button>
+          <Link className="btn icon sm ghost" href={conversationId ? `/assistant?c=${encodeURIComponent(conversationId)}` : "/assistant"} aria-label="Open the full page" title="Open the full page">
+            <Expand size={15} />
+          </Link>
+        </div>
+      ) : (
       <aside className="wren-list" aria-label="Your conversations">
         <div className="wren-list-head">
           <b>Conversations</b>
@@ -146,6 +183,7 @@ export function WrenChat({ conversations: initialList, conversationId: initialId
           {!list.length && <li className="wren-none">Your conversations appear here.</li>}
         </ul>
       </aside>
+      )}
 
       <section className="wren-main" aria-label="Wren">
         <div className="wren-log" aria-live="polite">
@@ -160,7 +198,9 @@ export function WrenChat({ conversations: initialList, conversationId: initialId
             </div>
           )}
 
-          {turns.map((t) => (t.role === "user" ? <Question key={t.id} text={t.text} /> : <Answer key={t.id} turn={t} onAsk={ask} disabled={!!pending} />))}
+          {turns.map((t) =>
+            t.role === "user" ? <Question key={t.id} text={t.text} /> : <Answer key={t.id} turn={t} onAsk={ask} disabled={!!pending} ctx={proposalCtx} />,
+          )}
 
           {pending && (
             <>
@@ -229,7 +269,7 @@ function Question({ text }: { text: string }) {
   );
 }
 
-function Answer({ turn, onAsk, disabled }: { turn: ChatTurnView; onAsk: (q: string) => void; disabled: boolean }) {
+function Answer({ turn, onAsk, disabled, ctx }: { turn: ChatTurnView; onAsk: (q: string) => void; disabled: boolean; ctx: ProposalContext }) {
   return (
     <div className="wren-msg assistant">
       <p>{turn.text}</p>
@@ -241,7 +281,8 @@ function Answer({ turn, onAsk, disabled }: { turn: ChatTurnView; onAsk: (q: stri
         </ul>
       )}
       <AiCards cards={turn.cards} />
-      {turn.uncited && <p className="wren-note">No records were used for this reply.</p>}
+      <ProposalCards proposals={turn.proposals} ctx={ctx} />
+      {turn.uncited && !turn.proposals.length && <p className="wren-note">No records were used for this reply.</p>}
       {turn.followUpQuestion && (
         <button type="button" className="wren-chip wren-follow" onClick={() => onAsk(turn.followUpQuestion!)} disabled={disabled}>
           {turn.followUpQuestion}
