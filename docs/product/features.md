@@ -2,7 +2,9 @@
 
 The full scope of Ambient v1, area by area. **Status** is what exists in the
 code today: Built, Placeholder (route and page exist, feature does not), or
-Planned (nothing yet).
+Planned (nothing yet). Everything not built is scheduled in the
+[completion plan](../plans/completion-plan.md); the numbers below (1.2, 4.3,
+…) are its work packages.
 
 ## Summary
 
@@ -10,25 +12,29 @@ Planned (nothing yet).
 | --- | --- | --- |
 | App shell, navigation, Ctrl K search | all | Built |
 | Light and dark mode | all | Built |
-| Tenant settings (divisions, lenses, time zone) | all | Built (admin editing screen next) |
+| Tenant settings (divisions, lenses, time zone) | all | Built (editing screen: 1.3) |
 | Dashboard | `/` | Built |
 | Accounts list (groups, bill-to, sold-to) | `/accounts` | Built |
-| Customer group page | `/accounts/group/[key]` | Built (period figures wait for sync) |
-| Customer profile | `/accounts/[id]` | Built (overview, tasks; sales, orders, stock wait for sync) |
-| Contracts | `/contracts` | Built (read-only until the sync; editing later) |
-| Contacts | `/contacts` | Built (sync to the warehouse and email backfill wait for those features) |
-| Tasks | `/tasks` | Built (Wren suggestions wait for the AI layer) |
-| Call cycle and visits | `/call-cycle` | Built (calendar sync waits for Microsoft 365) |
-| Notifications | `/notifications` | Built (preferences and digests later) |
-| Email and meeting capture | background workers | Planned |
-| Review queue | `/review-queue` | Placeholder |
-| Outlook add-in | Outlook task pane | Planned |
+| Customer group page | `/accounts/group/[key]` | Built (period figures: 4.3) |
+| Customer profile | `/accounts/[id]` | Built (overview, tasks; sales, health, orders, stock: 4.3) |
+| Contracts | `/contracts` | Built (read-only; editing, documents and renewal nudges: 1.11) |
+| Contacts | `/contacts` | Built (write-back: 4.4; email backfill: 5.3) |
+| Tasks | `/tasks` | Built (contact on a task: 1.12; suggestions from email: 5.7) |
+| Call cycle and visits | `/call-cycle` | Built (calendar sync: 5.6) |
+| Notifications | `/notifications` | Built (preferences: 1.12; email digests: 2.4) |
+| Email and meeting capture | background workers | Planned (5.1) |
+| Review queue | `/review-queue` | Placeholder (5.2) |
+| Outlook add-in | Outlook task pane | Planned (5.5) |
 | Wren assistant | `/assistant` and the side panel | Built (AI, needs the OpenAI key) |
-| Search (quick and semantic) | `/search` | Placeholder |
+| Search (quick and semantic) | `/search` | Placeholder (page: 1.9; by meaning: 5.7) |
 | Morning brief | `/morning-brief` | Built (AI, needs the OpenAI key) |
-| Team overview, reports, CRM usage | `/team`, `/reports`, `/crm-usage` | Placeholder |
-| Admin: sync health, audit, view-as | `/admin/*` | Placeholder |
-| In-app help | `/how-it-works/*` | Placeholder |
+| Team overview, reports, CRM usage | `/team`, `/reports`, `/crm-usage` | Placeholder (1.6, 1.8, 1.7) |
+| Admin home, audit log, view as | `/admin`, `/admin/audit`, `/admin/view-as` | Placeholder (1.2, 1.5) |
+| Organisation settings, users and roles | `/admin/settings`, `/admin/users` | Planned (1.3, 1.4) |
+| AI usage report | `/admin/ai` | Built |
+| Sync health | `/admin/sync` | Placeholder (4.2) |
+| Sign-in (Microsoft Entra ID) and hosting | all | Planned (2.1, 2.2) |
+| In-app help | `/how-it-works/*` | Placeholder (1.10) |
 
 ## Areas
 
@@ -191,17 +197,16 @@ passive capture misses. Creates contacts for unknown senders.
 ### Wren, the AI assistant
 Built step by step on one AI engine with OpenAI
 ([AI layer](../architecture/ai.md), [prompts](../architecture/ai-prompts.md)).
-**Built so far (steps 1 to 6):** the engine (gates per tenant, feature and
-role; monthly token budgets; rate limits; verified output; a usage log), fact
-sources and cards, and the first feature:
+**Built (steps 1 to 7):** the engine (gates per tenant, feature and role;
+monthly token budgets; rate limits; verified output; a usage log), fact
+sources and cards, these features, and evaluation and feedback. Real answers
+need the OpenAI key (key day, 3.1):
 - **Account summary** (built): "Generate" on the customer profile's Wren
   summary card writes a short briefing under Status, Needs attention and
   Recent activity, with one next step, what's not on record (worked out from
   the records, not by the AI) and the records it used as cards. It's kept for
   you until the account's records change (7 days at most); Refresh writes a
   new one. Works once the OpenAI key is set.
-
-Planned:
 - **Morning brief** (built): see below.
 - **Chat** (built, read-only): `/assistant` answers questions about your own
   tasks, accounts, visits, renewals and contacts. While Wren looks things up

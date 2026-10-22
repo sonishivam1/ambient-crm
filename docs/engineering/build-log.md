@@ -13,6 +13,17 @@ how it was verified, and any lesson worth keeping.
 
 ## 22 Oct 2026
 
+### Completion plan agreed; v1 scope frozen
+- **What:** the [completion plan](../plans/completion-plan.md): every unbuilt
+  page and feature (13 placeholder pages, the profile's sales, health, orders
+  and stock tabs, and the Next and Planned items) as 30 work packages in six
+  waves by what each depends on, with eight decisions only the product owner
+  can make. The roadmap, features and plans index point to it.
+- **Why:** to finish v1 with nothing forgotten, starting with what needs no
+  outside input (Wave 1).
+- **Scope:** frozen. Changes are recorded in the plan's "Changes after the
+  freeze" table before the work changes.
+
 ### AI step 7: evaluation and feedback
 - **What:** `pnpm ai:eval`, 26 fictional cases with fixed checks run against
   the real model in a throwaway database, scored per feature, with a committed

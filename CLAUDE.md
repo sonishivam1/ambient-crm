@@ -15,20 +15,23 @@ must respect.
   customer profile and group page, tasks, contacts, call cycle with post-visit
   reports, notifications, contracts with renewal bands. Also multi-tenancy, role
   visibility, per-tenant divisions, lenses and time zones, and CI.
-- **Next: the AI layer, step by step** on OpenAI
+- **Built (Phase 4 AI layer, on OpenAI):** all seven steps
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
-  [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  All seven steps are built (engine core; fact sources and cards; the
-  account summary; the morning brief; Wren chat and the side panel; proposals
-  and follow-ups; evaluation and feedback). Key day: set the OpenAI key, run
-  `pnpm ai:eval`, save the baseline. The 7am brief job waits for hosting.
-  Any prompt or model change: `pnpm ai:eval` then `pnpm ai:eval:compare`.
-  The real model is tried only once the team's OpenAI key arrives; until then
-  tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
-- **Not built:** real sign-in and hosting (waits on
-  [ADR 0005](docs/architecture/decisions/0005-hosting-and-sign-in.md)),
-  warehouse/ERP sync into the Mirror collections, email and meeting capture,
-  manager and admin pages (placeholders).
+  [design](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)):
+  engine core; fact sources and cards; the account summary; the morning brief;
+  Wren chat and the side panel; proposals and follow-ups; evaluation and
+  feedback. The real model is tried only once the team's OpenAI key arrives
+  (key day: set the key, run `pnpm ai:eval`, save the baseline); until then
+  tests use the test-only stand-in (`tests/support/ai-stand-in.ts`). Any prompt
+  or model change: `pnpm ai:eval` then `pnpm ai:eval:compare`.
+- **What's left:** the [completion plan](docs/plans/completion-plan.md): every
+  unbuilt page and feature as work packages in waves. Wave 1 (end-to-end
+  tests; admin, settings, users, view as; team overview, CRM usage, reports;
+  search; in-app help; contract editing) needs nothing from outside. The rest
+  waits on hosting and sign-in ([ADR 0005](docs/architecture/decisions/0005-hosting-and-sign-in.md)),
+  the OpenAI key, a warehouse data source, and Microsoft 365 access. The
+  scope is frozen: build the packages as written, and record any change to
+  them in the plan's "Changes after the freeze" table before making it.
 - The live plan is [`docs/product/roadmap.md`](docs/product/roadmap.md).
 
 ## Commands
