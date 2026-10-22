@@ -13,6 +13,7 @@ import { z } from "zod";
  * - Cache: aiOutputs, verified AI answers per user, deleted after at most 7 days.
  * - Conversations: aiConversations, a user's Wren chats, deleted 90 days after the last turn.
  * - Proposals: aiProposals, records Wren prepared for a user to accept, deleted 7 days after creation.
+ * - Feedback: aiFeedback, users' ratings of AI answers; metadata only, no text.
  *
  * Tenancy (ADR 0004): every document except a tenant carries `tenantId`, and
  * every index starts with it. Mirror `_id`s are `${tenantId}:${sourceKey}` so
@@ -448,6 +449,10 @@ export const aiTurnSchema = z.object({
   uncited: z.boolean(),
   /** Proposals this answer prepared (aiProposals ids); their status is read live. */
   proposalIds: z.array(z.string()).default([]),
+  /** What produced an answer, for feedback; null on questions and older turns. */
+  promptVersion: z.number().int().nullable().default(null),
+  policyVersion: z.number().int().nullable().default(null),
+  model: z.string().nullable().default(null),
   createdAt: z.date(),
 });
 export type AiTurn = z.infer<typeof aiTurnSchema>;
@@ -500,6 +505,31 @@ export const aiProposalSchema = z.object({
   expiresAt: z.date(),
 });
 export type AiProposal = z.infer<typeof aiProposalSchema>;
+
+export const AI_FEEDBACK_REASONS = ["wrong", "missing", "not_useful", "unclear"] as const;
+
+/**
+ * One user's rating of one AI answer (a later vote replaces it). Metadata
+ * only: the rating, a fixed reason, and what produced the answer, never its
+ * text or any comment.
+ */
+export const aiFeedbackSchema = z.object({
+  /** `${tenantId}:${userId}:${feature}:${answerKey}` */
+  _id: z.string(),
+  ...tenantScoped,
+  userId: z.string(),
+  feature: z.string(),
+  /** Which answer: the account and time for a summary, the day for a brief, the turn for chat. */
+  answerKey: z.string(),
+  rating: z.enum(["up", "down"]),
+  reason: z.enum(AI_FEEDBACK_REASONS).nullable(),
+  promptVersion: z.number().int(),
+  policyVersion: z.number().int(),
+  model: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+export type AiFeedback = z.infer<typeof aiFeedbackSchema>;
 
 /** One dated sales snapshot per scope (a rep, or "org" for the whole business). */
 export const salesSnapshotSchema = z.object({

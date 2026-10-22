@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { generateMorningBrief } from "@/app/actions/ai";
 import { AiCards } from "@/components/ai/cards";
+import { AnswerFeedback } from "@/components/ai/feedback";
 import { Badge, Skeleton, type Tone } from "@/components/ui/primitives";
 import type { BriefAnswerView, BriefItem, BriefState } from "@/lib/ai/brief-view";
 import { fmtTime } from "@/lib/format";
@@ -77,7 +78,7 @@ export function MorningBriefPanel({ initial, timeZone }: { initial: BriefState; 
     );
   }
 
-  return <Brief answer={state.answer} timeZone={timeZone} onRefresh={() => run(true)} alert={alert} refreshDisabled={error?.final ?? false} />;
+  return <Brief answer={state.answer} timeZone={timeZone} onRefresh={() => run(true)} alert={alert} refreshDisabled={error?.final ?? false} rate />;
 }
 
 function Loading() {
@@ -98,12 +99,15 @@ export function Brief({
   onRefresh,
   alert,
   refreshDisabled,
+  rate = false,
 }: {
   answer: BriefAnswerView;
   timeZone: string;
   onRefresh?: () => void;
   alert?: React.ReactNode;
   refreshDisabled?: boolean;
+  /** Show 👍 / 👎 (not on samples). */
+  rate?: boolean;
 }) {
   const byHandle = new Map(answer.cards.map((c) => [c.handle, c]));
   return (
@@ -149,6 +153,13 @@ export function Brief({
         <p className="my-2 text-[13.5px] text-muted">{answer.quiet ? "A quiet day: nothing is overdue, due or waiting on you." : "Nothing stood out today."}</p>
       )}
 
+      {rate && (
+        <AnswerFeedback
+          key={String(answer.generatedAt)}
+          target={{ kind: "output", feature: "morning-brief", subjectId: "today", generatedAt: new Date(answer.generatedAt).toISOString() }}
+          initial={answer.vote}
+        />
+      )}
       <p className="ai-disclaimer mt-4">Written by Wren from your records; the headline is counted from them directly. Check the records before acting.</p>
     </div>
   );

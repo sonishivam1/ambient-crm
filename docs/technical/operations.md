@@ -39,6 +39,20 @@ log line for that request. Search the logs for it.
 Atlas cloud backups with point-in-time restore on staging and production
 clusters. A restore is rehearsed before launch and then quarterly.
 
+## AI quality
+
+- **Before shipping a prompt or model change:** `pnpm ai:eval` (needs
+  `OPENAI_API_KEY` and `OPENAI_MODEL` in the shell; it uses a throwaway test
+  database), then `pnpm ai:eval:compare`. A lower score than
+  `apps/web/evals/baseline.json` means it doesn't ship. After a deliberate
+  improvement, `pnpm ai:eval:baseline` and commit the new baseline.
+- **Choosing a model:** run `pnpm ai:eval` once per model
+  (`OPENAI_MODEL=… pnpm ai:eval`) and compare scores and cost per answer.
+- **In production:** `/admin/ai` (admins) shows this month's requests,
+  failures, refusals, tokens, estimated cost (set `OPENAI_PRICE_INPUT_PER_M`
+  and `OPENAI_PRICE_OUTPUT_PER_M`) and 👍 share per prompt version. A drop in
+  👍 after a prompt change is a reason to roll it back.
+
 ## Runbooks
 
 ### A credential was exposed

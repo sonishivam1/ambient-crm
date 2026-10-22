@@ -41,6 +41,8 @@ callers outside the web app.
 | `defineAiTool(def)`, `resolveAccount(scope, name)` | `lib/ai/tools/define.ts` | Declares a tool; matches an account name among the user's own accounts only |
 | `createTasks(scope, input, { fromWren })` | `lib/writes/tasks.ts` | createTask's rules (scope, past dates, assignment, audit, notifications), shared by the form action and Accept |
 | `createProposal`, `acceptProposal`, `dismissProposal`, `proposalViews` | `lib/ai/proposals.ts` | The user's own proposals only; Accept is atomic and single-use |
+| `rateAnswer`, `votesFor` | `lib/ai/feedback.ts` | Votes on the user's own current answers; metadata only |
+| `getAiReport()` | `lib/data/ai-report.ts` | This month's AI totals for the tenant (usage, refusals, feedback, proposals, budget); admins only, null otherwise; no text |
 | `listConversations`, `getConversation`, `deleteConversation` | `lib/ai/conversations.ts` | The user's own conversations only |
 | `accountFacts(scope, { accountId })` | `lib/ai/facts/account.ts` | One account's facts and cards, on `getAccountProfile()`; null when not visible |
 | `myDayFacts(scope)` | `lib/ai/facts/my-day.ts` | What needs the user today (the team's for managers), with full counts |
@@ -71,6 +73,7 @@ The account summary is the first feature users see (step 3). See
 | `acceptWrenProposal(id)` | `app/actions/ai.ts` | proposal id | runs the form's own code for one of your pending proposals (task, visit or note); a second click gets the first result | the action's own (`task.create` with source `ai`, `visit.create`, `interaction.log`) |
 | `dismissWrenProposal(id)`, `markWrenProposalSaved(id)` | `app/actions/ai.ts` | proposal id | dismiss a pending proposal, or mark it done after saving it through the normal form | — |
 | `suggestVisitFollowUps(visitId)` | `app/actions/ai.ts` | visit id | up to 3 task proposals from one of your own visit reports; the same ones again if asked twice | — (logged in `aiInvocations`) |
+| `rateWrenAnswer({ target, rating, reason })` | `app/actions/ai.ts` | a summary, brief or chat answer of yours; `up` or `down`; a fixed reason for `down` | records or replaces your vote; refused when the answer isn't yours or has been regenerated | — |
 | `loadWrenPanel(pathname)` | `app/actions/ai.ts` | the page's path | what the side panel opens with: conversations, the latest one, page-aware suggestions; never calls the model | — |
 | `generateMorningBrief({ refresh })` | `app/actions/ai.ts` | `refresh` writes a new brief | runs today's brief; returns the headline, items, cards, time written and whether the records changed since, or a refusal message; writes no CRM data | — (logged in `aiInvocations`) |
 | `searchBillToAccounts(q)` | `app/actions/accounts.ts` | up to 100 chars | up to 8 bill-to accounts in scope for the task and contact dialogs | — (read) |

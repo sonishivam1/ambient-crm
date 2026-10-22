@@ -16,6 +16,9 @@
     "db:seed": "pnpm --filter @ambient/db seed",
     "db:indexes": "pnpm --filter @ambient/db indexes",
     "db:inspect": "pnpm --filter @ambient/db inspect",
-    "test:unit": "pnpm --filter web test:unit"
+    "test:unit": "pnpm --filter web test:unit",
+    "ai:eval": "pnpm --filter web ai:eval",
+    "ai:eval:compare": "pnpm --filter web ai:eval:compare",
+    "ai:eval:baseline": "pnpm --filter web ai:eval:baseline"
   }
 }

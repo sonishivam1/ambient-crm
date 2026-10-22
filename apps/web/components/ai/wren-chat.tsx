@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { deleteWrenConversation } from "@/app/actions/ai";
 import { AiCards } from "@/components/ai/cards";
+import { AnswerFeedback } from "@/components/ai/feedback";
 import { ProposalCards, type ProposalContext } from "@/components/ai/proposal-card";
 import type { ChatEvent, ChatTurnView, ConversationSummary } from "@/lib/ai/chat-view";
 import { cn } from "@/lib/cn";
@@ -199,7 +200,7 @@ export function WrenChat({
           )}
 
           {turns.map((t) =>
-            t.role === "user" ? <Question key={t.id} text={t.text} /> : <Answer key={t.id} turn={t} onAsk={ask} disabled={!!pending} ctx={proposalCtx} />,
+            t.role === "user" ? <Question key={t.id} text={t.text} /> : <Answer key={t.id} turn={t} onAsk={ask} disabled={!!pending} ctx={proposalCtx} conversationId={unavailable ? null : conversationId} />,
           )}
 
           {pending && (
@@ -269,7 +270,20 @@ function Question({ text }: { text: string }) {
   );
 }
 
-function Answer({ turn, onAsk, disabled, ctx }: { turn: ChatTurnView; onAsk: (q: string) => void; disabled: boolean; ctx: ProposalContext }) {
+function Answer({
+  turn,
+  onAsk,
+  disabled,
+  ctx,
+  conversationId,
+}: {
+  turn: ChatTurnView;
+  onAsk: (q: string) => void;
+  disabled: boolean;
+  ctx: ProposalContext;
+  /** Null hides 👍 / 👎 (AI unavailable, or a sample). */
+  conversationId: string | null;
+}) {
   return (
     <div className="wren-msg assistant">
       <p>{turn.text}</p>
@@ -288,6 +302,7 @@ function Answer({ turn, onAsk, disabled, ctx }: { turn: ChatTurnView; onAsk: (q:
           {turn.followUpQuestion}
         </button>
       )}
+      {conversationId && <AnswerFeedback target={{ kind: "turn", conversationId, turnId: turn.id }} initial={turn.vote} />}
     </div>
   );
 }

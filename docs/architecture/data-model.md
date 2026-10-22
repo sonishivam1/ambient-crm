@@ -19,6 +19,7 @@ write it.
 | **Cache** | `aiOutputs` | Verified AI answers per user; replaced on regenerate, deleted after at most 7 days (TTL). |
 | **Conversations** | `aiConversations` | A user's Wren chats; private, deletable, deleted 90 days after the last turn (TTL). |
 | **Proposals** | `aiProposals` | Records Wren prepared for one user to accept; single use, deleted 7 days after creation (TTL). |
+| **Feedback** | `aiFeedback` | Users' 👍 / 👎 on AI answers, one per user per answer; metadata only. |
 
 ## Entities
 
@@ -217,7 +218,11 @@ erDiagram
   note for one user: the form's input, what the card shows, its status
   (`pending`, `accepting`, `accepted`, `dismissed`), what it created, where it
   came from (`chat`, or `followups` with the visit as `sourceId`); deleted 7
-  days after creation. See [AI layer](ai.md).
+  days after creation. `aiFeedback` holds one user's 👍 / 👎 on one answer
+  (`answerKey`: the subject and generation time of a summary or brief, or the
+  chat turn), an optional fixed reason, and the prompt and policy versions and
+  model that produced the answer; never its text. Chat answer turns record
+  the same three for this. See [AI layer](ai.md).
 - **Contacts** belong to a bill-to and optionally one of its sold-to sites.
   Emails are lowercased and unique per tenant among contacts that aren't
   deleted (checked in the write path, so deleted contacts can share one).
@@ -255,4 +260,5 @@ Every index below is prefixed with `tenantId` except where noted as global.
 | `aiUsage` | `_id` only (`tenantId:month`) | budget reservations |
 | `aiOutputs` | `_id` (`tenantId:userId:feature:subjectId`), `expiresAt` (TTL, single field), `feature + subjectId` | cache lookups, expiry |
 | `aiConversations` | `userId + updatedAt`, `expiresAt` (TTL, single field) | the user's list, expiry |
-| `aiProposals` | `userId + createdAt`, `expiresAt` (TTL, single field) | the user's proposals, expiry |
+| `aiProposals` | `userId + createdAt`, `createdAt`, `expiresAt` (TTL, single field) | the user's proposals, the admin report, expiry |
+| `aiFeedback` | `_id` (`tenantId:userId:feature:answerKey`), `feature + createdAt` | one vote per answer, the admin report |

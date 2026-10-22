@@ -3,11 +3,15 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 
+import { AI_FEEDBACK_REASONS } from "@ambient/db/models";
+
 import { deleteConversation } from "@/lib/ai/conversations";
+import { rateAnswer } from "@/lib/ai/feedback";
+import type { FeedbackResult } from "@/lib/ai/feedback-view";
 import { runAiFeature } from "@/lib/ai/engine";
-import { accountSummary, summaryView } from "@/lib/ai/features/account-summary";
+import { accountSummary, summaryView, summaryVote } from "@/lib/ai/features/account-summary";
 import { suggestFollowUps, type FollowUpsResult } from "@/lib/ai/features/followup-suggestions";
-import { briefView, morningBrief } from "@/lib/ai/features/morning-brief";
+import { briefView, briefVote, morningBrief } from "@/lib/ai/features/morning-brief";
 import type { BriefActionResult } from "@/lib/ai/brief-view";
 import type { ProposalActionResult } from "@/lib/ai/proposal-view";
 import { panelData, type PanelData } from "@/lib/ai/panel";
@@ -32,7 +36,7 @@ export const generateAccountSummary = loggedAction(
     const input = summaryInput.safeParse(raw);
     if (!input.success) return { ok: false, reason: "invalid_input", message: "That request isn't valid." };
     const result = await runAiFeature(accountSummary, { accountId: input.data.accountId }, { refresh: input.data.refresh });
-    return result.ok ? { ok: true, answer: summaryView(result) } : result;
+    return result.ok ? { ok: true, answer: summaryView(result, await summaryVote(input.data.accountId, result.generatedAt)) } : result;
   },
 );
 
@@ -43,7 +47,7 @@ export const generateMorningBrief = loggedAction("ai.morningBrief", async functi
   const input = briefInput.safeParse(raw);
   if (!input.success) return { ok: false, reason: "invalid_input", message: "That request isn't valid." };
   const result = await runAiFeature(morningBrief, {}, { refresh: input.data.refresh });
-  return result.ok ? { ok: true, answer: briefView(result) } : result;
+  return result.ok ? { ok: true, answer: briefView(result, await briefVote(result.generatedAt)) } : result;
 });
 
 /** Delete one of your own Wren conversations. False when it isn't yours (or is already gone). */
@@ -92,4 +96,20 @@ export const suggestVisitFollowUps = loggedAction("ai.followUps", async function
 /** What the Wren side panel opens with on this page. Never calls the model. */
 export const loadWrenPanel = loggedAction("ai.panel", async function loadWrenPanel(rawPath: string): Promise<PanelData> {
   return panelData(await getScope(), typeof rawPath === "string" ? rawPath : "/");
+});
+
+const feedbackInput = z.object({
+  target: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("output"), feature: z.enum(["account-summary", "morning-brief"]), subjectId: z.string().min(1).max(200), generatedAt: z.iso.datetime() }),
+    z.object({ kind: z.literal("turn"), conversationId: z.string().min(1).max(100), turnId: z.string().min(1).max(100) }),
+  ]),
+  rating: z.enum(["up", "down"]),
+  reason: z.enum(AI_FEEDBACK_REASONS).nullable().default(null),
+});
+
+/** Rate one of your own AI answers: 👍 or 👎 with an optional fixed reason. A later vote replaces it; no text is kept. */
+export const rateWrenAnswer = loggedAction("ai.feedback", async function rateWrenAnswer(raw: unknown): Promise<FeedbackResult> {
+  const input = feedbackInput.safeParse(raw);
+  if (!input.success) return { ok: false, error: "That rating isn't valid." };
+  return rateAnswer(await getScope(), input.data.target, { rating: input.data.rating, reason: input.data.reason });
 });

@@ -335,7 +335,8 @@ sequenceDiagram
 | What | How | When |
 | --- | --- | --- |
 | Gates, scoped facts, handle checks, retries, budgets, caching, logging without content, proposals through existing actions | Integration tests with the **test-only stand-in** model (fixed replies) | Every step, in CI |
-| Answer quality, citations, refusals, cost per call | `pnpm ai:eval` with the evaluation set against the real model | Key day, then on every prompt or model change |
+| Answer quality, citations, refusals, cost per call | `pnpm ai:eval` with the evaluation set against the real model; `pnpm ai:eval:compare` against the committed baseline | Key day, then on every prompt or model change, by hand |
+| The evaluation harness itself | `AI_EVAL_SMOKE=1 pnpm ai:eval` (the smoke stand-in; scores mean nothing) | After changing the harness or cases |
 
 The stand-in implements the AI SDK's model interface and is used only by
 tests; the running app always calls OpenAI. CI never needs a key.
@@ -353,7 +354,7 @@ before the next.
 | 4. Morning brief | Second feature; on request, kept for the day (the 7am trigger comes with hosting) | ✅ Built |
 | 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | ✅ Built |
 | 6. Proposals | Propose tools, proposal cards, existing actions, idempotent Accept; follow-up suggestions after visit reports; the side panel | ✅ Built |
-| 7. Evaluation and feedback | `pnpm ai:eval`, thumbs up/down; run on key day | Next |
+| 7. Evaluation and feedback | `pnpm ai:eval` with fixed checks and a baseline gate, thumbs up/down, the admin AI report | ✅ Built (first real run on key day) |
 | Later | Natural-language filters, meeting prep, next best action, report narratives; email and meeting analysis and semantic search after capture | — |
 
 Deliberately **not** built: agents that act without a click, fine-tuned
@@ -422,6 +423,29 @@ has no test hook.
   `{ ok: false, reason, message }`; reasons are the gate refusals plus
   `invalid_input`, `not_found` (step 2), `rejected` (every claim invented) and
   `failed`. Messages never include provider error text.
+
+## Evaluation and feedback (built in step 7)
+
+- **`pnpm ai:eval`** (Vitest project `eval`, never in `pnpm test` or CI): 26
+  fictional cases on the seed data, in a fresh throwaway database, against
+  the real model. Each case applies **fixed checks** to what the user would
+  see: records cited, other reps' or tenants' accounts never named, refusals
+  and questions back, planted instructions ignored, the right tool used,
+  proposals prepared (and nothing created). The report gives each feature's
+  score (share of checks passed), cases passed, tokens, average time and, with
+  prices set, cost per answer, in `evals/results/latest.json`.
+- **The gate:** `pnpm ai:eval:baseline` saves a good run as
+  `evals/baseline.json` (committed); `pnpm ai:eval:compare` fails when any
+  feature scores below it. Run by hand on every prompt or model change.
+- **Feedback:** 👍 / 👎 on summaries, briefs and chat answers, with a fixed
+  reason for 👎 (Wrong, Missing something, Not useful, Unclear) and no
+  comments. `aiFeedback` keeps the rating and what produced the answer
+  (prompt and policy versions, model), never its text; only the user's own,
+  current answer can be rated.
+- **Admin report (`/admin/ai`):** this month's requests, cache hits,
+  refusals, failures, tokens, time and estimated cost per feature; feedback per
+  feature and prompt version; proposals accepted, dismissed and expired; the
+  budget. Totals only: no question, answer or customer text.
 
 ## Proposals, follow-ups and the side panel (built in step 6)
 

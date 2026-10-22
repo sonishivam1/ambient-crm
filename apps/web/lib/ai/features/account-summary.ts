@@ -2,9 +2,13 @@ import "server-only";
 
 import { z } from "zod";
 
+import { getScope } from "@/lib/data/scope";
+
 import { defineAiFeature, peekAiFeature, type AiAnswer } from "../engine";
 import { accountFacts } from "../facts/account";
 import { ACCOUNT_SUMMARY_TASK, ACCOUNT_SUMMARY_VERSION } from "../prompts/account-summary";
+import { voteFor } from "../feedback";
+import type { FeedbackVote } from "../feedback-view";
 import type { SummaryAnswerView, SummaryState } from "../summary-view";
 
 import { plainText } from "./text";
@@ -60,19 +64,25 @@ export const accountSummary = defineAiFeature({
 });
 
 /** The answer as the card receives it. */
-export const summaryView = (a: AiAnswer<AccountSummary>): SummaryAnswerView => ({
+export const summaryView = (a: AiAnswer<AccountSummary>, vote: FeedbackVote | null = null): SummaryAnswerView => ({
   points: a.output.points,
   nextStep: a.output.nextStep,
   cards: a.cards,
   notes: a.notes,
   generatedAt: a.generatedAt,
   cached: a.outcome === "cached",
+  vote,
 });
+
+/** The user's vote on this summary, if they've rated it. */
+export async function summaryVote(accountId: string, generatedAt: Date): Promise<FeedbackVote | null> {
+  return voteFor(await getScope(), { kind: "output", feature: "account-summary", subjectId: accountId, generatedAt: generatedAt.toISOString() });
+}
 
 /** What the profile's summary card starts with. Never calls the model and writes nothing. */
 export async function accountSummaryState(accountId: string): Promise<SummaryState> {
   const peek = await peekAiFeature(accountSummary, { accountId });
   if (peek.state === "unavailable") return { state: "unavailable", message: peek.message };
-  if (peek.state === "ready") return { state: "ready", answer: summaryView(peek.answer) };
+  if (peek.state === "ready") return { state: "ready", answer: summaryView(peek.answer, await summaryVote(accountId, peek.answer.generatedAt)) };
   return peek;
 }

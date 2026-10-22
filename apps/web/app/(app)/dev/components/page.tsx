@@ -81,6 +81,7 @@ const SAMPLE_SUMMARY: SummaryAnswerView = {
   notes: ["No active contacts"],
   generatedAt: new Date("2026-10-20T08:00:00Z"),
   cached: false,
+  vote: null,
 };
 
 /** A made-up morning brief, with the record changed since it was written. */
@@ -95,6 +96,7 @@ const SAMPLE_BRIEF: BriefAnswerView = {
   cards: SAMPLE_CARDS.filter((c) => ["T1", "V1", "K1", "N1"].includes(c.handle)),
   generatedAt: new Date("2026-10-19T20:02:00Z"),
   changed: true,
+  vote: null,
 };
 
 /** A made-up Wren conversation: a question, a cited answer with cards, and a reply without records. */
@@ -104,6 +106,7 @@ const turn = (t: Partial<ChatTurnView> & Pick<ChatTurnView, "id" | "role" | "tex
   cards: [],
   uncited: false,
   proposals: [],
+  vote: null,
   createdAt: "2026-10-20T22:00:00.000Z",
   ...t,
 });

@@ -82,6 +82,7 @@ export function navFor(caps: RoleCapabilities): NavGroup[] {
           { href: "/admin/view-as", label: "View as", icon: Eye },
           { href: "/admin/sync", label: "Sync health", icon: RefreshCw },
           { href: "/admin/audit", label: "Audit log", icon: ClipboardList },
+          { href: "/admin/ai", label: "AI usage", icon: Sparkles },
           { href: "/morning-brief", label: "Morning brief", icon: Sun },
           { href: "/review-queue", label: "Review queue", icon: Inbox },
           { href: "/notifications", label: "Notifications", icon: Bell, counter: "unreadNotifications" },

@@ -322,11 +322,14 @@ Output (strict structured output; limited by code):
 Each suggestion becomes a task proposal; Accept runs createTask's rules. Asking
 again for the same visit shows the same proposals.
 
-## Evaluation set (step 7, run on key day)
+## Evaluation set (step 7, built; first real run on key day)
 
-Fictional cases on the seed data, one file per feature, with expected results:
-questions per role, accounts with and without activity, empty results,
-ambiguous names, incomplete requests, and injection attempts inside customer
-text. `pnpm ai:eval` scores correct facts, valid sources, refusals when the
-facts are silent, `ok: false` handling and cost per call. A prompt or model
+Fictional cases on the seed data in `apps/web/evals/`, one file per feature
+(26 in all): questions per role, accounts with and without activity, a quiet
+day, empty results, ambiguous names, incomplete requests, requests to change
+or delete, out-of-scope questions, proposals, follow-ups with and without
+commitments, and instructions planted in a note, a notification and a visit
+report. Each case has fixed checks on what the user would see (no model
+grades another). `pnpm ai:eval` scores each feature; `pnpm ai:eval:compare`
+fails when any feature scores below `evals/baseline.json`. A prompt or model
 change that scores lower does not ship.

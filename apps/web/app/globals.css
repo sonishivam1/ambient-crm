@@ -1735,6 +1735,73 @@ html[data-dark="1"] {
       animation: none;
     }
   }
+  /* 👍 / 👎 on an AI answer (components/ai/feedback). */
+  .ai-fb {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .ai-fb-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ai-fb-q {
+    margin-right: 4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .ai-fb-btn {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line2);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .ai-fb-btn:hover:not(:disabled) {
+    color: var(--text);
+    border-color: var(--line);
+  }
+  .ai-fb-btn.on {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .ai-fb-btn:focus-visible,
+  .ai-fb-reason:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .ai-fb-reasons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ai-fb-reason {
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text2);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .ai-fb-reason.on {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .ai-fb-err {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--risk);
+  }
   .bar {
     height: 8px;
     border-radius: 99px;

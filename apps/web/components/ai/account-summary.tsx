@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { generateAccountSummary } from "@/app/actions/ai";
 import { AiCards } from "@/components/ai/cards";
+import { AnswerFeedback } from "@/components/ai/feedback";
 import { Skeleton } from "@/components/ui/primitives";
 import type { SummaryAnswerView, SummaryPoint, SummaryState } from "@/lib/ai/summary-view";
 import { timeAgo } from "@/lib/format";
@@ -84,7 +85,15 @@ export function AccountSummaryPanel({ accountId, initial }: { accountId: string;
             Refresh
           </button>
         </div>
-      ) : (
+      ) : null}
+      {state.state === "ready" && (
+        <AnswerFeedback
+          key={String(state.answer.generatedAt)}
+          target={{ kind: "output", feature: "account-summary", subjectId: accountId, generatedAt: new Date(state.answer.generatedAt).toISOString() }}
+          initial={state.answer.vote}
+        />
+      )}
+      {state.state !== "ready" && (
         <button className="btn sm" onClick={() => run(false)} disabled={stopped}>
           <Sparkles size={15} />
           {error && !stopped ? "Try again" : "Generate"}

@@ -11,3 +11,6 @@ next-env.d.ts
 .DS_Store
 *.log
 .vercel
+
+# AI evaluation runs (pnpm ai:eval); the baseline in apps/web/evals/baseline.json is committed.
+apps/web/evals/results/

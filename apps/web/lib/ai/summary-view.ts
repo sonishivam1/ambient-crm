@@ -1,4 +1,5 @@
 import type { AiCardData } from "./cards";
+import type { FeedbackVote } from "./feedback-view";
 
 /**
  * What the account summary card receives: the verified answer, its cards and
@@ -16,6 +17,8 @@ export type SummaryAnswerView = {
   notes: string[];
   generatedAt: Date;
   cached: boolean;
+  /** The user's own 👍 / 👎 on this answer. */
+  vote: FeedbackVote | null;
 };
 
 /** What the profile shows when it opens, before anyone presses Generate. */

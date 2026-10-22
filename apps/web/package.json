@@ -8,9 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --project unit --project integration",
     "test:unit": "vitest run --project unit",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "ai:eval": "vitest run --project eval",
+    "ai:eval:compare": "node evals/score.mjs compare",
+    "ai:eval:baseline": "node evals/score.mjs baseline"
   },
   "dependencies": {
     "@ai-sdk/openai": "4.0.84",

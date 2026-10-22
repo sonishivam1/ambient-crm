@@ -1,4 +1,5 @@
 import type { AiCardData } from "./cards";
+import type { FeedbackVote } from "./feedback-view";
 
 /**
  * What the morning brief page receives: the verified items, the code-computed
@@ -25,6 +26,8 @@ export type BriefAnswerView = {
   generatedAt: Date;
   /** The records have changed since the brief was written. */
   changed: boolean;
+  /** The user's own 👍 / 👎 on this brief. */
+  vote: FeedbackVote | null;
 };
 
 export type BriefState = { state: "unavailable"; message: string } | { state: "none" } | { state: "ready"; answer: BriefAnswerView };

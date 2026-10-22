@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { AiCardData } from "./cards";
+import type { FeedbackVote } from "./feedback-view";
 import type { ProposalView } from "./proposal-view";
 
 /**
@@ -19,6 +20,8 @@ export type ChatTurnView = {
   uncited: boolean;
   /** Records this answer prepared for the user to accept, with their live status. */
   proposals: ProposalView[];
+  /** The user's own 👍 / 👎 on this answer. */
+  vote: FeedbackVote | null;
   createdAt: string;
 };
 
@@ -36,6 +39,7 @@ const TurnSchema = z.object({
   cards: z.array(z.object({ kind: z.string(), handle: z.string(), href: z.string() }).passthrough()),
   uncited: z.boolean(),
   proposals: z.array(z.object({ id: z.string(), kind: z.enum(["task", "visit", "note"]), status: z.string() }).passthrough()),
+  vote: z.object({ rating: z.enum(["up", "down"]), reason: z.string().nullable() }).nullable(),
   createdAt: z.string(),
 });
 

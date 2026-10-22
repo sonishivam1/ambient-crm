@@ -18,11 +18,11 @@ must respect.
 - **Next: the AI layer, step by step** on OpenAI
   ([ADR 0006](docs/architecture/decisions/0006-ai-provider.md),
   [plan](docs/architecture/ai.md), [prompts](docs/architecture/ai-prompts.md)).
-  Steps 1 to 6 are built (engine core; fact sources and cards; the account
-  summary with its cache; the morning brief, kept for the day; Wren chat on
-  `/assistant` and the side panel; proposals with Accept through the forms'
-  code, and follow-up suggestions); step 7 (evaluation and feedback) is next.
-  The 7am brief job waits for hosting.
+  All seven steps are built (engine core; fact sources and cards; the
+  account summary; the morning brief; Wren chat and the side panel; proposals
+  and follow-ups; evaluation and feedback). Key day: set the OpenAI key, run
+  `pnpm ai:eval`, save the baseline. The 7am brief job waits for hosting.
+  Any prompt or model change: `pnpm ai:eval` then `pnpm ai:eval:compare`.
   The real model is tried only once the team's OpenAI key arrives; until then
   tests use the test-only stand-in (`tests/support/ai-stand-in.ts`).
 - **Not built:** real sign-in and hosting (waits on

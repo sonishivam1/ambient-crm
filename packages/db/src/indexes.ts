@@ -73,8 +73,13 @@ export const INDEXES: Record<CollectionName, IndexDescription[]> = {
     // TTL indexes take a single field, so this one is not tenant-prefixed.
     { key: { expiresAt: 1 }, expireAfterSeconds: 0 },
   ],
+  aiFeedback: [
+    // The admin report: per feature and prompt version, this month.
+    { key: { tenantId: 1, feature: 1, createdAt: -1 } },
+  ],
   aiProposals: [
     { key: { tenantId: 1, userId: 1, createdAt: -1 } },
+    { key: { tenantId: 1, createdAt: -1 } },
     // TTL indexes take a single field, so this one is not tenant-prefixed.
     { key: { expiresAt: 1 }, expireAfterSeconds: 0 },
   ],

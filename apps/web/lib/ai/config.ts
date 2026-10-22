@@ -34,3 +34,15 @@ export function aiConfigured(): boolean {
 export function openAiKey(): string | null {
   return setting("OPENAI_API_KEY");
 }
+
+/**
+ * Prices for the admin report's cost estimate, in USD per million tokens, from
+ * OPENAI_PRICE_INPUT_PER_M and OPENAI_PRICE_OUTPUT_PER_M (set them from
+ * OpenAI's pricing page for the model in use). Null when not set: the report
+ * then shows tokens only, rather than a guessed price.
+ */
+export function tokenPrices(): { input: number; output: number } | null {
+  const input = Number(setting("OPENAI_PRICE_INPUT_PER_M"));
+  const output = Number(setting("OPENAI_PRICE_OUTPUT_PER_M"));
+  return setting("OPENAI_PRICE_INPUT_PER_M") && setting("OPENAI_PRICE_OUTPUT_PER_M") && input >= 0 && output >= 0 ? { input, output } : null;
+}

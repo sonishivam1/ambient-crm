@@ -15,7 +15,8 @@ how the product's history stays readable after the sessions that built it.
 | [AI step 3: account summary](ai-step-3-account-summary.md) | AI | ✅ Built (`7ecf30d`) |
 | [AI step 4: morning brief](ai-step-4-morning-brief.md) | AI | ✅ Built (`f9a4d16`) |
 | [AI step 5: Wren chat](ai-step-5-wren-chat.md) | AI | ✅ Built (`279ba0c`) |
-| [AI step 6: proposals and the side panel](ai-step-6-proposals.md) | AI | ✅ Built |
+| [AI step 6: proposals and the side panel](ai-step-6-proposals.md) | AI | ✅ Built (`ac727c7`) |
+| [AI step 7: evaluation and feedback](ai-step-7-evaluation-and-feedback.md) | AI | ✅ Built |
 
 Earlier work (the core CRM screens, tenancy, CI) predates this folder; its
 history is in the [build log](../engineering/build-log.md).

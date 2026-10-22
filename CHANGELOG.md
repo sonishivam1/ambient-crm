@@ -26,6 +26,8 @@ see the [build log](docs/engineering/build-log.md).
   until you accept.
 - **Follow-ups:** on your visit reports, Wren suggests follow-up tasks to
   accept.
+- **Feedback:** 👍 / 👎 on summaries, briefs and chat answers. Admins see AI
+  usage, cost and feedback totals on Admin → AI usage.
 
 ### Core CRM
 - **Dashboard:** today's tasks, the week's visits, key figures, at-risk

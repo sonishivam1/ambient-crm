@@ -189,7 +189,18 @@ export async function runChatTurn(rawInput: unknown, onProgress: (text: string) 
   const cards = citedSources({ answer: shown.answer, bullets }).flatMap((h) => packet.cards.get(h) ?? []);
 
   const question = newTurn({ role: "user", text: message, bullets: [], followUpQuestion: null, cards: [], uncited: false, proposalIds: [] });
-  const answer = newTurn({ role: "assistant", text, bullets: bullets.map((b) => b.text), followUpQuestion: followUp, cards, uncited, proposalIds: ctx.proposals });
+  const answer = newTurn({
+    role: "assistant",
+    text,
+    bullets: bullets.map((b) => b.text),
+    followUpQuestion: followUp,
+    cards,
+    uncited,
+    proposalIds: ctx.proposals,
+    promptVersion: WREN_CHAT_VERSION,
+    policyVersion: POLICY_VERSION,
+    model: modelId,
+  });
   const savedId = await saveExchange(scope, conversation?._id ?? null, question, answer);
   await logInvocation(scope, { ...metrics, outcome: repaired ? "repaired" : "ok", errorKind: null });
   if (!savedId) return { ok: false, reason: "not_found", message: "That conversation isn't available. Start a new chat." };

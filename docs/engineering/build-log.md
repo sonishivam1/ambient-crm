@@ -11,6 +11,23 @@ how it was verified, and any lesson worth keeping.
 
 ---
 
+## 22 Oct 2026
+
+### AI step 7: evaluation and feedback
+- **What:** `pnpm ai:eval`, 26 fictional cases with fixed checks run against
+  the real model in a throwaway database, scored per feature, with a committed
+  baseline and `pnpm ai:eval:compare` as the gate; a smoke mode to check the
+  harness without a key. 👍 / 👎 with a fixed reason on summaries, briefs and
+  chat answers (`aiFeedback`, metadata only). `/admin/ai`: this month's usage,
+  cost, refusals, feedback per prompt version and proposals, as totals.
+- **Why:** to know whether the AI is good before release and after, without
+  ever exposing a user's questions or answers.
+- **Verified:** 6 integration and 3 unit tests; 284 web tests; lint,
+  typecheck and build clean; three planted bugs fail the suite; a smoke run of
+  all 26 cases; the report checked in the browser as an admin and a manager.
+  The first real run waits for key day.
+- **Plan:** [AI step 7](../plans/ai-step-7-evaluation-and-feedback.md).
+
 ## 21 Oct 2026
 
 ### AI step 6: proposals, follow-ups and the side panel

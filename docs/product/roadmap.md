@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 21 Oct 2026 (AI step 6, proposals and the side panel)._
+_Last updated: 22 Oct 2026 (AI step 7, evaluation and feedback)._
 
 ## Where we are
 
@@ -48,7 +48,8 @@ sign-in.
 | ✅ Done | AI step 4: morning brief on request, kept for the day with its cards; headline counted by code; dashboard tile | 4 |
 | ✅ Done | AI step 5: Wren chat, read-only: five tools as the user, verified answers with cards, saved conversations, streaming progress | 4 |
 | ✅ Done | AI step 6: proposals (tasks, visits, notes) accepted through the forms' code, follow-up suggestions from visit reports, the Wren side panel | 4 |
-| ⏭ Next | AI step 7: evaluation and feedback | 4 |
+| ✅ Done | AI step 7: evaluation harness with fixed checks and a baseline gate, 👍 / 👎 feedback, the admin AI usage report | 4 |
+| ⏭ Next | AI key day: set the OpenAI key, run `pnpm ai:eval`, pick the model, save the baseline | 4 |
 | Later | 7am morning brief job (with hosting) | 0 |
 | Later | AI key day: configure the OpenAI key, run the evaluation set, tune prompts | 4 |
 | Later | Email and meeting analysis, embeddings, semantic search (after capture) | 4 |
@@ -79,7 +80,7 @@ gantt
   Morning brief (step 4)                   :done,   a3, 2026-10-20, 1d
   Wren chat (step 5)                       :done,   a2, 2026-10-20, 1d
   Proposals and side panel (step 6)        :done,   a4, 2026-10-21, 1d
-  Evaluation and feedback (step 7)         :active, a5, after a4, 3d
+  Evaluation and feedback (step 7)         :done,   a5, 2026-10-22, 1d
   section Foundations
   Sign-in, hosting, deployments           :        f1, after a2, 7d
   section Data spine

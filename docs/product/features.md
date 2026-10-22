@@ -221,8 +221,10 @@ Planned:
 - **Later:** natural-language filters, meeting prep, next best action; with
   capture, analysed email on the timeline and search by meaning.
 - **Controls:** off by default per tenant; an admin turns it on, picks the
-  roles and features; monthly token budget and per-user rate limit; thumbs up or
-  down on every answer.
+  roles and features; monthly token budget and per-user rate limit.
+- **Feedback** (built): 👍 / 👎 on every summary, brief and chat answer, with a
+  reason for 👎. Admins see this month's AI usage, cost, refusals, feedback and
+  proposals on Admin → AI usage, as totals only.
 - Until the OpenAI key is configured, these features show "AI isn't set up yet".
 
 ### Search

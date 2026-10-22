@@ -8,8 +8,10 @@ import type { Scope } from "@/lib/data/scope";
 
 import type { AiCardData } from "./cards";
 import type { ChatTurnView, ConversationSummary } from "./chat-view";
+import type { FeedbackVote } from "./feedback-view";
 import type { ProposalView } from "./proposal-view";
 import { cut } from "./facts";
+import { votesFor } from "./feedback";
 import { proposalViews } from "./proposals";
 
 /**
@@ -27,7 +29,11 @@ const notExpired = () => ({ expiresAt: { $gt: new Date() } });
 const expiry = (from: Date) => new Date(from.getTime() + CONVERSATION_DAYS * 86_400_000);
 
 /** A turn as shown; `proposals` holds the live views of the ones it prepared. */
-export const toTurnView = (t: AiTurn, proposals: ReadonlyMap<string, ProposalView> = new Map()): ChatTurnView => ({
+export const toTurnView = (
+  t: AiTurn,
+  proposals: ReadonlyMap<string, ProposalView> = new Map(),
+  votes: ReadonlyMap<string, FeedbackVote | null> = new Map(),
+): ChatTurnView => ({
   id: t._id,
   role: t.role,
   text: t.text,
@@ -36,15 +42,21 @@ export const toTurnView = (t: AiTurn, proposals: ReadonlyMap<string, ProposalVie
   cards: t.cards as AiCardData[],
   uncited: t.uncited,
   proposals: (t.proposalIds ?? []).flatMap((id) => proposals.get(id) ?? []),
+  vote: votes.get(t._id) ?? null,
   createdAt: t.createdAt.toISOString(),
 });
 
 /** A conversation's turns as shown, with the live status of every proposal they prepared. */
 export async function turnViews(scope: Scope, conversation: AiConversation | null): Promise<ChatTurnView[]> {
   const turns = conversation?.turns ?? [];
-  const views = await proposalViews(scope, turns.flatMap((t) => t.proposalIds ?? []));
+  const answers = turns.filter((t) => t.role === "assistant");
+  const [views, votes] = await Promise.all([
+    proposalViews(scope, turns.flatMap((t) => t.proposalIds ?? [])),
+    conversation ? votesFor(scope, answers.map((t) => ({ kind: "turn" as const, conversationId: conversation._id, turnId: t._id }))) : [],
+  ]);
   const byId = new Map(views.map((v) => [v.id, v]));
-  return turns.map((t) => toTurnView(t, byId));
+  const voteById = new Map(answers.map((t, i) => [t._id, votes[i] ?? null]));
+  return turns.map((t) => toTurnView(t, byId, voteById));
 }
 
 /** The user's conversations, most recent first. */
@@ -62,8 +74,11 @@ export async function getConversation(scope: Scope, id: string): Promise<AiConve
   return (await collection("aiConversations")).findOne({ _id: id, ...mine(scope), ...notExpired() });
 }
 
-export function newTurn(turn: Omit<AiTurn, "_id" | "createdAt">): AiTurn {
-  return { _id: randomUUID(), createdAt: new Date(), ...turn };
+type Produced = "promptVersion" | "policyVersion" | "model";
+
+/** A new turn; answers say which prompt, policy and model produced them. */
+export function newTurn(turn: Omit<AiTurn, "_id" | "createdAt" | Produced> & Partial<Pick<AiTurn, Produced>>): AiTurn {
+  return { _id: randomUUID(), createdAt: new Date(), promptVersion: null, policyVersion: null, model: null, ...turn };
 }
 
 /**

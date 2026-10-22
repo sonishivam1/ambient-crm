@@ -2,9 +2,13 @@ import "server-only";
 
 import { z } from "zod";
 
+import { getScope } from "@/lib/data/scope";
+
 import { BRIEF_KINDS, BRIEF_PRIORITIES, type BriefAnswerView, type BriefState } from "../brief-view";
 import { defineAiFeature, latestNotes, peekAiFeature, type AiAnswer } from "../engine";
 import { myDayFacts } from "../facts/my-day";
+import { voteFor } from "../feedback";
+import type { FeedbackVote } from "../feedback-view";
 import { MORNING_BRIEF_TASK, MORNING_BRIEF_VERSION } from "../prompts/morning-brief";
 
 import { plainText } from "./text";
@@ -79,16 +83,21 @@ export const morningBrief = defineAiFeature({
 });
 
 /** The brief as the page receives it. */
-export function briefView(a: AiAnswer<MorningBrief>): BriefAnswerView {
+export function briefView(a: AiAnswer<MorningBrief>, vote: FeedbackVote | null = null): BriefAnswerView {
   const headline = a.notes[0] ?? QUIET_HEADLINE;
-  return { headline, quiet: headline === QUIET_HEADLINE, items: a.output.items, cards: a.cards, generatedAt: a.generatedAt, changed: a.changed };
+  return { headline, quiet: headline === QUIET_HEADLINE, items: a.output.items, cards: a.cards, generatedAt: a.generatedAt, changed: a.changed, vote };
+}
+
+/** The user's vote on today's brief, if they've rated it. */
+export async function briefVote(generatedAt: Date): Promise<FeedbackVote | null> {
+  return voteFor(await getScope(), { kind: "output", feature: "morning-brief", subjectId: "today", generatedAt: generatedAt.toISOString() });
 }
 
 /** What the page starts with. Never calls the model and writes nothing. */
 export async function morningBriefState(): Promise<BriefState> {
   const peek = await peekAiFeature(morningBrief, {});
   if (peek.state === "unavailable") return { state: "unavailable", message: peek.message };
-  if (peek.state === "ready") return { state: "ready", answer: briefView(peek.answer) };
+  if (peek.state === "ready") return { state: "ready", answer: briefView(peek.answer, await briefVote(peek.answer.generatedAt)) };
   return { state: "none" };
 }
 

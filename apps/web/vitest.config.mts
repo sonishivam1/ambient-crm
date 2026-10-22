@@ -22,7 +22,7 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          include: ["lib/**/*.test.ts", "tests/support/**/*.test.ts", "tests/unit/**/*.test.ts"],
+          include: ["lib/**/*.test.ts", "tests/support/**/*.test.ts", "tests/unit/**/*.test.ts", "evals/**/*.test.ts"],
         },
       },
       {
@@ -40,6 +40,22 @@ export default defineConfig({
           maxWorkers: 3,
           // A different worker limit needs its own group: unit tests run first, then these.
           sequence: { groupOrder: 1 },
+        },
+      },
+      {
+        ...shared,
+        test: {
+          // `pnpm ai:eval`: the AI features against the real model on fictional cases. Never in `pnpm test` or CI.
+          name: "eval",
+          environment: "node",
+          include: ["evals/**/*.eval.ts"],
+          globalSetup: ["tests/support/global-setup.ts", "evals/support/global.ts"],
+          setupFiles: ["tests/support/integration-setup.ts", "evals/support/setup.ts"],
+          testTimeout: 180_000,
+          hookTimeout: 180_000,
+          // One case at a time: real calls, and one case log.
+          maxWorkers: 1,
+          sequence: { groupOrder: 2 },
         },
       },
     ],
