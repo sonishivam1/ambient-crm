@@ -21,7 +21,7 @@ const RATINGS = [
 
 function Rating({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
-    <Field label={`${label} (1–5)`} required>
+    <Field label={`${label} (1–5)`} required group>
       <div className="rateseg" role="radiogroup" aria-label={label}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} type="button" role="radio" aria-checked={value === n} className={cn(value === n && "on")} onClick={() => onChange(n)}>
@@ -85,10 +85,10 @@ export function ReportDialog({ open, onOpenChange, visit, timeZone }: { open: bo
                     <b className="tnum">{report[key]} / 5</b>
                   </div>
                 ))}
-                <Field label="Key points">
+                <Field label="Key points" group>
                   <p className="m-0 text-[13.5px] whitespace-pre-wrap">{report.keyPoints || "—"}</p>
                 </Field>
-                <Field label="Follow-ups">
+                <Field label="Follow-ups" group>
                   <p className="m-0 text-[13.5px] whitespace-pre-wrap">{report.followUps || "—"}</p>
                 </Field>
                 <p className="m-0 text-[12px] text-muted">

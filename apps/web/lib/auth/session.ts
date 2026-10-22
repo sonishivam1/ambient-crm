@@ -14,8 +14,15 @@ const DEFAULT_DEV_USER = "northwind:u-super";
 
 export type SessionUser = User & { capabilities: RoleCapabilities; tenant: Tenant };
 
+/**
+ * Development sign-in: local development only. The one exception is the
+ * end-to-end tests' production build, and only against a throwaway
+ * `ambient_test_*` database, so a real deployment can't turn it on by accident.
+ */
 export function devAuthEnabled(): boolean {
-  return process.env.AMBIENT_DEV_AUTH === "1" && process.env.NODE_ENV !== "production";
+  if (process.env.AMBIENT_DEV_AUTH !== "1") return false;
+  if (process.env.NODE_ENV !== "production") return true;
+  return process.env.AMBIENT_E2E === "1" && (process.env.MONGODB_DB ?? "").startsWith("ambient_test_");
 }
 
 /**

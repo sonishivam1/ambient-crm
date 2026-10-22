@@ -4,10 +4,11 @@
  * `ambient_test_<epoch seconds>_<random>`. Never the app's database.
  */
 import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 
 export const TEST_DB_PREFIX = "ambient_test_";
-const ENV_FILE = fileURLToPath(new URL("../../.env.local", import.meta.url));
+// Vitest and Playwright both run from apps/web. (Not import.meta: Playwright loads this file as CommonJS.)
+const ENV_FILE = join(process.cwd(), ".env.local");
 
 /** The cluster URI for tests, loaded from apps/web/.env.local unless TEST_MONGODB_URI is set. */
 export function testClusterUri(): string {

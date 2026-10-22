@@ -104,7 +104,7 @@ export function ContactDialog({ open, onOpenChange, contact, lockedAccount, role
             </div>
 
             <div className="m-body">
-              <Field label="Bill-to account" required>
+              <Field label="Bill-to account" required group>
                 {account ? (
                   <ChosenAccount account={account} onChange={lockedAccount ? undefined : () => chooseAccount(null)} />
                 ) : (
@@ -145,7 +145,7 @@ export function ContactDialog({ open, onOpenChange, contact, lockedAccount, role
                 </Field>
               </div>
               {roles.length > 0 && (
-                <Field label="Roles">
+                <Field label="Roles" group>
                   <div className="flex flex-wrap gap-1.5" role="group" aria-label="Roles">
                     {roles.map((r) => {
                       const on = picked.includes(r.key);

@@ -110,7 +110,7 @@ async function GroupContent({ params }: PageProps<"/accounts/group/[key]">) {
         </Link>
       </div>
 
-      <div className="grid items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="card">
           <div className="card-h">
             <h3>Accounts</h3>

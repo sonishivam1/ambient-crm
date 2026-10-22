@@ -38,7 +38,7 @@ marked Next or Planned. They fall into three kinds:
 
 | # | What | Where | Today | Depends on | Wave | Size |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1.1 | Browser end-to-end tests | all pages | none (unit and integration only) | — | 1 | 2d |
+| 1.1 | Browser end-to-end tests | all pages | ✅ built ([plan](wave-1-1-end-to-end-tests.md)) | — | 1 | 2d |
 | 1.2 | Admin home and audit log | `/admin`, `/admin/audit` | placeholders | — | 1 | 2d |
 | 1.3 | Organisation settings (divisions, lenses, time zone, contact roles, AI policy, report links) | `/admin/settings` (new) | set in the seed | — | 1 | 3d |
 | 1.4 | Users and roles | `/admin/users` (new) | seeded users only | — | 1 | 3d |
@@ -84,6 +84,7 @@ task, plan and report a visit, contacts and contracts, notifications, the
 assistant and side panel (the "AI isn't set up yet" state), light and dark
 mode, phone width. Would have caught the chat crash and layout breaks found
 by hand in AI step 5. **Done when** CI runs them on every push.
+**✅ Built 22 Oct 2026** ([plan](wave-1-1-end-to-end-tests.md)).
 
 **1.2 Admin home and audit log.** The admin home links to every admin tool and
 shows the tenant's state (AI on or off, users, last sync). The audit log lists

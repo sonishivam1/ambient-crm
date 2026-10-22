@@ -180,7 +180,7 @@ function Overview({ profile, filter, base, options }: { profile: AccountProfile;
   const items = profile.timeline.filter((t) => matches(t, filter));
   const { account: a } = profile;
   return (
-    <div className="grid items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[minmax(0,1fr)_340px]">
       <Card
         title="Timeline"
         link={

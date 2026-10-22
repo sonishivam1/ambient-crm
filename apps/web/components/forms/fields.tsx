@@ -1,19 +1,35 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 
 import { searchBillToAccounts, type AccountOption } from "@/app/actions/accounts";
 
-/** A labelled form field in a dialog. */
-export function Field({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
+/**
+ * A labelled form field in a dialog. The label names the one control inside
+ * it; `group` is for fields holding several controls, a button or read-only
+ * text, which get a named group instead.
+ */
+export function Field({ label, required, group, children }: { label: string; required?: boolean; group?: boolean; children: ReactNode }) {
+  const id = useId();
+  const text = (
+    <span className="lbl" id={group ? id : undefined}>
+      {label}
+      {required && <i className="text-accent not-italic"> *</i>}
+    </span>
+  );
+  if (group) {
+    return (
+      <div className="fld" role="group" aria-labelledby={id}>
+        {text}
+        {children}
+      </div>
+    );
+  }
   return (
-    <div className="fld">
-      <span className="lbl">
-        {label}
-        {required && <i className="text-accent not-italic"> *</i>}
-      </span>
+    <label className="fld">
+      {text}
       {children}
-    </div>
+    </label>
   );
 }
 

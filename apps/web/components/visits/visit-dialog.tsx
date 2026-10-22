@@ -80,7 +80,7 @@ export function VisitDialog({ open, onOpenChange, visit, lockedAccount, assignab
             </div>
 
             <div className="m-body">
-              <Field label="Bill-to account" required>
+              <Field label="Bill-to account" required group>
                 {account ? (
                   <ChosenAccount account={account} onChange={editing || lockedAccount ? undefined : () => setAccount(null)} />
                 ) : (

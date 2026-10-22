@@ -13,6 +13,7 @@ here when it starts.
 | Plan | Area | Status |
 | --- | --- | --- |
 | [Completion plan: everything left for v1](completion-plan.md) | All | Agreed, scope frozen (22 Oct 2026) |
+| [Wave 1.1: end-to-end tests](wave-1-1-end-to-end-tests.md) | Testing | ✅ Built |
 | [AI step 1: engine core](ai-step-1-engine-core.md) | AI | ✅ Built (`c36a1b7`) |
 | [Logger](logger.md) | Platform | ✅ Built |
 | [Observability and API foundation](observability-and-api-foundation.md) | Platform | ✅ Built |

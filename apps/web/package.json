@@ -11,6 +11,7 @@
     "test": "vitest run --project unit --project integration",
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
+    "test:e2e": "playwright test",
     "ai:eval": "vitest run --project eval",
     "ai:eval:compare": "node evals/score.mjs compare",
     "ai:eval:baseline": "node evals/score.mjs baseline"
@@ -34,6 +35,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24",
     "@types/react": "^19",

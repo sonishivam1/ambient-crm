@@ -51,6 +51,7 @@ Northwind and three in Harbor & Finch (see the README).
 | `pnpm dev` | Web app with hot reload |
 | `pnpm test` | Unit and integration tests (integration uses the Atlas cluster, in throwaway `ambient_test_*` databases) |
 | `pnpm test:unit` | Unit tests only, no database |
+| `pnpm test:e2e` | End-to-end tests in Chromium against the production build (seeds and drops its own `ambient_test_*` database; run `pnpm --filter web exec playwright install chromium` once first) |
 | `pnpm typecheck` | Generate route types, then type-check every package |
 | `pnpm lint` | Lint |
 | `pnpm --filter @ambient/db test` | db package tests (no database) |

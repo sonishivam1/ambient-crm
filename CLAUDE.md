@@ -48,6 +48,7 @@ Node 24 and pnpm 10. On Windows with fnm, prefix commands with
 | `pnpm --filter @ambient/db test` | db package tests (pure, no database) |
 | `pnpm --filter @ambient/logger test` | logger tests (redaction, levels, errors) |
 | `pnpm test:unit` | Web unit tests only, no database |
+| `pnpm test:e2e` | End-to-end tests in Chromium: builds the app, seeds a throwaway `ambient_test_*` database, signs in as each role |
 | `pnpm build` | Production build; must never need a database |
 | `pnpm db:inspect` | Read-only: databases and collection counts |
 | `pnpm --filter @ambient/db seed --allow-remote --reset` | Wipe and reseed the demo data on Atlas |

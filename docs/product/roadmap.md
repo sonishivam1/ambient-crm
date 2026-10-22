@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 22 Oct 2026 (completion plan agreed; v1 scope frozen)._
+_Last updated: 22 Oct 2026 (Wave 1.1: end-to-end tests)._
 
 ## Where we are
 
@@ -47,7 +47,8 @@ far depends on demo-only shortcuts except development sign-in.
 | ✅ Done | AI step 5: Wren chat, read-only: five tools as the user, verified answers with cards, saved conversations, streaming progress | 4 |
 | ✅ Done | AI step 6: proposals (tasks, visits, notes) accepted through the forms' code, follow-up suggestions from visit reports, the Wren side panel | 4 |
 | ✅ Done | AI step 7: evaluation harness with fixed checks and a baseline gate, 👍 / 👎 feedback, the admin AI usage report | 4 |
-| ⏭ Next | **Wave 1** (now): end-to-end tests; admin home, audit log, organisation settings, users and roles, view as; team overview, CRM usage, reports library; search page; in-app help; contract editing and renewal nudges; smaller gaps ([completion plan](../plans/completion-plan.md#wave-1-on-the-data-we-have-start-now)) | 1, 5 |
+| ✅ Done | Wave 1.1: end-to-end tests: Playwright in Chromium against the production build, every role, the main journeys and phone width, in CI on every push ([plan](../plans/wave-1-1-end-to-end-tests.md)) | 1 |
+| ⏭ Next | **Wave 1** (now): admin home, audit log, organisation settings, users and roles, view as; team overview, CRM usage, reports library; search page; in-app help; contract editing and renewal nudges; smaller gaps ([completion plan](../plans/completion-plan.md#wave-1-on-the-data-we-have-start-now)) | 1, 5 |
 | Waiting on D1 | **Wave 2**: hosting and deployments, Entra ID sign-in, job runner (7am brief, renewal nudges), email digests, monitoring ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
 | Waiting on D2 | **Wave 3**: AI key day: set the OpenAI key, run `pnpm ai:eval`, pick the model, save the baseline | 4 |
 | Waiting on D3 | **Wave 4**: warehouse and ERP sync with guardrails, sync health, sales, health, open orders and stock figures, contacts write-back | 1 |

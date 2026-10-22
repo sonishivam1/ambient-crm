@@ -2,20 +2,25 @@
 
 **Status: built.** Vitest runs two projects: **unit** (pure logic, no
 database) and **integration** (real read models and server actions against a
-real MongoDB). Every feature ships with its tests in the same change.
+real MongoDB). Playwright runs the **end-to-end** tests: the production build
+in Chromium, signed in as each role. Every feature ships with its tests in the
+same change.
 
 ```bash
 pnpm test                                   # everything (integration runs on the Atlas cluster)
 pnpm test:unit                              # unit only, no database
 pnpm --filter web test:integration          # integration only
 pnpm --filter web exec vitest run <file>    # one file
+pnpm test:e2e                               # end to end: build, seed a throwaway database, run Chromium
+E2E_SKIP_BUILD=1 pnpm test:e2e              # the same, reusing the last build
+pnpm --filter web exec playwright test e2e/tasks.spec.ts   # one file
 ```
 
 ## Layers
 
 ```mermaid
 flowchart TB
-  e2e["End to end — Playwright (planned)<br/>sign in as each role, key journeys"]
+  e2e["End to end — Playwright, Chromium, production build<br/>sign in as each role, key journeys, phone width"]
   int["Integration — Vitest + throwaway Atlas databases<br/>scope, tenancy, read models, server actions, audit rows"]
   unit["Unit — Vitest<br/>formatting, lens, URL builders, role matrix"]
   e2e --- int --- unit
@@ -25,7 +30,7 @@ flowchart TB
 | --- | --- | --- |
 | Unit | `apps/web/lib/**/*.test.ts`, `apps/web/tests/unit/*.test.ts` | Pure functions: `format.ts`, `lens.ts`, `accounts-url.ts`, contact and visit input rules, renewal bands, AI facts (builder, allowed fields, cut and fence, fingerprint, tenant-zone dates), verification, policy prompt and config, the account summary's limits, gaps and prompt (checked word for word against ai-prompts.md), the morning brief's headline, limits and prompt, the Wren chat prompt and every tool description (word for word against ai-prompts.md), follow-up limits and prompt, generic titles, evaluation scores and the baseline gate, the role matrix, request ids and the proxy; **architecture guards** |
 | Integration | `apps/web/tests/integration/*.test.ts` | Visibility per role, tenant isolation, per-tenant divisions, lenses and time zones, contacts (directory, scope, create/edit/deactivate, duplicate emails, audit privacy), call cycle (weeks in the tenant zone, booking rules, reschedule, cancel, post-visit reports), notifications (own only, filters, day groups, mark read), contracts (bands in the tenant zone, counts, search, scope, profile card), the AI engine (gates, scoped facts, verification, retries, time limits, budget races, rate limits, metadata-only logging), AI fact sources (account and my day: scope per role, no email, phone or id, staff text fenced and cut, caps on a busy account, tenant zone) and cards (cited only, in order, `not_found` without a call), the account summary and its cache (verified and limited answers, cache hits with no call, tokens or rate-limit use, stale on any record change, Refresh, prompt and model changes, per user, hidden when AI is off, 7-day expiry, peek writes nothing), the morning brief and its day cache (urgency order, cards per item, code headline, a rep's and a manager's day, kept after records change with its own cards and flagged, Refresh, expiry at local midnight in Sydney and Auckland, per user, hidden when AI is off, the dashboard headline read writes nothing), Wren's read tools (scope per role, name matching that never reaches or lists another rep's accounts, ambiguity, shared handles, no email or phone in facts) and chat (tool calls with the stand-in, verified answers with cards, rejected uncited answers, marked answers without records, the 4-call cap, refusals, one rate-limit count per question, conversations saved and private and expiring, history without handles, the streaming route), proposals (propose tools refuse what isn't ready and write nothing else; Accept through the forms' code, marked from Wren, once under a double click, refused with the action's reason, only for its own user, not when dismissed or expired; chat answers with live proposal status) and follow-ups (verified suggestions as proposals, asked twice gives the same, only the user's own completed visits), feedback (versions and model recorded, no text, replaced by a later vote, only the user's own current answer) and the admin AI report (admins only, this tenant only, totals that match, no text), accounts list and drill-down, customer and group pages, palette search, task create/edit/cancel/complete, interactions, audit-log privacy |
-| End to end | — | Planned: Playwright against a seeded app |
+| End to end | `apps/web/e2e/*.spec.ts` | What each role and the other tenant can see (accounts, another rep's account by address, admin pages), the role switcher, accounts list, search, group page and bill-to profile, logging an interaction, creating and completing a task, a manager assigning one to a rep (who is notified), the task form refusing a missing title, planning and reporting a visit, adding and finding a contact, contracts and their renewal filter (and another tenant not seeing them), notifications (one read, then all), every AI screen without a key (chat page, side panel, account summary, morning brief), dark mode remembered, and at phone width (390 px) the main pages fitting without sideways scrolling and the menu opening the navigation. Any browser console error fails a test |
 
 ## How integration tests work
 
@@ -129,7 +134,33 @@ OpenAI. So tests can prove what does and doesn't leave the server, and CI never
 needs a key or calls OpenAI. Answer quality is measured separately with the
 evaluation set against the real model.
 
-## Still to add
+## How end-to-end tests work
 
-- End-to-end tests (Playwright) for sign-in per role, completing a task and
-  logging an interaction through the real UI, added to CI.
+`pnpm test:e2e` (config: `apps/web/playwright.config.ts`, support files in
+`apps/web/e2e/support/`):
+
+1. **A throwaway database for the run.** `ambient_test_<epoch>_<random>`,
+   seeded with the demo data by the real seed script before the tests and
+   dropped after them. Locally on the Atlas cluster (from `.env.local`), in CI
+   on the Atlas Local service (`TEST_MONGODB_URI`).
+2. **The production build.** `next build`, then `next start` on port 3100, so
+   a dev server on 3000 is untouched. `E2E_SKIP_BUILD=1` reuses the last build
+   while writing tests; CI always builds.
+3. **Sign-in per test.** The `signInAs(role)` fixture sets the development
+   sign-in cookie for a seeded user. A production build refuses development
+   sign-in unless `AMBIENT_DEV_AUTH=1`, `AMBIENT_E2E=1` **and** an
+   `ambient_test_*` database are all set (unit-tested in
+   `lib/auth/session.test.ts`), so no real deployment can switch it on.
+4. **No AI.** `OPENAI_API_KEY` is empty, so every AI screen shows "AI isn't
+   set up yet" and nothing leaves the machine.
+5. **Chromium only, two viewports:** desktop, and a phone project (390 × 844)
+   for `phone.spec.ts`. No screenshot comparisons; on a failure the
+   screenshot and trace are kept in `e2e/results/` (in CI, uploaded with the
+   HTML report).
+6. **No console errors.** The `page` fixture fails any test whose page logs a
+   console error or throws.
+
+Tests share the run's database, so a test writes only records it creates
+(with a unique title) or to a user no other test checks. A not-found page
+inside a streamed page answers HTTP 200, so tests check the page's heading,
+not the status.

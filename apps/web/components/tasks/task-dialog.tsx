@@ -102,7 +102,7 @@ export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign,
             </div>
 
             <div className="m-body">
-              <Field label="Bill-to account" required>
+              <Field label="Bill-to account" required group>
                 {account ? (
                   <ChosenAccount account={account} onChange={!editing && !lockedAccount ? () => setAccount(null) : undefined} />
                 ) : (
@@ -111,7 +111,7 @@ export function TaskDialog({ open, onOpenChange, task, lockedAccount, canAssign,
               </Field>
 
               {!editing && canAssign && assignable.length > 0 && (
-                <Field label={mustChooseAssignee ? "Assign to" : "Assign to (optional, defaults to you)"} required={mustChooseAssignee}>
+                <Field label={mustChooseAssignee ? "Assign to" : "Assign to (optional, defaults to you)"} required={mustChooseAssignee} group>
                   <div className="max-h-[150px] overflow-y-auto rounded-[14px] border border-line p-1.5">
                     {assignable.map((r) => (
                       <label key={r.id} className="check-row">

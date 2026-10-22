@@ -5,6 +5,12 @@ see the [build log](docs/engineering/build-log.md).
 
 ## Unreleased
 
+### Fixes
+- Customer group and account pages now fit a phone screen; the sold-to list
+  no longer pushes the page wider than the screen.
+- Form fields in the task, visit, visit report and contact dialogs are linked
+  to their labels, so screen readers announce them.
+
 ### AI (in progress)
 - AI engine foundations: AI is off by default per organisation, with chosen
   roles, a monthly allowance and per-person limits.

@@ -13,6 +13,26 @@ how it was verified, and any lesson worth keeping.
 
 ## 22 Oct 2026
 
+### Wave 1.1: end-to-end tests
+- **What:** Playwright in Chromium against the production build, on a
+  throwaway database seeded for each run: what every role and the other
+  tenant can see, accounts, tasks, visits, contacts, contracts,
+  notifications, every AI screen without a key, dark mode and phone width.
+  38 tests; a third CI job runs them on every push. Plan:
+  [wave-1-1-end-to-end-tests.md](../plans/wave-1-1-end-to-end-tests.md).
+- **Why:** unit and integration tests prove the rules; these prove the pages
+  work for a person, and catch the crashes and layout breaks that were only
+  found by hand before.
+- **Safety:** development sign-in works in a production build only with
+  `AMBIENT_E2E=1` and an `ambient_test_*` database (unit-tested).
+- **Fixed on the way:** the account group and profile pages overflowed a
+  phone screen (a grid with no base column); dialog labels weren't linked to
+  their inputs.
+- **Verified:** 38 e2e, 95 unit and 194 integration tests pass; a planted
+  visibility bug fails 3 e2e tests; lint and typecheck clean.
+- **Lesson:** a not-found inside a streamed page answers HTTP 200, so tests
+  check what the page shows.
+
 ### Completion plan agreed; v1 scope frozen
 - **What:** the [completion plan](../plans/completion-plan.md): every unbuilt
   page and feature (13 placeholder pages, the profile's sales, health, orders
