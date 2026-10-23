@@ -36,7 +36,7 @@ never colour alone.
 flowchart LR
   subgraph shell["App shell (app/(app)/layout.tsx)"]
     direction LR
-    side["Sidebar<br/>264px, curved edge<br/>nav groups by role"]
+    side["Sidebar<br/>264px, fixed, straight edge<br/>nav groups by role, admin tools in one menu"]
     subgraph main["Main column"]
       direction TB
       top["Top bar (sticky)<br/>search pill · lens · light/dark · bell · user"]
@@ -56,6 +56,7 @@ flowchart LR
 | < 1280px | Hero collapses to two columns; three-column rows stack |
 | < 1060px | Sidebar becomes a slide-in drawer behind a menu button; search pill shrinks to an icon; lens hidden |
 | < 700px | Single column; secondary top-bar controls hidden |
+| Height ≤ 900px / ≤ 760px | Sidebar spacing tightens so every link fits without the sidebar scrolling; the footer card shows only at 1000px tall or more |
 
 ## Components
 

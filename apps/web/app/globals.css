@@ -135,7 +135,7 @@ html[data-dark="1"] {
     left: 0;
     top: 0;
     bottom: 0;
-    width: calc(var(--side-w) + 34px);
+    width: var(--side-w);
     z-index: 40;
     pointer-events: none;
     display: flex;
@@ -148,24 +148,14 @@ html[data-dark="1"] {
     display: flex;
     flex-direction: column;
     padding: 22px 16px 16px;
+    /* Fits without scrolling on any normal screen (see the max-height rules
+       below); only a very short window falls back to scrolling, bar hidden. */
     overflow-y: auto;
     overflow-x: hidden;
-    /* Still scrolls on short screens; the bar itself stays hidden. */
     scrollbar-width: none;
   }
   .side-body::-webkit-scrollbar {
     display: none;
-  }
-  .side-wave {
-    position: absolute;
-    top: 0;
-    left: calc(var(--side-w) - 1px);
-    width: 35px;
-    height: 100%;
-    pointer-events: none;
-  }
-  .side-wave path {
-    fill: var(--side);
   }
   .side-logo {
     display: flex;
@@ -232,18 +222,84 @@ html[data-dark="1"] {
     color: var(--accent);
   }
   .side-admin {
-    margin-top: 18px;
+    margin-top: 14px;
     border-top: 1px solid var(--side-line);
-    padding-top: 6px;
+    padding-top: 8px;
   }
+  /* The Admin menu's trigger is a button styled as a nav item. */
   .side-admin .nav-i {
-    padding: 7px 12px;
-    font-size: 13px;
-    font-weight: 500;
+    border: 0;
+    font: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
   }
+  .side-admin .nav-i:not(.active) {
+    background: transparent;
+  }
+  .side-admin .nav-i:not(.active):hover,
+  .side-admin .nav-i[data-state="open"]:not(.active) {
+    background: rgba(255, 255, 255, 0.09);
+  }
+  .side-pop {
+    width: 236px;
+  }
+  .side-pop .mi.on {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .side-pop .mi .cnt {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 800;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+  /* Only where there's room for it without the sidebar scrolling. */
   .side-foot {
+    display: none;
     margin-top: auto;
     padding-top: 16px;
+  }
+  @media (min-height: 1000px) {
+    .side-foot {
+      display: block;
+    }
+  }
+  /* Shorter screens: tighter spacing, so every link still fits. */
+  @media (max-height: 900px) {
+    .side-body {
+      padding-top: 16px;
+    }
+    .side-logo {
+      padding: 4px 8px 12px;
+    }
+    .side-group,
+    .side-admin {
+      margin-top: 8px;
+    }
+    .side-label {
+      padding: 4px 12px;
+    }
+    .nav-i {
+      padding: 8px 12px;
+    }
+  }
+  @media (max-height: 760px) {
+    .side-logo {
+      padding: 0 8px 8px;
+    }
+    .side-label {
+      padding: 2px 12px;
+      font-size: 10px;
+    }
+    .nav-i {
+      padding: 6px 12px;
+      margin: 1px 0;
+    }
   }
   .side-card {
     background: rgba(255, 255, 255, 0.08);
@@ -261,7 +317,7 @@ html[data-dark="1"] {
   }
 
   .main {
-    margin-left: calc(var(--side-w) + 20px);
+    margin-left: var(--side-w);
     min-width: 0;
     transition: margin 0.2s;
   }

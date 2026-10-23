@@ -6,6 +6,9 @@ see the [build log](docs/engineering/build-log.md).
 ## Unreleased
 
 ### Fixes
+- The sidebar has a straight edge and stays put without scrolling: admin and
+  development tools now open from one **Admin** menu, and spacing tightens on
+  shorter screens so every link fits.
 - Customer group and account pages now fit a phone screen; the sold-to list
   no longer pushes the page wider than the screen.
 - Form fields in the task, visit, visit report and contact dialogs are linked

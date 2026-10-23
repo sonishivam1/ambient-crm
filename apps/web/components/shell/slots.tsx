@@ -61,9 +61,6 @@ export function SidebarFallback() {
   return (
     <aside className="sidebar">
       <div className="side-body" />
-      <svg className="side-wave" viewBox="0 0 100 1000" preserveAspectRatio="none" aria-hidden>
-        <path d="M0,0 L34,0 C88,120 92,240 50,380 C8,520 6,640 46,760 C74,850 78,930 40,1000 L0,1000 Z" />
-      </svg>
     </aside>
   );
 }

@@ -11,6 +11,21 @@ how it was verified, and any lesson worth keeping.
 
 ---
 
+## 23 Oct 2026
+
+### Sidebar: straight edge, never scrolls
+- **What:** the curved sidebar edge is gone; the sidebar is a straight,
+  fixed column. The ten admin and development links (up to 22 links in all
+  for a super admin) now sit behind one **Admin** menu, spacing tightens on
+  screens 900px and 760px tall or less, and the footer card only shows at
+  1000px or taller.
+- **Why:** product feedback: the curve looked wrong and the sidebar scrolled
+  on a laptop screen.
+- **Verified:** in the browser at 900, 768 and 700px tall as a super admin
+  (no scrolling), the menu in light and dark mode, the phone drawer; new
+  `shell.spec.ts` end-to-end tests (fits at three heights, stays put while
+  the page scrolls, the Admin menu opens a tool, non-admins have no menu).
+
 ## 22 Oct 2026
 
 ### Wave 1.1: end-to-end tests
