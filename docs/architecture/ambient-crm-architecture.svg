@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="812" viewBox="0 0 680 812" role="img" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title>Ambient CRM architecture at a glance</title>
+<desc>People ask Wren or use the screens. Wren works with an AI model that sees only their data. Every request passes one safety check with four outcomes: just looking, small change done with Undo, bigger change asks first, or not allowed. Allowed changes reach the CRM data, which records every change. Outlook, ERP and an overnight helper come later.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<style>
+.t{font-size:14px;font-weight:600}
+.s{font-size:12px}
+.a{stroke:#888780;stroke-width:1.5;fill:none}
+</style>
+</defs>
+<rect width="680" height="812" fill="#FFFFFF"/>
+<text x="340" y="34" text-anchor="middle" font-size="18" font-weight="600" fill="#13203F">Ambient CRM at a glance</text>
+
+<g transform="translate(0,40)">
+<rect x="210" y="40" width="260" height="44" rx="8" fill="#FFFFFF" stroke="#B4B2A9"/>
+<text class="t" x="340" y="62" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">Sales reps, managers, admins</text>
+
+<path d="M300 84 L300 104 L240 104 L240 122" class="a" marker-end="url(#arrow)"/>
+<path d="M380 84 L380 104 L480 104 L480 122" class="a" marker-end="url(#arrow)"/>
+
+<rect x="140" y="124" width="200" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7"/>
+<text class="t" x="240" y="142" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Ask Wren</text>
+<text class="s" x="240" y="162" text-anchor="middle" dominant-baseline="central" fill="#534AB7">Just say what you need</text>
+
+<rect x="380" y="124" width="200" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A"/>
+<text class="t" x="480" y="142" text-anchor="middle" dominant-baseline="central" fill="#444441">Or use the screens</text>
+<text class="s" x="480" y="162" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">Dashboard, tasks, visits</text>
+
+<path d="M240 180 L240 204 L340 204 L340 226" class="a" marker-end="url(#arrow)"/>
+
+<rect x="40" y="228" width="170" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A"/>
+<text class="t" x="125" y="246" text-anchor="middle" dominant-baseline="central" fill="#444441">AI model</text>
+<text class="s" x="125" y="266" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">Sees only your data</text>
+
+<line x1="212" y1="256" x2="248" y2="256" class="a" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+
+<rect x="250" y="228" width="180" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7"/>
+<text class="t" x="340" y="246" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Wren, the assistant</text>
+<text class="s" x="340" y="266" text-anchor="middle" dominant-baseline="central" fill="#534AB7">Understands, prepares</text>
+
+<line x1="340" y1="284" x2="340" y2="330" class="a" marker-end="url(#arrow)"/>
+<line x1="480" y1="180" x2="480" y2="330" class="a" marker-end="url(#arrow)"/>
+
+<rect x="170" y="332" width="340" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B"/>
+<text class="t" x="340" y="350" text-anchor="middle" dominant-baseline="central" fill="#633806">Safety check</text>
+<text class="s" x="340" y="370" text-anchor="middle" dominant-baseline="central" fill="#854F0B">Allowed? How big a change?</text>
+
+<path d="M340 388 L340 412" class="a"/>
+<path d="M107 412 L572 412" class="a"/>
+<line x1="107" y1="412" x2="107" y2="438" class="a" marker-end="url(#arrow)"/>
+<line x1="262" y1="412" x2="262" y2="438" class="a" marker-end="url(#arrow)"/>
+<line x1="417" y1="412" x2="417" y2="438" class="a" marker-end="url(#arrow)"/>
+<line x1="572" y1="412" x2="572" y2="438" class="a" marker-end="url(#arrow)"/>
+
+<rect x="40" y="440" width="135" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56"/>
+<text class="t" x="107" y="458" text-anchor="middle" dominant-baseline="central" fill="#085041">Just looking</text>
+<text class="s" x="107" y="478" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">Shown at once</text>
+
+<rect x="195" y="440" width="135" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56"/>
+<text class="t" x="262" y="458" text-anchor="middle" dominant-baseline="central" fill="#085041">Small change</text>
+<text class="s" x="262" y="478" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">Done, with Undo</text>
+
+<rect x="350" y="440" width="135" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B"/>
+<text class="t" x="417" y="458" text-anchor="middle" dominant-baseline="central" fill="#633806">Bigger change</text>
+<text class="s" x="417" y="478" text-anchor="middle" dominant-baseline="central" fill="#854F0B">Asks you first</text>
+
+<rect x="505" y="440" width="135" height="56" rx="8" fill="#FCEBEB" stroke="#A32D2D"/>
+<text class="t" x="572" y="458" text-anchor="middle" dominant-baseline="central" fill="#791F1F">Not allowed</text>
+<text class="s" x="572" y="478" text-anchor="middle" dominant-baseline="central" fill="#A32D2D">Refused</text>
+
+<path d="M107 496 L107 522 L417 522" class="a"/>
+<line x1="262" y1="496" x2="262" y2="522" class="a"/>
+<line x1="417" y1="496" x2="417" y2="522" class="a"/>
+<line x1="340" y1="522" x2="340" y2="546" class="a" marker-end="url(#arrow)"/>
+
+<rect x="170" y="548" width="340" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56"/>
+<text class="t" x="340" y="566" text-anchor="middle" dominant-baseline="central" fill="#085041">Your CRM data</text>
+<text class="s" x="340" y="586" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">Plus a record of every change</text>
+
+<rect x="160" y="636" width="360" height="56" rx="8" fill="#FFFFFF" stroke="#888780" stroke-dasharray="5 4"/>
+<text class="t" x="340" y="654" text-anchor="middle" dominant-baseline="central" fill="#444441">Coming later</text>
+<text class="s" x="340" y="674" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">Outlook, ERP, overnight helper</text>
+</g>
+
+<text x="340" y="780" text-anchor="middle" font-size="13" fill="#444441">Wren works out what you want; Ambient's rules decide what's allowed.</text>
+</svg>

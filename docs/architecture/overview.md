@@ -37,7 +37,7 @@ flowchart TB
 
 ## The whole application
 
-At a glance:
+At a glance (also as an image: [ambient-crm-architecture.svg](ambient-crm-architecture.svg)):
 
 ```mermaid
 flowchart TB
