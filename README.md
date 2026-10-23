@@ -10,6 +10,12 @@ page filling in forms.
 
 [![CI](https://github.com/sonishivam1/ambient-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/sonishivam1/ambient-crm/actions/workflows/ci.yml)
 
+**Start here:** [Architecture overview](docs/architecture/overview.md) ·
+[AI-first plan](docs/plans/ai-first-plan.md) ·
+[Roadmap](docs/product/roadmap.md) ·
+[Getting started](docs/engineering/getting-started.md) ·
+[All documentation](docs/README.md)
+
 It also fills itself in: customer email and meetings are captured and filed on
 each account's timeline (planned), so reps spend their time with customers
 rather than logging activity.
@@ -17,42 +23,74 @@ rather than logging activity.
 ## How it works
 
 ```mermaid
-flowchart LR
-  user(["Account manager<br/>manager · admin"])
-  subgraph clients["Ways in"]
-    wren["Wren<br/>chat · side panel · Ctrl K"]
-    pages["Pages<br/>dashboard · accounts · tasks …"]
-    jobs["Background work<br/>prepares, never writes"]
-  end
-  subgraph core["The platform"]
-    actions["One action layer<br/>every read and change"]
-    policy["Policy<br/>risk levels · Undo · confirm"]
-    scope["Scope and audit<br/>getScope() · auditLog"]
-  end
-  db[("MongoDB Atlas")]
-  openai["OpenAI"]
-  ext["Microsoft 365 · ERP · BI<br/>(connectors, planned)"]
+flowchart TB
+  people(["Sales reps · managers · admins"])
 
-  user --> wren
-  user --> pages
-  wren <--> openai
-  wren --> actions
-  pages --> actions
-  jobs --> actions
-  actions --> policy --> scope --> db
-  actions <--> ext
+  subgraph how["How you work"]
+    direction LR
+    ask["💬 Ask Wren<br/>“Remind me to call ACME on Friday”"]
+    screens["🖥️ Or use the screens<br/>dashboard · accounts · tasks · visits"]
+  end
+
+  wren["🤖 Wren, the assistant<br/>understands what you want,<br/>looks things up, prepares the change"]
+  ai["AI model<br/>sees only what you're<br/>allowed to see"]
+
+  check{"🛡️ Safety check<br/>Are you allowed?<br/>How big is the change?"}
+
+  look["👀 Just looking<br/>shown straight away"]
+  small["✅ Small change to your own work<br/>done at once, with Undo"]
+  big["✋ Bigger change<br/>Wren asks you first"]
+  no["⛔ Not allowed<br/>refused"]
+
+  data[("🗄️ Your CRM data<br/>customers · tasks · visits · contacts · contracts<br/>plus a record of every change")]
+
+  later["🔌 Coming later<br/>Outlook email and calendar · ERP · reports<br/>an overnight helper that only suggests"]
+
+  people --> ask
+  people --> screens
+  ask --> wren
+  wren <--> ai
+  wren --> check
+  screens --> check
+  check --> look
+  check --> small
+  check --> big
+  check --> no
+  look --> data
+  small --> data
+  big -->|"after you say yes"| data
+  later -.-> wren
 
   classDef person fill:#FDE7E1,stroke:#E8664A,stroke-width:2px,color:#1B2340;
-  classDef uiNode fill:#DCE6FB,stroke:#2F4A8A,stroke-width:2px,color:#13203F;
+  classDef way fill:#DCE6FB,stroke:#2F4A8A,stroke-width:2px,color:#13203F;
+  classDef wrenNode fill:#EDE3FB,stroke:#7B4FD0,stroke-width:2px,color:#2A1450;
   classDef safety fill:#FFF3D6,stroke:#D49A1A,stroke-width:2px,color:#3D2A00;
+  classDef ok fill:#DFF5EA,stroke:#2E9E6A,stroke-width:2px,color:#0F3B27;
+  classDef ask2 fill:#FFF3D6,stroke:#D49A1A,stroke-width:2px,color:#3D2A00;
+  classDef stop fill:#FDE2E2,stroke:#C0392B,stroke-width:2px,color:#5A1212;
   classDef dataNode fill:#DFF5EA,stroke:#2E9E6A,stroke-width:2px,color:#0F3B27;
   classDef external fill:#ECEFF3,stroke:#6B7685,stroke-width:2px,color:#1F2933;
-  class user person;
-  class wren,pages,jobs uiNode;
-  class actions,policy,scope safety;
-  class db dataNode;
-  class openai,ext external;
+  classDef later fill:#ECEFF3,stroke:#6B7685,stroke-width:2px,stroke-dasharray:6 4,color:#1F2933;
+
+  class people person;
+  class ask,screens way;
+  class wren wrenNode;
+  class ai external;
+  class check safety;
+  class look,small ok;
+  class big ask2;
+  class no stop;
+  class data dataNode;
+  class later later;
+
+  style how fill:#F3F6FD,stroke:#2F4A8A,stroke-width:2px,color:#13203F
 ```
+
+In one sentence: **Wren works out what you want; Ambient's rules decide
+what's allowed.** You can ask Wren or use the screens; either way every request
+goes through the same safety check before anything changes. Today Wren can
+look things up and suggest tasks, visits and notes; doing everything for you
+is what the [AI-first plan](docs/plans/ai-first-plan.md) builds next.
 
 **The platform is the actions and the policy, not the chat.** Pages, Wren,
 background jobs and connectors all call the same typed actions, so Wren can
@@ -241,9 +279,19 @@ Phase A adds `apps/web/lib/actions/`: the action registry, the policy and Undo.
 
 ## Documentation
 
-- [docs/](docs/README.md): product, architecture (with decision records),
-  design system, engineering, technical and marketing.
-- [CLAUDE.md](CLAUDE.md): read first if you're contributing (people or coding
-  agents): the rules every change follows and the definition of done.
-- History: the [build log](docs/engineering/build-log.md), the
-  [plans](docs/plans/) behind each step, and the [changelog](CHANGELOG.md).
+Everything lives in [docs/](docs/README.md). The documents you'll need most:
+
+| If you want to know… | Read |
+| --- | --- |
+| **What Ambient is and who it's for** | [Vision](docs/product/vision.md) · [Personas and roles](docs/product/personas.md) · [Glossary](docs/product/glossary.md) |
+| **What's built and what's next** | [Features](docs/product/features.md) · [Roadmap](docs/product/roadmap.md) · [Changelog](CHANGELOG.md) |
+| **The plan** | [AI-first plan](docs/plans/ai-first-plan.md) (agreed, frozen) · [Completion plan](docs/plans/completion-plan.md) (everything left for v1) · [All step plans](docs/plans/README.md) |
+| **How it fits together** | [Architecture overview](docs/architecture/overview.md) · [AI-first design](docs/architecture/ai-first.md) · [Architecture poster](docs/architecture/ambient-crm-architecture.png) (illustrative; the diagrams win where they differ) |
+| **How Wren, the AI, works** | [AI layer](docs/architecture/ai.md) · [AI prompts](docs/architecture/ai-prompts.md) |
+| **Data, security and outside systems** | [Data model](docs/architecture/data-model.md) · [Security and access](docs/architecture/security.md) · [Integrations](docs/architecture/integrations.md) |
+| **Why we chose what we chose** | [Decision records](docs/architecture/decisions/README.md), including [0008 AI-first](docs/architecture/decisions/0008-ai-first.md), [0006 AI provider](docs/architecture/decisions/0006-ai-provider.md), [0004 multi-tenancy](docs/architecture/decisions/0004-multi-tenancy.md) and [0005 hosting and sign-in](docs/architecture/decisions/0005-hosting-and-sign-in.md) |
+| **How it looks** | [Design system](docs/design/design-system.md) |
+| **How to work on it** | [CLAUDE.md](CLAUDE.md) (read first: the rules every change follows) · [Getting started](docs/engineering/getting-started.md) · [Conventions](docs/engineering/conventions.md) · [Testing](docs/engineering/testing.md) · [Git workflow](docs/engineering/git-workflow.md) |
+| **How it's configured and run** | [Configuration](docs/technical/configuration.md) · [Server API](docs/technical/server-api.md) · [Deployment](docs/technical/deployment.md) · [Operations](docs/technical/operations.md) |
+| **How each change was made** | [Build log](docs/engineering/build-log.md) · [Plans](docs/plans/README.md) |
+| **How we describe it** | [Positioning](docs/marketing/positioning.md) · [Go to market](docs/marketing/go-to-market.md) |

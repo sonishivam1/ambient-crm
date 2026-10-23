@@ -37,6 +37,81 @@ flowchart TB
 
 ## The whole application
 
+At a glance:
+
+```mermaid
+flowchart TB
+  people(["Sales reps · managers · admins"])
+
+  subgraph how["How you work"]
+    direction LR
+    ask["💬 Ask Wren<br/>“Remind me to call ACME on Friday”"]
+    screens["🖥️ Or use the screens<br/>dashboard · accounts · tasks · visits"]
+  end
+
+  wren["🤖 Wren, the assistant<br/>understands what you want,<br/>looks things up, prepares the change"]
+  ai["AI model<br/>sees only what you're<br/>allowed to see"]
+
+  check{"🛡️ Safety check<br/>Are you allowed?<br/>How big is the change?"}
+
+  look["👀 Just looking<br/>shown straight away"]
+  small["✅ Small change to your own work<br/>done at once, with Undo"]
+  big["✋ Bigger change<br/>Wren asks you first"]
+  no["⛔ Not allowed<br/>refused"]
+
+  data[("🗄️ Your CRM data<br/>customers · tasks · visits · contacts · contracts<br/>plus a record of every change")]
+
+  later["🔌 Coming later<br/>Outlook email and calendar · ERP · reports<br/>an overnight helper that only suggests"]
+
+  people --> ask
+  people --> screens
+  ask --> wren
+  wren <--> ai
+  wren --> check
+  screens --> check
+  check --> look
+  check --> small
+  check --> big
+  check --> no
+  look --> data
+  small --> data
+  big -->|"after you say yes"| data
+  later -.-> wren
+
+  classDef person fill:#FDE7E1,stroke:#E8664A,stroke-width:2px,color:#1B2340;
+  classDef way fill:#DCE6FB,stroke:#2F4A8A,stroke-width:2px,color:#13203F;
+  classDef wrenNode fill:#EDE3FB,stroke:#7B4FD0,stroke-width:2px,color:#2A1450;
+  classDef safety fill:#FFF3D6,stroke:#D49A1A,stroke-width:2px,color:#3D2A00;
+  classDef ok fill:#DFF5EA,stroke:#2E9E6A,stroke-width:2px,color:#0F3B27;
+  classDef ask2 fill:#FFF3D6,stroke:#D49A1A,stroke-width:2px,color:#3D2A00;
+  classDef stop fill:#FDE2E2,stroke:#C0392B,stroke-width:2px,color:#5A1212;
+  classDef dataNode fill:#DFF5EA,stroke:#2E9E6A,stroke-width:2px,color:#0F3B27;
+  classDef external fill:#ECEFF3,stroke:#6B7685,stroke-width:2px,color:#1F2933;
+  classDef later fill:#ECEFF3,stroke:#6B7685,stroke-width:2px,stroke-dasharray:6 4,color:#1F2933;
+
+  class people person;
+  class ask,screens way;
+  class wren wrenNode;
+  class ai external;
+  class check safety;
+  class look,small ok;
+  class big ask2;
+  class no stop;
+  class data dataNode;
+  class later later;
+
+  style how fill:#F3F6FD,stroke:#2F4A8A,stroke-width:2px,color:#13203F
+```
+
+In one sentence: **Wren works out what you want; Ambient's rules decide
+what's allowed.** You can ask Wren or use the screens; either way every request
+goes through the same safety check before anything changes. Today Wren can
+look things up and suggest tasks, visits and notes; doing everything for you
+is what the [AI-first plan](../plans/ai-first-plan.md) builds next.
+
+<details>
+<summary><b>Show the full diagram</b> (for engineers: every layer, built and planned)</summary>
+
 Every layer, what exists today (solid) and what is planned (dashed, with its
 work package or AI-first phase). The rule it enforces: **the model chooses
 intent; the application chooses authority.** Pages, Wren, admin pages, jobs
@@ -227,6 +302,8 @@ How to read it:
 - **Today's path:** pages call the server actions in `app/actions` and
   `lib/writes` directly, and Wren has 5 read and 3 propose tools; phase A puts
   both on the action registry.
+
+</details>
 
 What each layer does:
 
