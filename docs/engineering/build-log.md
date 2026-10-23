@@ -13,6 +13,18 @@ how it was verified, and any lesson worth keeping.
 
 ## 23 Oct 2026
 
+### Architecture diagrams corrected
+- **What:** the overview's whole-application diagram replaced with the
+  AI-first one (built solid, planned dashed), and the AI-first design's
+  diagram corrected: the policy as a decision (read, low with Undo, medium and
+  high through a bound approval card and back through the registry, never
+  refused), facts feeding Wren's loop with only prompt and facts going to
+  OpenAI, background runs through the gates creating inbox proposals only,
+  and capture and sync shown as system integrations. The overview's status
+  tables now match what's built.
+- **Why:** review feedback; the docs' rules didn't change, the diagrams now
+  show them.
+
 ### AI-first plan agreed and frozen
 - **What:** the [AI-first plan](../plans/ai-first-plan.md), its
   [design](../architecture/ai-first.md) and

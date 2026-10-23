@@ -46,89 +46,97 @@ flowchart TB
     direction LR
     chat["Wren chat<br/>page · side panel · Ctrl K"]
     pages["Pages<br/>optional views"]
-    inbox["Wren inbox<br/>approvals · results"]
+    inbox["Wren inbox<br/>approve or dismiss"]
   end
 
   subgraph agent["Wren agent · lib/ai"]
     direction LR
-    router["Tool routing<br/>groups loaded on demand"]
+    gates["Gates<br/>key · tenant policy · role<br/>budget · rate limit"]
     loop["Agent loop<br/>plan · steps · caps · Stop"]
+    facts["Facts<br/>scoped · handles · fenced text"]
+    router["Tool routing<br/>groups loaded on demand"]
+    verify["Verify<br/>schema · cited handles"]
+    views["Cards and views<br/>rendered from records"]
     skills["Skills<br/>built-in · tenant"]
-    views["Views<br/>table · calendar · chart · form"]
+    gates --> loop
+    loop --> facts
+    facts -->|"facts as context"| loop
+    loop --> router
+    loop --> verify --> views
+    skills --> loop
   end
 
-  subgraph safety["Policy · lib/actions"]
-    direction LR
-    risk["Risk level<br/>code rules · tenant · user"]
-    taint["Untrusted-text rule<br/>confirm after reading it"]
-    confirm["Run + Undo<br/>or confirm card"]
-  end
-
-  subgraph actionsg["Action registry · lib/actions"]
-    direction LR
-    reads["Read actions<br/>accounts · tasks · visits<br/>contracts · contacts · search"]
-    writes["Write actions<br/>create · edit · complete<br/>plan · report · log"]
-    conn["Connector actions<br/>mail · calendar · ERP · MCP"]
+  subgraph platform["Action platform · lib/actions"]
+    direction TB
+    registry["Action registry<br/>typed input · permission · risk floor<br/>idempotency key · version"]
+    policy{"Policy decision<br/>code rules, never the model"}
+    approval["Approval card<br/>bound to action · input · user · tenant<br/>expires · single use"]
+    refuse["Refused<br/>never by AI"]
+    undo["Undo record · aiActions<br/>Undo runs as a new action"]
+    registry --> policy
+    policy -->|"medium · high"| approval
+    approval -->|"confirm, re-checked"| registry
+    policy -->|never| refuse
   end
 
   subgraph data["Data"]
     direction LR
-    scope["getScope()<br/>scope check · audit row"]
+    readmodels["Read models<br/>getScope()"]
+    writes["Server write<br/>scope re-read · version<br/>transaction · audit row"]
     db[("MongoDB Atlas<br/>CRM data · aiActions<br/>aiInbox · connections")]
-    scope --> db
+    readmodels --> db
+    writes --> db
   end
 
-  ext["Outside systems<br/>Microsoft 365 · ERP · BI"]
   openai["OpenAI<br/>fast · strong"]
   jobs["Triggers<br/>schedule · domain events"]
+  conn["Connectors<br/>mail · calendar · ERP · MCP"]
+  ext["Outside systems<br/>Microsoft 365 · ERP · BI"]
 
   user --> chat
   user --> pages
   user --> inbox
-  chat --> loop
-  jobs --> loop
-  loop <--> openai
-  loop --> router
-  router --> reads
-  router --> writes
-  router --> conn
-  skills --> loop
-  writes --> risk --> taint --> confirm
-  conn --> risk
-  confirm --> scope
-  reads --> scope
-  pages --> writes
-  pages --> reads
-  conn <--> ext
-  loop --> views
+  chat --> gates
+  pages --> registry
+  loop <-->|"prompt + facts only"| openai
+  facts --> readmodels
+  router --> registry
+  policy -->|read| readmodels
+  policy -->|low| writes
+  writes -->|"low, from Wren"| undo
+  undo -. "Undo" .-> registry
   views --> chat
+  jobs -->|"as the user"| gates
   loop -. "background: proposals only" .-> inbox
+  inbox -->|approve| approval
+  registry --> conn <--> ext
 
   classDef person fill:#FDE7E1,stroke:#E8664A,stroke-width:2px,color:#1B2340;
   classDef uiNode fill:#DCE6FB,stroke:#2F4A8A,stroke-width:2px,color:#13203F;
   classDef engineNode fill:#EDE3FB,stroke:#7B4FD0,stroke-width:2px,color:#2A1450;
   classDef safetyNode fill:#FFF3D6,stroke:#D49A1A,stroke-width:2px,color:#3D2A00;
-  classDef defNode fill:#E4F4FB,stroke:#2B8CB8,stroke-width:2px,color:#0D2F3F;
   classDef dataNode fill:#DFF5EA,stroke:#2E9E6A,stroke-width:2px,color:#0F3B27;
   classDef external fill:#ECEFF3,stroke:#6B7685,stroke-width:2px,color:#1F2933;
 
   class user person;
   class chat,pages,inbox uiNode;
-  class router,loop,skills,views engineNode;
-  class risk,taint,confirm safetyNode;
-  class reads,writes,conn defNode;
-  class scope,db dataNode;
-  class ext,openai,jobs external;
+  class loop,router,views,skills engineNode;
+  class gates,facts,verify,registry,policy,approval,refuse,undo safetyNode;
+  class readmodels,writes,db dataNode;
+  class openai,jobs,conn,ext external;
 
   style surfaces fill:#F3F6FD,stroke:#2F4A8A,stroke-width:2px,color:#13203F
   style agent fill:#F7F2FD,stroke:#7B4FD0,stroke-width:2px,color:#2A1450
-  style safety fill:#FFFAEB,stroke:#D49A1A,stroke-width:2px,color:#3D2A00
-  style actionsg fill:#F1F9FC,stroke:#2B8CB8,stroke-width:2px,color:#0D2F3F
+  style platform fill:#FFFAEB,stroke:#D49A1A,stroke-width:2px,color:#3D2A00
   style data fill:#F0FAF5,stroke:#2E9E6A,stroke-width:2px,color:#0F3B27
 ```
 
 Colour key: coral = people · navy = surfaces · violet = the agent · amber =
-safety · teal = actions · green = data · grey = external.
+safety · green = data · grey = external. **The model chooses intent; the
+application chooses authority:** Wren plans, explains and asks for actions;
+code decides access, risk, confirmation, transactions and audit. The whole
+application, with what is built today, is on the
+[architecture overview](overview.md#the-whole-application).
 
 ## Building blocks
 
