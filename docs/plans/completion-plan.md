@@ -1,6 +1,6 @@
 # Completion plan: everything left for Ambient v1
 
-**Status:** Agreed, scope frozen
+**Status:** Agreed, scope frozen · change 1 (the AI-first track) agreed 23 Oct 2026
 **Written:** 22 Oct 2026 · **Agreed and frozen:** 22 Oct 2026
 
 Every page and feature that isn't built yet, what each depends on, and the
@@ -217,6 +217,27 @@ Security review (tenant isolation, authorisation, OWASP, a penetration test),
 load test, accessibility audit, pilot tenant onboarding (settings, users,
 first sync), runbooks, and the go-live sign-off.
 
+## AI-first track (change 1, agreed)
+
+Wren becomes able to do everything a user can, by asking: every feature
+becomes an action the forms and Wren share, then skills, connectors and
+background work. Plan: [AI-first plan](ai-first-plan.md); design:
+[AI-first design](../architecture/ai-first.md); decision:
+[ADR 0008](../architecture/decisions/0008-ai-first.md). It adds seven phases
+(about 84 days) and changes the order of what's left: key day (3.1) first,
+then phases A and B before the rest of Wave 1, so every new page is built on
+the action layer.
+
+| Phase | What | Size |
+| --- | --- | --- |
+| A | The action layer: every read and write an action, idempotent and version-checked; Wren's tools generated from it; risk levels and bound confirms; Undo | 11d |
+| B | Wren does the work: write tools through the policy, tool routing, the agent loop, ask back with buttons, evaluation | 15d |
+| C | Chat-first: views in the chat, Wren home, memory and Wren settings | 10d |
+| D | Skills: built-in and tenant skills | 10d |
+| E | Connectors: the framework, Microsoft 365, the ERP on demand, BI, MCP servers | 20d |
+| F | Background work: triggers, the Wren inbox, budgets | 10d |
+| G | Trust and admin: AI actions in the audit log, AI policy controls, the release gate | 8d |
+
 ## Decisions and inputs needed from you
 
 | # | Decision or input | Proposal | Blocks |
@@ -229,8 +250,20 @@ first sync), runbooks, and the go-live sign-off.
 | D6 | Email provider for notifications and digests | The host's partner (for example Resend or SendGrid) | 2.4 |
 | D7 | BI tool and which reports to link | Power BI, links managed per tenant | 1.8 |
 | D8 | Whether CRM usage tracks logins and page views (needs a consent note) | Activity records only for now | 1.7 |
+| D9 | How long Undo and confirms last | Undo for 24 hours while the record is unchanged; chat confirms expire after 24 hours, inbox proposals after 7 days | AI-first A.3, A.4 |
+| D10 | Where people land | The dashboard with Wren's composer on top; each user can choose to land on Wren | AI-first C.2 |
+| D11 | Sending email to customers through Wren | Only as a high action: one message, previewed, from your own mailbox, on an explicit Send; never in the background; a tenant can turn it off | AI-first E.2 |
+| D12 | MCP servers in v1 | Yes, last, admin-approved only | AI-first E.5 |
+| D13 | The agent loop's limits | 8 tool calls and 60 seconds by default; a tenant may raise them to 20 and 180 | AI-first B.3 |
+| D14 | The strong model tier for plans and skills | Decided on key day from the evaluation set | AI-first B.3 |
+
+D9 to D14 were agreed on 23 Oct 2026 as proposed, with change 1.
 
 ## Order and timeline
+
+Change 1 (agreed 23 Oct 2026) reorders this: the order and timeline are now
+the [AI-first plan's](ai-first-plan.md#timeline). The chart below is the order
+before the change, kept for reference.
 
 ```mermaid
 gantt
@@ -278,4 +311,4 @@ v1's scope.
 
 | Date | Change | Reason |
 | --- | --- | --- |
-| — | None yet | — |
+| 23 Oct 2026 | **Change 1, agreed:** the AI-first track (phases A to G, about 84 days) from the [AI-first plan](ai-first-plan.md); key day (3.1) moves first, after the docs are frozen; phases A and B come before Wave 1's 1.2 onwards; decisions D9 to D14 added; [ADR 0008](../architecture/decisions/0008-ai-first.md) changes the AI layer's guarantee 2 | Product direction: a person can do everything by asking Wren, without going page by page |

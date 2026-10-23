@@ -42,7 +42,7 @@ Every write is a server action that:
 [`app/actions/tasks.ts`](../../apps/web/app/actions/tasks.ts) is the reference
 implementation.
 
-## AI (planned)
+## AI
 
 The model is outside our trust boundary and code enforces every rule; the full
 design and its threat table live in [AI layer](ai.md#security-guarantees). In
@@ -50,6 +50,15 @@ short: the model never reaches the database (facts come only from scoped fact
 sources); nothing changes without the user's confirmation, through the existing
 server actions; every call is gated (tenant policy, role, budget, rate limit);
 logs hold metadata only; demos use fictional data.
+
+The agreed [AI-first design](ai-first.md#security-guarantees) keeps these
+rules and adds: every tool is a registered action with the form's own checks;
+risk levels set by code, with low-risk changes undoable and the rest
+confirmed; confirms bound to one exact change, short-lived and never given by
+typing "yes"; idempotent, version-checked writes; no change without a confirm
+in a turn that read customer- or connector-written text; Wren-written text
+always previewed; encrypted connector tokens; background work that never
+writes.
 
 ## Audit
 

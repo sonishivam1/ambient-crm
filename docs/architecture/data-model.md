@@ -170,6 +170,14 @@ erDiagram
   }
 ```
 
+### Planned for the AI-first track
+
+`aiActions` (each change Wren ran, with the state before for Undo), `aiInbox`
+(background results and proposals), `aiMemories` (preferences a user asked
+Wren to remember), `aiSkills` (tenant skills and versions) and `connections`
+(connector connections with encrypted tokens); `auditLog` gains `via` (form,
+Wren or job). Details: [AI-first design](ai-first.md#data-model-additions).
+
 ## Conventions
 
 - **IDs are strings.** Mirror records use `"<tenantId>:<sourceKey>"` and keep

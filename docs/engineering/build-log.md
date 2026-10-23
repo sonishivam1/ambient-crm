@@ -13,6 +13,29 @@ how it was verified, and any lesson worth keeping.
 
 ## 23 Oct 2026
 
+### AI-first plan agreed and frozen
+- **What:** the [AI-first plan](../plans/ai-first-plan.md), its
+  [design](../architecture/ai-first.md) and
+  [ADR 0008](../architecture/decisions/0008-ai-first.md): Wren becomes able to
+  do everything a user can, by asking. Seven phases: the action layer, Wren
+  doing the work, chat-first views, skills, connectors, background work, and
+  trust and admin (about 84 days). Recorded as change 1 in the completion
+  plan; roadmap, features, vision, AI layer, security, integrations, data
+  model, prompts and glossary point to it.
+- **Agreed:** low-risk changes run with Undo; pages stay as an optional view;
+  this comes before the rest of Wave 1; the OpenAI key arrives once these
+  docs are frozen, and key day runs before phase A.
+- **Review added:** confirms bound to one exact change and short-lived
+  (typing "yes" never confirms); idempotency keys and version checks on every
+  write; Wren-written note or report text always previewed; batches of more
+  than 3 records as one review card; fuller audit metadata; one agent on the
+  AI SDK, no framework; phase B starting with tasks, visits, notes and
+  contacts, with named scenarios.
+- **Frozen:** decisions D9 to D14 agreed as proposed (Undo and confirm
+  windows, landing on the dashboard with Wren on top, sending email only as a
+  previewed high action, MCP in v1 last, loop limits, the model tier on key
+  day); ADR 0008 accepted. Next: the OpenAI key, key day, phase A.
+
 ### Sidebar: straight edge, never scrolls
 - **What:** the curved sidebar edge is gone; the sidebar is a straight,
   fixed column. The ten admin and development links (up to 22 links in all

@@ -13,6 +13,7 @@ costs. Status is **Proposed** (needs agreement), **Accepted**, or
 | [0005](0005-hosting-and-sign-in.md) | Hosting on Vercel + Atlas; sign-in with Microsoft Entra ID | Proposed |
 | [0006](0006-ai-provider.md) | OpenAI through the AI SDK, on one AI engine | Accepted |
 | [0007](0007-api-versioning.md) | HTTP APIs are versioned under `/api/v1` | Accepted |
+| [0008](0008-ai-first.md) | AI-first: one action layer, and Wren can do what the user can | Accepted |
 
 To add one, copy the shape of an existing record, take the next number, and
 link it here.

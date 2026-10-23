@@ -5,6 +5,13 @@ step (see [Build order](#build-order)).
 Provider: OpenAI through the Vercel AI SDK
 ([ADR 0006](decisions/0006-ai-provider.md)). Prompts: [AI prompts](ai-prompts.md).
 
+**Next (agreed 23 Oct 2026):** the [AI-first design](ai-first.md)
+([ADR 0008](decisions/0008-ai-first.md)) extends this layer so Wren can do
+everything a user can: one action layer shared by the forms and Wren, risk
+levels with Undo, skills, connectors and background work. It changes
+guarantee 2 below. This page describes what runs today; the AI-first design
+describes what each of its phases changes.
+
 Ambient's AI is a **platform inside the app**, not a set of hand-wired
 features. Every AI capability is a small *definition* (a feature, a tool, a
 fact source, a card, a trigger) and one **engine** runs every definition the
@@ -355,10 +362,14 @@ before the next.
 | 5. Wren chat (read-only) | `defineAiTool`, read tools, saved conversations, verified answers with cards | ✅ Built |
 | 6. Proposals | Propose tools, proposal cards, existing actions, idempotent Accept; follow-up suggestions after visit reports; the side panel | ✅ Built |
 | 7. Evaluation and feedback | `pnpm ai:eval` with fixed checks and a baseline gate, thumbs up/down, the admin AI report | ✅ Built (first real run on key day) |
-| Later | Natural-language filters, meeting prep, next best action, report narratives; email and meeting analysis and semantic search after capture | — |
+| AI-first A–G | The action layer, Wren doing the work, chat-first views, skills, connectors, background work, trust and admin ([plan](../plans/ai-first-plan.md)) | Agreed, next |
+| Later | Natural-language filters, next best action, report narratives; email and meeting analysis and semantic search after capture | — |
 
-Deliberately **not** built: agents that act without a click, fine-tuned
-models, anything that sends messages to customers.
+Deliberately **not** built (today): agents that act without a click, fine-tuned
+models, anything that sends messages to customers. The AI-first design
+(agreed) changes the first and last of these under strict rules: low-risk
+changes with Undo, and sending only as a confirmed, previewed, one-at-a-time
+action ([ADR 0008](decisions/0008-ai-first.md)).
 
 ## Code layout
 

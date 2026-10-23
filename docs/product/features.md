@@ -25,7 +25,7 @@ Planned (nothing yet). Everything not built is scheduled in the
 | Email and meeting capture | background workers | Planned (5.1) |
 | Review queue | `/review-queue` | Placeholder (5.2) |
 | Outlook add-in | Outlook task pane | Planned (5.5) |
-| Wren assistant | `/assistant` and the side panel | Built (AI, needs the OpenAI key) |
+| Wren assistant | `/assistant` and the side panel | Built (AI, needs the OpenAI key); doing everything by asking: AI-first A–G (agreed, next) |
 | Search (quick and semantic) | `/search` | Placeholder (page: 1.9; by meaning: 5.7) |
 | Morning brief | `/morning-brief` | Built (AI, needs the OpenAI key) |
 | Team overview, reports, CRM usage | `/team`, `/reports`, `/crm-usage` | Placeholder (1.6, 1.8, 1.7) |
@@ -223,8 +223,25 @@ need the OpenAI key (key day, 3.1):
 - **Follow-ups** (built): on your own visit reports, Follow-ups suggests up to
   three tasks from what the report commits to, skipping anything already a
   task; each is a proposal.
-- **Later:** natural-language filters, meeting prep, next best action; with
-  capture, analysed email on the timeline and search by meaning.
+- **Planned, AI-first (agreed, [plan](../plans/ai-first-plan.md)):** Wren
+  does everything you can, by asking:
+  - every read and change in the app (tasks, visits and reports, notes,
+    contacts, notifications, contracts, search), with small changes to your
+    own work done at once with **Undo** and anything touching others, many
+    records or the outside world confirmed first (A, B);
+  - multi-step requests shown as a plan you can stop, and questions asked
+    back as buttons (B);
+  - tables, calendars, charts and prefilled forms in the chat, a Wren home,
+    and preferences Wren remembers only when you ask (C);
+  - skills such as "prepare for my visit" or "renewal check", built in or
+    written by your admin (D);
+  - connectors: Microsoft 365 mail and calendar (draft, and send only on your
+    explicit Send), the ERP on demand, BI, approved MCP servers (E);
+  - background work that prepares things for your **Wren inbox** and never
+    changes anything on its own (F);
+  - admin controls, kill switches and an AI activity log (G).
+- **Later:** natural-language filters and next best action; with capture,
+  analysed email on the timeline and search by meaning.
 - **Controls:** off by default per tenant; an admin turns it on, picks the
   roles and features; monthly token budget and per-user rate limit.
 - **Feedback** (built): 👍 / 👎 on every summary, brief and chat answer, with a

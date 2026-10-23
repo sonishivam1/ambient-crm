@@ -12,7 +12,8 @@ here when it starts.
 
 | Plan | Area | Status |
 | --- | --- | --- |
-| [Completion plan: everything left for v1](completion-plan.md) | All | Agreed, scope frozen (22 Oct 2026) |
+| [Completion plan: everything left for v1](completion-plan.md) | All | Agreed, scope frozen (22 Oct 2026); change 1 agreed (23 Oct 2026) |
+| [AI-first plan: Wren can do everything the user can](ai-first-plan.md) | AI | Agreed, frozen (23 Oct 2026) |
 | [Wave 1.1: end-to-end tests](wave-1-1-end-to-end-tests.md) | Testing | ✅ Built |
 | [AI step 1: engine core](ai-step-1-engine-core.md) | AI | ✅ Built (`c36a1b7`) |
 | [Logger](logger.md) | Platform | ✅ Built |

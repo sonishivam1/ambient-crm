@@ -19,5 +19,11 @@
 | **Smart task** | A task Wren suggests from a captured conversation; a person accepts or dismisses it. |
 | **Next action** | A follow-up the AI found in a conversation, offered as a one-click task. |
 | **Wren** | Ambient's AI assistant. |
+| **Action** | One thing Ambient can do, a read or a change, shared by the forms and Wren (AI-first, planned). |
+| **Risk level** | How a change Wren makes is handled: read, low (done with Undo), medium (confirm), high (preview and confirm), or never by AI (planned). |
+| **Undo** | Reverses a low-risk change Wren made, for 24 hours while the record is unchanged (planned). |
+| **Skill** | A saved routine Wren runs on request, such as "prepare for my visit"; built in or written by an admin (planned). |
+| **Connector** | An outside system Wren can use, such as Microsoft 365 or the ERP (planned). |
+| **Wren inbox** | Where background work leaves what it found and prepared, for the user to approve (planned). |
 | **Scope** | What the signed-in user may see: their rep scope plus the division lens. Every query applies it. |
 | **Tenant** | One customer organisation using Ambient. All data is partitioned by tenant. |

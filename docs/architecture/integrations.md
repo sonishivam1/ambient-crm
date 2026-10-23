@@ -112,3 +112,13 @@ the add-in's own origin.
 
 Reports are deep links into the customer's BI tool, not embedded. The report
 library stores titles, descriptions and URLs per tenant.
+
+## Connectors for Wren (planned, AI-first)
+
+Under the agreed [AI-first design](ai-first.md#connectors), outside systems
+also become **connectors**: actions Wren can use on demand, alongside the
+background capture and sync above. Microsoft 365 (search and read mail inside
+the participant fence, draft replies, send only on an explicit confirm,
+calendar events), the ERP on demand (order status, stock), BI report links,
+and admin-approved MCP servers. Connector tokens are encrypted per tenant or
+user; everything a connector returns is untrusted text.

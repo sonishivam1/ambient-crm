@@ -7,7 +7,7 @@ working with AI assistance, not commitments.
 **This file is updated with every feature**, together with
 [features.md](features.md) and the README progress table.
 
-_Last updated: 22 Oct 2026 (Wave 1.1: end-to-end tests)._
+_Last updated: 23 Oct 2026 (the AI-first plan, agreed and frozen)._
 
 ## Where we are
 
@@ -22,6 +22,13 @@ other waves wait on the decisions below (hosting and sign-in, the OpenAI key,
 a warehouse data source, Microsoft 365 access). The data model and every
 query are already tenant-scoped and permission-checked, so nothing built so
 far depends on demo-only shortcuts except development sign-in.
+
+**Agreed and frozen (23 Oct 2026): the AI-first track.** Wren becomes able to do
+everything a user can by asking, in seven phases (A to G) before and alongside
+the remaining waves: [AI-first plan](../plans/ai-first-plan.md),
+[design](../architecture/ai-first.md),
+[ADR 0008](../architecture/decisions/0008-ai-first.md). Next: the OpenAI key
+arrives, key day runs, and phase A starts.
 
 | Status | Item | Phase |
 | --- | --- | --- |
@@ -48,7 +55,9 @@ far depends on demo-only shortcuts except development sign-in.
 | ✅ Done | AI step 6: proposals (tasks, visits, notes) accepted through the forms' code, follow-up suggestions from visit reports, the Wren side panel | 4 |
 | ✅ Done | AI step 7: evaluation harness with fixed checks and a baseline gate, 👍 / 👎 feedback, the admin AI usage report | 4 |
 | ✅ Done | Wave 1.1: end-to-end tests: Playwright in Chromium against the production build, every role, the main journeys and phone width, in CI on every push ([plan](../plans/wave-1-1-end-to-end-tests.md)) | 1 |
-| ⏭ Next | **Wave 1** (now): admin home, audit log, organisation settings, users and roles, view as; team overview, CRM usage, reports library; search page; in-app help; contract editing and renewal nudges; smaller gaps ([completion plan](../plans/completion-plan.md#wave-1-on-the-data-we-have-start-now)) | 1, 5 |
+| Agreed | **AI-first track**: A action layer · B Wren does the work · C chat-first · D skills · E connectors · F background work · G trust and admin ([plan](../plans/ai-first-plan.md)) | 4 |
+| ⏭ Next | **Key day** (the OpenAI key: real-model evaluation, model choice, baseline), then AI-first phase A | 4 |
+| Then | **Wave 1** (after AI-first B): admin home, audit log, organisation settings, users and roles, view as; team overview, CRM usage, reports library; search page; in-app help; contract editing and renewal nudges; smaller gaps ([completion plan](../plans/completion-plan.md#wave-1-on-the-data-we-have-start-now)) | 1, 5 |
 | Waiting on D1 | **Wave 2**: hosting and deployments, Entra ID sign-in, job runner (7am brief, renewal nudges), email digests, monitoring ([ADR 0005](../architecture/decisions/0005-hosting-and-sign-in.md), proposed) | 0 |
 | Waiting on D2 | **Wave 3**: AI key day: set the OpenAI key, run `pnpm ai:eval`, pick the model, save the baseline | 4 |
 | Waiting on D3 | **Wave 4**: warehouse and ERP sync with guardrails, sync health, sales, health, open orders and stock figures, contacts write-back | 1 |
@@ -56,6 +65,10 @@ far depends on demo-only shortcuts except development sign-in.
 | Later | **Wave 6**: security review, load and accessibility tests, pilot onboarding, go-live | 6 |
 
 ## Timeline
+
+The order now follows the AI-first plan's
+[timeline](../plans/ai-first-plan.md#timeline); the chart below is the order
+before it, kept for reference.
 
 ```mermaid
 gantt
@@ -104,7 +117,7 @@ gantt
 | 1 Data spine | Data model (**done** for current features), visibility rules (**done**), tenant settings (**done**), ERP/warehouse sync with guardrails | Each role sees exactly the right accounts on real-shaped data |
 | 2 Core CRM | Dashboard, accounts, profile, group page, tasks, contacts, call cycle, notifications, contracts (**done**) | Product demo sign-off on every core page |
 | 3 Passive capture | Email and meeting workers, matcher, review queue, backfill, Outlook add-in | Test mailboxes captured end to end with no manual step |
-| 4 AI layer | Steps 1–7 on existing data (engine core, fact sources and cards, account summary, morning brief, Wren chat, proposals and follow-up suggestions, evaluation and feedback); then email and meeting analysis, embeddings and semantic search after capture | Evaluation set passes on the real model (key day); AI outputs reviewed on test mail; cost per user within budget |
+| 4 AI layer | Steps 1–7 on existing data (**done**: engine core, fact sources and cards, account summary, morning brief, Wren chat, proposals and follow-up suggestions, evaluation and feedback); then the AI-first track, phases A to G (agreed); email and meeting analysis, embeddings and semantic search after capture | Evaluation set passes on the real model (key day); AI outputs reviewed on test mail; cost per user within budget |
 | 5 Manager and admin | Team overview, reports, CRM usage, sync health, audit, view-as | Manager and admin acceptance testing |
 | 6 Launch | Security review, load test, monitoring, pilot customer, onboarding | Go-live approval for the pilot tenant |
 
@@ -122,6 +135,10 @@ Details and proposals are in the [completion plan](../plans/completion-plan.md#d
 | D6 | Email provider | Email digests (Wave 2) |
 | D7 | BI tool and report links | Reports library (Wave 1) |
 | D8 | Whether CRM usage tracks logins and page views | CRM usage (Wave 1) |
+
+D9 to D14 (the AI-first decisions) were agreed on 23 Oct 2026 as proposed in
+the [AI-first plan](../plans/ai-first-plan.md#decisions); D14's model choice is
+made on key day.
 
 ## After v1
 

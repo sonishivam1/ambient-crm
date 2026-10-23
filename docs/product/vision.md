@@ -42,6 +42,11 @@ flowchart LR
 5. **The warehouse owns history, Ambient owns activity.** Sales, orders and
    account records come from the customer's systems of record. Ambient owns what
    people do: tasks, visits, notes, contacts and captured conversations.
+6. **Ask, don't click.** Anything a person can do in Ambient, they can ask
+   Wren to do, with the same rights and the same rules. Small changes to your
+   own work happen at once and can be undone; anything else waits for your
+   yes. Pages remain for browsing, not as the only way in
+   ([AI-first design](../architecture/ai-first.md)).
 
 ## What success looks like
 

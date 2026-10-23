@@ -24,6 +24,13 @@ must respect.
   (key day: set the key, run `pnpm ai:eval`, save the baseline); until then
   tests use the test-only stand-in (`tests/support/ai-stand-in.ts`). Any prompt
   or model change: `pnpm ai:eval` then `pnpm ai:eval:compare`.
+- **Agreed and frozen (23 Oct 2026): the AI-first track**
+  ([plan](docs/plans/ai-first-plan.md), [design](docs/architecture/ai-first.md),
+  [ADR 0008](docs/architecture/decisions/0008-ai-first.md)): Wren can do
+  everything the user can, through one action layer shared with the forms.
+  Until its phase A is built, the AI rules below apply unchanged. Build it
+  only after key day has run, phase by phase, each with its own step plan;
+  changes go in the plan's "Changes after the freeze" table first.
 - **What's left:** the [completion plan](docs/plans/completion-plan.md): every
   unbuilt page and feature as work packages in waves. Wave 1 (end-to-end
   tests; admin, settings, users, view as; team overview, CRM usage, reports;

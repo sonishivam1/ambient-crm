@@ -13,7 +13,7 @@ code and a document disagree, the code is right and the document needs fixing.
 | Folder | Read it when you want to know… | Documents |
 | --- | --- | --- |
 | [product/](product/) | what we are building, for whom, and in what order | [Vision](product/vision.md) · [Personas](product/personas.md) · [Features](product/features.md) · [Roadmap](product/roadmap.md) · [Glossary](product/glossary.md) |
-| [architecture/](architecture/) | how the system fits together and why | [Overview](architecture/overview.md) · [Data model](architecture/data-model.md) · [Security and access](architecture/security.md) · [Integrations](architecture/integrations.md) · [AI layer](architecture/ai.md) · [AI prompts](architecture/ai-prompts.md) · [Decisions](architecture/decisions/) |
+| [architecture/](architecture/) | how the system fits together and why | [Overview](architecture/overview.md) · [Data model](architecture/data-model.md) · [Security and access](architecture/security.md) · [Integrations](architecture/integrations.md) · [AI layer](architecture/ai.md) · [AI-first design](architecture/ai-first.md) · [AI prompts](architecture/ai-prompts.md) · [Decisions](architecture/decisions/) |
 | [design/](design/) | how the product looks and behaves | [Design system](design/design-system.md) |
 | [engineering/](engineering/) | how to work in the codebase | [Getting started](engineering/getting-started.md) · [Conventions](engineering/conventions.md) · [Testing](engineering/testing.md) · [Git workflow](engineering/git-workflow.md) · [Build log](engineering/build-log.md) |
 | [plans/](plans/) | what each step set out to build, and what was built | [Plans](plans/README.md) |

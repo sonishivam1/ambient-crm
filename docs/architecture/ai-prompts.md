@@ -333,3 +333,11 @@ report. Each case has fixed checks on what the user would see (no model
 grades another). `pnpm ai:eval` scores each feature; `pnpm ai:eval:compare`
 fails when any feature scores below `evals/baseline.json`. A prompt or model
 change that scores lower does not ship.
+
+## Planned: AI-first
+
+Under the agreed [AI-first design](ai-first.md), tool descriptions come from
+the action registry and stay checked word for word against this page; the
+policy and chat prompts get new versions for write tools, tool groups, plans
+and asking back; each built-in skill gets its own versioned prompt. Each lands
+here with its phase.
